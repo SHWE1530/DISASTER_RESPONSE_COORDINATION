@@ -1,2 +1,2 @@
 # DISASTER_RESPONSE_COORDINATION
-An AI-powered environmental monitoring and early-warning platform for detecting and predicting floods, forest fires, pollution events, and other environmental hazards through multi-source data fusion, localized risk assessment, explainable AI, and actionable alerts.
+An autonomous multi-agent AI system for urban disaster response that combines ML, Deep Learning, NLP, SLMs, Generative AI, and Agentic AI to detect hazards, analyze crisis data, predict risks, generate tactical insights, and autonomously coordinate emergency resources with human override controls.
