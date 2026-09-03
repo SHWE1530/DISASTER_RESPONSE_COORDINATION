@@ -1,0 +1,14 @@
+{
+  "contract_version": "PENDING TEAM INPUT",
+  "owner": "ML Engineer",
+  "status": "PENDING TEAM INPUT",
+  "model_artifact_reference": "PENDING TEAM INPUT",
+  "model_version": "PENDING TEAM INPUT",
+  "input_schema": "PENDING TEAM INPUT",
+  "feature_order": "PENDING TEAM INPUT",
+  "preprocessing_definition": "PENDING TEAM INPUT",
+  "target_definition": "PENDING TEAM INPUT",
+  "output_schema": "PENDING TEAM INPUT",
+  "risk_formula_and_thresholds": "PENDING TEAM INPUT",
+  "inference_requirements": "PENDING TEAM INPUT"
+}
