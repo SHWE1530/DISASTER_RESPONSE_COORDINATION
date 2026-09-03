@@ -1,0 +1,142 @@
+[
+    {
+        "zone": "Balasore",
+        "state": "Odisha",
+        "timestamp": "2025-11-30 08:00:00",
+        "actual_risk": "Severe",
+        "risk_category": "Severe",
+        "risk_score": 1.0,
+        "confidence": 1.0,
+        "top_factors": [
+            "river_level_m",
+            "population_affected",
+            "road_closures"
+        ]
+    },
+    {
+        "zone": "Kolhapur",
+        "state": "Maharashtra",
+        "timestamp": "2025-11-30 09:00:00",
+        "actual_risk": "Moderate",
+        "risk_category": "Moderate",
+        "risk_score": 0.1378,
+        "confidence": 0.8622,
+        "top_factors": [
+            "river_level_m",
+            "river_level_margin_m",
+            "bridge_closures"
+        ]
+    },
+    {
+        "zone": "Gorakhpur",
+        "state": "Uttar Pradesh",
+        "timestamp": "2025-11-30 10:00:00",
+        "actual_risk": "Severe",
+        "risk_category": "Severe",
+        "risk_score": 1.0,
+        "confidence": 1.0,
+        "top_factors": [
+            "river_level_m",
+            "road_closures",
+            "river_level_margin_m"
+        ]
+    },
+    {
+        "zone": "Bhagalpur",
+        "state": "Bihar",
+        "timestamp": "2025-11-30 11:00:00",
+        "actual_risk": "Moderate",
+        "risk_category": "Moderate",
+        "risk_score": 0.0001,
+        "confidence": 0.9999,
+        "top_factors": [
+            "bridge_closures",
+            "river_level_m",
+            "population_affected"
+        ]
+    },
+    {
+        "zone": "Madurai",
+        "state": "Tamil Nadu",
+        "timestamp": "2025-11-30 12:00:00",
+        "actual_risk": "Severe",
+        "risk_category": "Severe",
+        "risk_score": 1.0,
+        "confidence": 1.0,
+        "top_factors": [
+            "river_level_ratio",
+            "river_level_m",
+            "river_level_margin_m"
+        ]
+    },
+    {
+        "zone": "Thrissur",
+        "state": "Kerala",
+        "timestamp": "2025-11-30 13:00:00",
+        "actual_risk": "Severe",
+        "risk_category": "Severe",
+        "risk_score": 1.0,
+        "confidence": 1.0,
+        "top_factors": [
+            "water_level_change_m",
+            "emergency_calls",
+            "population_affected"
+        ]
+    },
+    {
+        "zone": "Alappuzha",
+        "state": "Kerala",
+        "timestamp": "2025-11-30 14:00:00",
+        "actual_risk": "Severe",
+        "risk_category": "Severe",
+        "risk_score": 1.0,
+        "confidence": 1.0,
+        "top_factors": [
+            "flood_history_count",
+            "water_level_change_m",
+            "rainfall_mm"
+        ]
+    },
+    {
+        "zone": "Muzaffarpur",
+        "state": "Bihar",
+        "timestamp": "2025-11-30 15:00:00",
+        "actual_risk": "Severe",
+        "risk_category": "Severe",
+        "risk_score": 1.0,
+        "confidence": 1.0,
+        "top_factors": [
+            "river_level_m",
+            "population_affected",
+            "water_level_change_m"
+        ]
+    },
+    {
+        "zone": "Tiruppur",
+        "state": "Tamil Nadu",
+        "timestamp": "2025-11-30 16:00:00",
+        "actual_risk": "Moderate",
+        "risk_category": "Moderate",
+        "risk_score": 0.0,
+        "confidence": 1.0,
+        "top_factors": [
+            "river_level_m",
+            "bridge_closures",
+            "district_Tiruppur"
+        ]
+    },
+    {
+        "zone": "Mumbai",
+        "state": "Maharashtra",
+        "timestamp": "2025-11-30 17:00:00",
+        "actual_risk": "Severe",
+        "risk_category": "Severe",
+        "risk_score": 0.9981,
+        "confidence": 0.9981,
+        "top_factors": [
+            "river_level_m",
+            "road_closures",
+            "water_level_change_m"
+        ]
+    }
+]
