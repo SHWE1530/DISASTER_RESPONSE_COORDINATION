@@ -1,0 +1,12 @@
+timestamp,state,district,rainfall_mm,river_level_m,river_level_threshold_m,emergency_calls,road_closures,bridge_closures,flood_history_count,population_affected,water_level_change_m,zone_risk,above_river_threshold
+2025-05-10 16:00:00,West Bengal,Howrah,16.3,2.6,5.67,28,0,2.0,4,1131.0,1.1,Severe,False
+2025-05-29 21:00:00,Maharashtra,Nagpur,8.74,2.37,5.12,27,3,0.0,8,1720.0,0.8,Severe,False
+2025-05-30 01:00:00,Odisha,Kendrapara,6.4,1.47,6.17,28,1,2.5,4,454.0,1.28,Severe,False
+2025-08-11 04:00:00,Uttar Pradesh,Lucknow,14.42,2.48,6.39,29,1,2.0,5,1060.0,1.06,Severe,False
+2025-09-29 15:00:00,Uttar Pradesh,Varanasi,7.53,1.96,4.93,26,5,1.0,5,601.0,1.33,Severe,False
+2025-10-10 09:00:00,Odisha,Kendrapara,8.71,2.62,4.39,28,2,2.5,7,1040.0,0.95,Severe,False
+2025-11-26 09:00:00,Bihar,Gaya,19.32,2.19,5.06,31,1,1.0,7,1063.0,0.96,Severe,False
+2025-12-09 20:00:00,Karnataka,Udupi,19.84,2.2,4.73,23,4,1.0,7,1614.0,0.48,Severe,False
+2025-12-11 23:00:00,Tamil Nadu,Coimbatore,13.32,2.06,6.26,25,5,0.0,8,2178.0,0.78,Severe,False
+2025-12-19 12:00:00,Assam,Barpeta,7.78,2.84,4.99,20,1,1.0,8,704.0,1.49,Severe,False
+2025-12-23 09:00:00,Gujarat,Rajkot,5.24,2.51,6.53,30,2,1.0,8,1805.0,0.29,Severe,False
