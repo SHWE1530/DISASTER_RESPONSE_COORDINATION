@@ -1,7 +1,7 @@
 {
     "model_selected": "Logistic_Regression",
     "is_calibrated": false,
-    "dataset_used": "C:\\ML ENGINEER\\DISASTER_RESPONSE_COORDINATION\\Stage01_ML\\data\\outputs\\pattern\\eda_checked_dataset.csv",
+    "dataset_used": "C:\\Users\\asus\\DISASTER_RESPONSE_COORDINATION\\DISASTER_RESPONSE_COORDINATION\\Stage01_ML\\data\\outputs\\pattern\\eda_checked_dataset.csv",
     "split_strategy": "Chronological 80/20 Time-Aware Split",
     "train_samples": 8000,
     "validation_samples": 2000,
