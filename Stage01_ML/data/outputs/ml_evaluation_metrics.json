@@ -1,47 +1,58 @@
 {
-    "model_selected": "Logistic_Regression",
-    "is_calibrated": false,
-    "dataset_used": "C:\\Users\\asus\\DISASTER_RESPONSE_COORDINATION\\DISASTER_RESPONSE_COORDINATION\\Stage01_ML\\data\\outputs\\pattern\\eda_checked_dataset.csv",
-    "split_strategy": "Chronological 80/20 Time-Aware Split",
-    "train_samples": 8000,
-    "validation_samples": 2000,
+    "model_selected": "XGBoost",
+    "dataset_used": "C:\\ML ENGINEER\\DISASTER_RESPONSE_COORDINATION\\Stage01_ML\\data\\outputs\\pattern\\eda_checked_dataset.csv",
+    "split_strategy": "Chronological 70/15/15 Train/Validation/Held-out Test Split",
+    "train_samples": 7000,
+    "validation_samples": 1500,
+    "held_out_test_samples": 1500,
+    "dependencies_available": {
+        "xgboost": true,
+        "lightgbm": true
+    },
     "validation_metrics": {
-        "accuracy": 0.97,
-        "macro_f1": 0.9115640170096143,
-        "weighted_f1": 0.9707129868928358,
-        "severe_recall": 0.9760956175298805,
-        "severe_precision": 0.9945872801082544,
-        "severe_f1": 0.985254691689008,
-        "log_loss": 0.0749475396195891
+        "accuracy": 0.9566666666666667,
+        "macro_f1": 0.8452293285371804,
+        "weighted_f1": 0.9553373122866176,
+        "severe_recall": 0.9840425531914894,
+        "severe_precision": 0.9728308501314636,
+        "severe_f1": 0.9784045835169678,
+        "log_loss": 0.09982645511627197
     },
     "candidate_benchmarks": {
-        "Baseline_Stratified": {
-            "accuracy": 0.6225,
-            "macro_f1": 0.3380076306174129,
-            "severe_recall": 0.7556440903054449,
-            "severe_precision": 0.7561461794019934,
-            "log_loss": 13.606479154391723
-        },
         "Logistic_Regression": {
-            "accuracy": 0.97,
-            "macro_f1": 0.9115640170096143,
-            "severe_recall": 0.9760956175298805,
-            "severe_precision": 0.9945872801082544,
-            "log_loss": 0.0749475396195891
+            "accuracy": 0.9706666666666667,
+            "macro_f1": 0.9113883070478107,
+            "severe_recall": 0.9787234042553191,
+            "severe_precision": 0.9936993699369937,
+            "log_loss": 0.07762818827464874
         },
         "Random_Forest": {
-            "accuracy": 0.9095,
-            "macro_f1": 0.7444219092838682,
-            "severe_recall": 0.9103585657370518,
-            "severe_precision": 0.9856218547807333,
-            "log_loss": 0.21050544579021369
+            "accuracy": 0.9146666666666666,
+            "macro_f1": 0.7068233572852879,
+            "severe_recall": 0.924645390070922,
+            "severe_precision": 0.9821092278719398,
+            "log_loss": 0.20455829950509935
         },
-        "Extra_Trees": {
-            "accuracy": 0.937,
-            "macro_f1": 0.7046883848874036,
-            "severe_recall": 0.9687915006640107,
-            "severe_precision": 0.9681486396814863,
-            "log_loss": 0.1994681031608226
+        "XGBoost": {
+            "accuracy": 0.9566666666666667,
+            "macro_f1": 0.8452293285371804,
+            "severe_recall": 0.9840425531914894,
+            "severe_precision": 0.9728308501314636,
+            "log_loss": 0.09982645511627197
+        },
+        "LightGBM": {
+            "accuracy": 0.962,
+            "macro_f1": 0.8683268877541842,
+            "severe_recall": 0.973404255319149,
+            "severe_precision": 0.9900811541929666,
+            "log_loss": 0.08980236712354414
+        },
+        "Stacking_Ensemble": {
+            "accuracy": 0.9526666666666667,
+            "macro_f1": 0.8395737133538045,
+            "severe_recall": 0.9707446808510638,
+            "severe_precision": 0.9909502262443439,
+            "log_loss": 0.13536294273574342
         }
     }
 }
