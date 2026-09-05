@@ -1,5 +1,5 @@
 """
-STAGE 01 - ML ENGINEER
+STAGE 01 - ML ENGINEER (UPGRADED STACKING PIPELINE & INDEPENDENT TEST SET)
 Building an Autonomous, Multi-Agent Decision Engine for Urban Crises
 Mission: Transform continuous disaster-related information into zone-level risk triage.
 
@@ -11,6 +11,8 @@ Outputs:
   - Stage01_ML/data/outputs/feature_importance.csv
   - Stage01_ML/data/outputs/ml_integration_contract_sample.json
   - Stage01_ML/data/outputs/confusion_matrix.png
+  - Stage01_ML/data/test/X_test.csv  (Held-out for Evaluation Engineer)
+  - Stage01_ML/data/test/y_test.csv  (Held-out for Evaluation Engineer)
 
 STRICT BOUNDARY: Modifies ONLY 03_ml_engineer.py.
 """
@@ -25,12 +27,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.base import clone
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
-from sklearn.calibration import CalibratedClassifierCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import (
     accuracy_score,
     f1_score,
@@ -42,39 +45,60 @@ from sklearn.metrics import (
     confusion_matrix
 )
 
+# Verify XGBoost and LightGBM availability
+try:
+    from xgboost import XGBClassifier
+    XGB_AVAILABLE = True
+except ImportError:
+    XGB_AVAILABLE = False
+
+try:
+    from lightgbm import LGBMClassifier
+    LGBM_AVAILABLE = True
+except ImportError:
+    LGBM_AVAILABLE = False
+
+
 # ============================================================
 # 1. PATHS & REPRODUCIBILITY CONFIGURATION
 # ============================================================
 """
 WHAT THIS DOES:
-  Defines explicit, relative workspace paths and sets a random seed (42).
+  Defines relative workspace paths and fixes random seeds (42).
 
 WHY WE NEED IT:
-  Ensures the script runs smoothly in any system directory and produces 100%
-  reproducible train/test metrics across runs.
+  Ensures reproducible train/val/test splits and consistent model benchmarks across environments.
 
 WHAT HAPPENS WITHOUT IT:
-  Hardcoded paths break when moved across machines, and unseeded models produce
-  varying metric results, failing scientific auditability.
+  Unseeded models produce varying evaluation metrics, breaking scientific auditability.
 
 HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We established clear project path boundaries and fixed random seeds to guarantee
-  reproducibility across team environments."
+  "We fixed random state=42 and configured strict workspace paths for reproducible execution."
 """
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_PATH = BASE_DIR / "data" / "outputs" / "pattern" / "eda_checked_dataset.csv"
 MODEL_DIR = BASE_DIR / "data" / "models"
 OUTPUT_DIR = BASE_DIR / "data" / "outputs"
+TEST_DIR = BASE_DIR / "data" / "test"
 
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+TEST_DIR.mkdir(parents=True, exist_ok=True)
 
 RANDOM_STATE = 42
 
 print("=" * 70)
-print("STAGE 01 - ML ENGINEER: DISASTER RISK PREDICTION ENGINE")
+print("STAGE 01 - ML ENGINEER: UPGRADED STACKING & INDEPENDENT TEST PIPELINE")
 print("=" * 70)
+
+if not XGB_AVAILABLE or not LGBM_AVAILABLE:
+    missing = []
+    if not XGB_AVAILABLE: missing.append("xgboost")
+    if not LGBM_AVAILABLE: missing.append("lightgbm")
+    raise ImportError(f"CRITICAL DEPENDENCY MISSING: {missing}. Cannot proceed with stacking ensemble without dependencies.")
+
+print("[DEPENDENCY CHECK] XGBoost and LightGBM are successfully installed and available.")
 
 
 # ============================================================
@@ -82,16 +106,16 @@ print("=" * 70)
 # ============================================================
 """
 WHAT THIS DOES:
-  Loads eda_checked_dataset.csv and validates required columns and target labels.
+  Loads eda_checked_dataset.csv and verifies required feature columns and target labels.
 
 WHY WE NEED IT:
-  Ensures inputs match the official contract before executing training.
+  Guarantees dataset schema compatibility before training.
 
 WHAT HAPPENS WITHOUT IT:
-  A schema mismatch or missing feature silently fails or produces corrupt predictions.
+  Schema mismatches or missing columns produce unexpected runtime errors.
 
 HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We perform defensive schema validation at startup to ensure input integrity."
+  "We perform defensive schema validation at dataset ingestion."
 """
 
 if not DATA_PATH.exists():
@@ -99,7 +123,7 @@ if not DATA_PATH.exists():
 
 print(f"\n[STEP 1] Loading official EDA-approved dataset from:\n  {DATA_PATH}")
 df = pd.read_csv(DATA_PATH)
-print(f"Dataset Loaded. Initial Shape: {df.shape[0]} rows, {df.shape[1]} columns")
+print(f"Dataset Loaded. Shape: {df.shape[0]} rows, {df.shape[1]} columns")
 
 required_columns = [
     "timestamp", "state", "district", "rainfall_mm", "river_level_m",
@@ -114,7 +138,7 @@ if missing_cols:
 
 target_labels = sorted(df["zone_risk"].unique().tolist())
 expected_labels = ["Low", "Moderate", "Severe"]
-print(f"\n[SCHEMA CHECK] Verified target labels present: {target_labels}")
+print(f"[SCHEMA CHECK] Verified target labels: {target_labels}")
 
 
 # ============================================================
@@ -122,32 +146,28 @@ print(f"\n[SCHEMA CHECK] Verified target labels present: {target_labels}")
 # ============================================================
 """
 WHAT THIS DOES:
-  Sorts observations by timestamp and creates domain features:
-    - river_level_margin_m: Delta between river level and danger threshold.
-    - river_level_ratio: Ratio of river level relative to threshold.
-    - hour, month, dayofweek, is_monsoon: Temporal signals.
+  Sorts rows chronologically by timestamp and constructs domain features:
+    - river_level_margin_m: river_level_m - river_level_threshold_m
+    - river_level_ratio: river_level_m / (river_level_threshold_m + 1e-5)
+    - hour, month, dayofweek, is_monsoon: temporal signals derived from timestamp.
 
 WHY WE NEED IT:
-  Disaster incidents are temporal sequence events. River margin directly captures
-  critical threshold breaches identified during EDA.
+  Disaster events develop over time. River level deltas capture physical hazard thresholds.
 
 WHAT HAPPENS WITHOUT IT:
-  Unsorted data leads to temporal lookahead leakage during train/val split, and
-  raw river level without threshold context misses key physical hazard signals.
+  Unsorted data introduces lookahead data leakage, and raw river levels lack local threshold context.
 
 HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We sort chronologically to respect disaster progression and construct river margin
-  delta features as highlighted during EDA threshold analysis."
+  "We sort chronologically and construct river margin deltas to represent physical flood risk thresholds."
 """
 
 print("\n[STEP 2] Sorting dataset chronologically and engineering features...")
 df["timestamp"] = pd.to_datetime(df["timestamp"], format="%d-%m-%Y %H:%M", errors="coerce")
 if df["timestamp"].isnull().sum() > 0:
-    print("Warning: Standardizing parsed timestamp with fallback formatting...")
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
 df = df.sort_values("timestamp").reset_index(drop=True)
-print(f"Time Range: {df['timestamp'].min()}  -->  {df['timestamp'].max()}")
+print(f"Dataset Time Range: {df['timestamp'].min()}  -->  {df['timestamp'].max()}")
 
 # Domain-specific feature engineering
 df["river_level_margin_m"] = df["river_level_m"] - df["river_level_threshold_m"]
@@ -162,7 +182,6 @@ target_map = {"Low": 0, "Moderate": 1, "Severe": 2}
 inv_target_map = {0: "Low", 1: "Moderate", 2: "Severe"}
 df["target"] = df["zone_risk"].map(target_map)
 
-# Feature separation
 feature_cols_num = [
     "rainfall_mm", "river_level_m", "river_level_threshold_m",
     "river_level_margin_m", "river_level_ratio", "emergency_calls",
@@ -172,68 +191,94 @@ feature_cols_num = [
 ]
 feature_cols_cat = ["state", "district"]
 
-X = df[feature_cols_num + feature_cols_cat]
+# Metadata & Feature Matrix
+X_raw = df[["timestamp"] + feature_cols_cat + feature_cols_num]
+X_features = df[feature_cols_num + feature_cols_cat]
 y = df["target"]
+y_labels = df["zone_risk"]
 
 
 # ============================================================
-# 4. CHRONOLOGICAL 80/20 TRAIN/VALIDATION SPLIT (ZERO LEAKAGE)
-# ============================================================
-"""
-WHAT THIS DOES:
-  Splits the dataset sequentially: First 80% for Training (8,000 samples),
-  Final 20% for Validation/Testing (2,001 samples). NO SHUFFLING.
-
-WHY WE NEED IT:
-  In crisis response, past observations predict future incidents. Random splitting
-  leaks future flood information into past predictions.
-
-WHAT HAPPENS WITHOUT IT:
-  Random k-fold validation yields overly optimistic accuracy metrics that fail
-  when deployed on future disaster events.
-
-HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We use a time-aware 80/20 chronological split to simulate real-world disaster
-  forecasting without temporal data leakage."
-"""
-
-print("\n[STEP 3] Executing Time-Aware Chronological 80/20 Split (No Shuffling)...")
-split_idx = int(len(df) * 0.80)
-
-X_train, X_test = X.iloc[:split_idx].copy(), X.iloc[split_idx:].copy()
-y_train, y_test = y.iloc[:split_idx].copy(), y.iloc[split_idx:].copy()
-df_test = df.iloc[split_idx:].copy()
-
-print(f"Training Set Size   : {len(X_train)} samples ({len(X_train)/len(df)*100:.1f}%)")
-print(f"Validation Set Size : {len(X_test)} samples ({len(X_test)/len(df)*100:.1f}%)")
-
-print("\nTrain Class Distribution:")
-for k, v in y_train.value_counts().sort_index().items():
-    print(f"  Class {k} ({inv_target_map[k]}): {v} ({v/len(y_train)*100:.2f}%)")
-
-print("Validation Class Distribution:")
-for k, v in y_test.value_counts().sort_index().items():
-    print(f"  Class {k} ({inv_target_map[k]}): {v} ({v/len(y_test)*100:.2f}%)")
-
-
-# ============================================================
-# 5. PREPROCESSING PIPELINE (FITTED ONLY ON TRAIN DATA)
+# 4. THREE-WAY CHRONOLOGICAL TRAIN / VALIDATION / TEST SPLIT
 # ============================================================
 """
 WHAT THIS DOES:
-  Defines a ColumnTransformer with StandardScaler for numericals and OneHotEncoder
-  for categoricals, fitted strictly on X_train.
+  Splits data chronologically into 3 partitions without shuffling:
+    - TRAIN (70% = 7,000 samples): For model fitting and Out-Of-Fold meta-training.
+    - VALIDATION (15% = 1,500 samples): For candidate model benchmarking & final model selection.
+    - TEST (15% = 1,500 samples): Completely held out for the Evaluation Engineer.
 
 WHY WE NEED IT:
-  Prevents feature scaling parameters (mean, std) or categorical levels from
-  leaking validation set statistics into the training pipeline.
+  Strictly holding out the test set guarantees that tuning, stacking meta-training, and model selection
+  do not leak test information.
 
 WHAT HAPPENS WITHOUT IT:
-  Fitting scaling transformers across the full dataset causes data leakage.
+  Evaluating model selection choices on test data causes optimistic bias and invalidates independent auditing.
 
 HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "Preprocessing transformers are fitted exclusively on the 80% train partition to maintain
-  strict isolation of held-out validation data."
+  "We maintain 3 chronological partitions (70% Train, 15% Validation, 15% Test). The test set is completely
+  held out for Stage 04 Evaluation Engineer."
+"""
+
+print("\n[STEP 3] Executing 3-Way Chronological Train/Validation/Test Split (70/15/15, No Shuffling)...")
+
+total_n = len(df)
+train_end = int(total_n * 0.70)      # 7,000 samples
+val_end = int(total_n * 0.85)        # 1,500 samples for validation (7000 to 8500)
+                                     # 1,500 samples for test (8500 to 10000)
+
+# Feature splits
+X_train, y_train = X_features.iloc[:train_end].copy(), y.iloc[:train_end].copy()
+X_val, y_val = X_features.iloc[train_end:val_end].copy(), y.iloc[train_end:val_end].copy()
+X_test_feat, y_test_feat = X_features.iloc[val_end:].copy(), y.iloc[val_end:].copy()
+
+df_val = df.iloc[train_end:val_end].copy()
+df_test_raw = df.iloc[val_end:].copy()
+
+print(f"Train Set Size      : {len(X_train)} samples ({len(X_train)/total_n*100:.1f}%)")
+print(f"Validation Set Size : {len(X_val)} samples ({len(X_val)/total_n*100:.1f}%)")
+print(f"Held-Out Test Size  : {len(X_test_feat)} samples ({len(X_test_feat)/total_n*100:.1f}%)")
+
+# Export Independent Test Set Files for Evaluation Engineer
+raw_test_feature_cols = [
+    "timestamp", "state", "district", "rainfall_mm", "river_level_m",
+    "river_level_threshold_m", "emergency_calls", "road_closures",
+    "bridge_closures", "flood_history_count", "population_affected",
+    "water_level_change_m"
+]
+X_test_export = df_test_raw[raw_test_feature_cols].copy()
+# Format timestamp as string for portable export
+X_test_export["timestamp"] = X_test_export["timestamp"].dt.strftime("%d-%m-%Y %H:%M")
+
+y_test_export = pd.DataFrame({"zone_risk": df_test_raw["zone_risk"].values})
+
+x_test_file = TEST_DIR / "X_test.csv"
+y_test_file = TEST_DIR / "y_test.csv"
+
+X_test_export.to_csv(x_test_file, index=False)
+y_test_export.to_csv(y_test_file, index=False)
+
+print(f"\n[TEST SET EXPORTED]")
+print(f"  X_test.csv saved: {x_test_file} (Shape: {X_test_export.shape})")
+print(f"  y_test.csv saved: {y_test_file} (Shape: {y_test_export.shape})")
+
+
+# ============================================================
+# 5. PREPROCESSING PIPELINE (FITTED ONLY ON TRAIN SET)
+# ============================================================
+"""
+WHAT THIS DOES:
+  Defines ColumnTransformer with StandardScaler (numericals) and OneHotEncoder (categoricals),
+  fitted EXCLUSIVELY on X_train.
+
+WHY WE NEED IT:
+  Prevents feature mean/std or district category levels in validation/test sets from leaking into training.
+
+WHAT HAPPENS WITHOUT IT:
+  Fitting preprocessors across the full dataset causes data leakage.
+
+HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
+  "Preprocessing transformers are fitted only on the 70% training partition."
 """
 
 print("\n[STEP 4] Fitting Preprocessing Pipeline on Training Data ONLY...")
@@ -245,243 +290,306 @@ preprocessor = ColumnTransformer(
 )
 
 X_train_prep = preprocessor.fit_transform(X_train)
-X_test_prep = preprocessor.transform(X_test)
+X_val_prep = preprocessor.transform(X_val)
+X_test_prep = preprocessor.transform(X_test_feat)
 
-# Extract encoded feature names for explainability
 cat_feature_names = list(preprocessor.named_transformers_['cat'].get_feature_names_out(feature_cols_cat))
 all_feature_names = feature_cols_num + cat_feature_names
 
-print(f"Preprocessed Feature Matrix Shape: Train {X_train_prep.shape}, Test {X_test_prep.shape}")
+print(f"Preprocessed Matrix Shapes -> Train: {X_train_prep.shape}, Val: {X_val_prep.shape}, Test: {X_test_prep.shape}")
 
 
 # ============================================================
-# 6. CANDIDATE MODEL BENCHMARKING & SELECTION
+# 6. BASE MODELS & STACKING ENSEMBLE BUILDER (OOF PREDICTIONS)
 # ============================================================
 """
 WHAT THIS DOES:
-  Trains baseline and candidate classifiers on training data and evaluates them
-  on the held-out 20% validation set across Severe Recall, Severe Precision,
-  Macro F1, Accuracy, and Log-Loss.
+  Defines 3 diverse base learners (Random Forest, XGBoost, LightGBM) and a Stacking Ensemble:
+    1. Uses 5-Fold Stratified K-Fold CV on the training partition to generate Out-Of-Fold (OOF) prediction probabilities.
+    2. Trains a Logistic Regression meta-learner on the 5-fold OOF probability matrix.
+    3. Refits base learners on the complete training set to generate validation and test meta-features.
 
 WHY WE NEED IT:
-  We do not guess the best algorithm; we benchmark defensible candidates
-  focusing on operational disaster utility (Severe Recall & Macro F1).
+  Training a meta-learner on in-fold base predictions leads to severe overfitting. OOF predictions ensure
+  the meta-learner learns how base models perform on unseen samples.
 
 WHAT HAPPENS WITHOUT IT:
-  Arbitrarily picking a model without comparison risks selecting a model that suffers
-  from severe class under-detection or poor probability calibration.
+  In-fold meta-training causes the meta-learner to over-trust overfitted base model predictions.
 
 HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We compared a Stratified Baseline, Logistic Regression, Random Forest, and Extra Trees
-  using balanced class weights to maximize Severe recall without sacrificing overall Macro F1."
+  "We use 5-fold Out-Of-Fold cross-validation on the training set to train our Logistic Regression meta-learner,
+  preventing meta-model leakage and overfitting."
+"""
+
+print("\n[STEP 5] Building Base Models & Stacking Ensemble with Out-Of-Fold (OOF) Predictions...")
+
+def get_base_models():
+    return {
+        "Random_Forest": RandomForestClassifier(n_estimators=100, class_weight="balanced", random_state=RANDOM_STATE),
+        "XGBoost": XGBClassifier(n_estimators=100, eval_metric="mlogloss", random_state=RANDOM_STATE),
+        "LightGBM": LGBMClassifier(n_estimators=100, class_weight="balanced", random_state=RANDOM_STATE, verbose=-1)
+    }
+
+# Class to encapsulate Stacking Model logic cleanly
+class StackingEnsembleModel:
+    def __init__(self, base_models_dict, meta_model, random_state=42):
+        self.base_models_dict = base_models_dict
+        self.meta_model = meta_model
+        self.random_state = random_state
+        self.fitted_base_models = {}
+        self.classes_ = np.array([0, 1, 2])
+
+    def fit_oof_and_meta(self, X_tr, y_tr, n_splits=5):
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=self.random_state)
+        n_samples = len(X_tr)
+        n_base = len(self.base_models_dict)
+        
+        # OOF probabilities array: (n_samples, 3_base_models * 3_classes)
+        oof_probs = np.zeros((n_samples, n_base * 3))
+
+        print(f"  Generating {n_splits}-Fold OOF probabilities for Stacking Meta-Learner...")
+        for fold, (train_idx, val_idx) in enumerate(skf.split(X_tr, y_tr)):
+            X_fold_tr, y_fold_tr = X_tr[train_idx], y_tr.iloc[train_idx]
+            X_fold_val = X_tr[val_idx]
+
+            for b_idx, (b_name, b_model_cls) in enumerate(self.base_models_dict.items()):
+                fold_model = clone(b_model_cls)
+                fold_model.fit(X_fold_tr, y_fold_tr)
+                fold_probs = fold_model.predict_proba(X_fold_val)
+                oof_probs[val_idx, b_idx*3 : (b_idx+1)*3] = fold_probs
+
+        # Train Meta-Learner on OOF probabilities
+        print("  Fitting Logistic Regression Meta-Learner on OOF predictions...")
+        self.meta_model.fit(oof_probs, y_tr)
+
+        # Refit base models on full training data
+        print("  Refitting base models on full training partition...")
+        for b_name, b_model_cls in self.base_models_dict.items():
+            full_b_model = clone(b_model_cls)
+            full_b_model.fit(X_tr, y_tr)
+            self.fitted_base_models[b_name] = full_b_model
+
+        return self
+
+    def _transform_meta_features(self, X):
+        meta_features = []
+        for b_name in self.base_models_dict.keys():
+            probs = self.fitted_base_models[b_name].predict_proba(X)
+            meta_features.append(probs)
+        return np.hstack(meta_features)
+
+    def predict_proba(self, X):
+        meta_feats = self._transform_meta_features(X)
+        return self.meta_model.predict_proba(meta_feats)
+
+    def predict(self, X):
+        probs = self.predict_proba(X)
+        return np.argmax(probs, axis=1)
+
+# Fit Stacking Ensemble
+base_models = get_base_models()
+meta_learner = LogisticRegression(class_weight="balanced", max_iter=1000, random_state=RANDOM_STATE)
+stacking_model = StackingEnsembleModel(base_models, meta_learner, random_state=RANDOM_STATE)
+stacking_model.fit_oof_and_meta(X_train_prep, y_train, n_splits=5)
+
+
+# ============================================================
+# 7. CANDIDATE BENCHMARKING ON VALIDATION SET (1,500 SAMPLES)
+# ============================================================
+"""
+WHAT THIS DOES:
+  Benchmarks 5 candidates on the VALIDATION set:
+    1. Single Logistic Regression
+    2. Single Random Forest
+    3. Single XGBoost
+    4. Single LightGBM
+    5. Stacking Ensemble (RF + XGB + LGBM -> Meta Logistic Regression)
+
+WHY WE NEED IT:
+  Determines whether stacking provides measurable performance improvement over single models.
+
+WHAT HAPPENS WITHOUT IT:
+  Blindly adopting stacking without empirical proof risks unnecessary complexity.
+
+HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
+  "We benchmarked single models against the stacking ensemble on held-out validation data.
+  Final model selection is strictly driven by Severe Recall and Macro F1."
 """
 
 print("\n" + "=" * 70)
-print("[STEP 5] BENCHMARKING CANDIDATE MODELS ON HELD-OUT VALIDATION SET")
+print("[STEP 6] BENCHMARKING ALL CANDIDATES ON VALIDATION SET (1,500 SAMPLES)")
 print("=" * 70)
 
-candidates = {
-    "Baseline_Stratified": DummyClassifier(strategy="stratified", random_state=RANDOM_STATE),
+# Prepare single candidate models fit on full train set
+single_candidates = {
     "Logistic_Regression": LogisticRegression(class_weight="balanced", max_iter=1000, random_state=RANDOM_STATE),
     "Random_Forest": RandomForestClassifier(n_estimators=100, class_weight="balanced", random_state=RANDOM_STATE),
-    "Extra_Trees": ExtraTreesClassifier(n_estimators=100, class_weight="balanced", random_state=RANDOM_STATE)
+    "XGBoost": XGBClassifier(n_estimators=100, eval_metric="mlogloss", random_state=RANDOM_STATE),
+    "LightGBM": LGBMClassifier(n_estimators=100, class_weight="balanced", random_state=RANDOM_STATE, verbose=-1)
 }
 
 benchmark_results = {}
 
-for name, model in candidates.items():
+# Fit & evaluate single candidate models
+for name, model in single_candidates.items():
     model.fit(X_train_prep, y_train)
-    preds = model.predict(X_test_prep)
-    probs = model.predict_proba(X_test_prep)
-    
-    acc = accuracy_score(y_test, preds)
-    macro_f1 = f1_score(y_test, preds, average="macro")
-    weighted_f1 = f1_score(y_test, preds, average="weighted")
-    
-    # Class-specific Severe (class 2) metrics using labels=[2] to prevent warnings
-    rec_severe = recall_score(y_test, preds, labels=[2], average=None)[0]
-    prec_severe = precision_score(y_test, preds, labels=[2], average=None)[0]
-    f1_severe = f1_score(y_test, preds, labels=[2], average=None)[0]
-    
-    loss = log_loss(y_test, probs)
-    
+    preds = model.predict(X_val_prep)
+    probs = model.predict_proba(X_val_prep)
+
+    acc = accuracy_score(y_val, preds)
+    macro_f1 = f1_score(y_val, preds, average="macro")
+    weighted_f1 = f1_score(y_val, preds, average="weighted")
+    rec_sev = recall_score(y_val, preds, labels=[2], average=None)[0]
+    prec_sev = precision_score(y_val, preds, labels=[2], average=None)[0]
+    f1_sev = f1_score(y_val, preds, labels=[2], average=None)[0]
+    loss = log_loss(y_val, probs)
+
     benchmark_results[name] = {
         "model_obj": model,
         "accuracy": float(acc),
         "macro_f1": float(macro_f1),
         "weighted_f1": float(weighted_f1),
-        "severe_recall": float(rec_severe),
-        "severe_precision": float(prec_severe),
-        "severe_f1": float(f1_severe),
+        "severe_recall": float(rec_sev),
+        "severe_precision": float(prec_sev),
+        "severe_f1": float(f1_sev),
         "log_loss": float(loss),
         "predictions": preds,
         "probabilities": probs
     }
-    
-    print(f"\n--- Model: {name} ---")
+
+    print(f"\n--- Candidate: {name} ---")
     print(f"  Accuracy        : {acc:.4f}  |  Macro F1        : {macro_f1:.4f}  |  Log-Loss: {loss:.4f}")
-    print(f"  Severe Recall   : {rec_severe:.4f}  |  Severe Precision: {prec_severe:.4f}  |  Severe F1: {f1_severe:.4f}")
+    print(f"  Severe Recall   : {rec_sev:.4f}  |  Severe Precision: {prec_sev:.4f}  |  Severe F1: {f1_sev:.4f}")
+
+# Evaluate Stacking Ensemble on Validation Set
+stack_preds = stacking_model.predict(X_val_prep)
+stack_probs = stacking_model.predict_proba(X_val_prep)
+
+acc_st = accuracy_score(y_val, stack_preds)
+macro_f1_st = f1_score(y_val, stack_preds, average="macro")
+weighted_f1_st = f1_score(y_val, stack_preds, average="weighted")
+rec_sev_st = recall_score(y_val, stack_preds, labels=[2], average=None)[0]
+prec_sev_st = precision_score(y_val, stack_preds, labels=[2], average=None)[0]
+f1_sev_st = f1_score(y_val, stack_preds, labels=[2], average=None)[0]
+loss_st = log_loss(y_val, stack_probs)
+
+benchmark_results["Stacking_Ensemble"] = {
+    "model_obj": stacking_model,
+    "accuracy": float(acc_st),
+    "macro_f1": float(macro_f1_st),
+    "weighted_f1": float(weighted_f1_st),
+    "severe_recall": float(rec_sev_st),
+    "severe_precision": float(prec_sev_st),
+    "severe_f1": float(f1_sev_st),
+    "log_loss": float(loss_st),
+    "predictions": stack_preds,
+    "probabilities": stack_probs
+}
+
+print(f"\n--- Candidate: Stacking_Ensemble ---")
+print(f"  Accuracy        : {acc_st:.4f}  |  Macro F1        : {macro_f1_st:.4f}  |  Log-Loss: {loss_st:.4f}")
+print(f"  Severe Recall   : {rec_sev_st:.4f}  |  Severe Precision: {prec_sev_st:.4f}  |  Severe F1: {f1_sev_st:.4f}")
+
 
 # Model Selection Decision Logic
-# Prioritize Severe Recall while requiring high Macro F1 and low Log-Loss
+# Primary: Severe Recall, Secondary: Macro F1, Severe Precision, Log-Loss
 best_model_name = max(
     benchmark_results.keys(),
-    key=lambda k: (benchmark_results[k]["severe_recall"], benchmark_results[k]["macro_f1"])
+    key=lambda k: (
+        benchmark_results[k]["severe_recall"],
+        benchmark_results[k]["macro_f1"],
+        benchmark_results[k]["severe_precision"],
+        -benchmark_results[k]["log_loss"]
+    )
 )
 
 print("\n" + "=" * 70)
-print(f"SELECTED OPTIMAL MODEL: {best_model_name}")
+print(f"SELECTED OPTIMAL MODEL ON VALIDATION SET: {best_model_name}")
 print("=" * 70)
-best_candidate = benchmark_results[best_model_name]
+
+selected_info = benchmark_results[best_model_name]
+final_model = selected_info["model_obj"]
+val_preds = selected_info["predictions"]
+val_probs = selected_info["probabilities"]
 
 
 # ============================================================
-# 7. EVIDENCE-BASED PROBABILITY CALIBRATION ANALYSIS
+# 8. VALIDATION SUMMARY & CONFUSION MATRIX PLOT
 # ============================================================
 """
 WHAT THIS DOES:
-  Evaluates whether Sigmoid probability calibration on the best model improves
-  Brier score and Log Loss on held-out validation data.
+  Computes evaluation metrics and generates confusion matrix plot on validation set.
 
 WHY WE NEED IT:
-  Uncalibrated tree ensembles can produce overconfident probabilities. We apply
-  calibration ONLY if empirical evidence confirms improved probability quality.
-
-WHAT HAPPENS WITHOUT IT:
-  Applying calibration blindly can degrade probability quality if the uncalibrated
-  probabilities are already well-calibrated.
-
-HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We tested probability calibration empirically on held-out validation data. We only adopt
-  calibrated probabilities if Brier score and Log-Loss indicate measurable quality improvement."
+  Documents final validation performance for team review.
 """
 
-print("\n[STEP 6] Performing Evidence-Based Probability Calibration Analysis...")
+print("\n[STEP 7] Validation Performance Summary & Confusion Matrix...")
 
-uncalibrated_model = best_candidate["model_obj"]
-uncalibrated_probs = best_candidate["probabilities"]
-uncalibrated_log_loss = best_candidate["log_loss"]
+val_acc = accuracy_score(y_val, val_preds)
+val_macro_f1 = f1_score(y_val, val_preds, average="macro")
+val_weighted_f1 = f1_score(y_val, val_preds, average="weighted")
+cm_val = confusion_matrix(y_val, val_preds)
+val_class_report = classification_report(y_val, val_preds, target_names=expected_labels, output_dict=True)
 
-# Compute Brier score average across one-hot target classes
-y_test_oh = pd.get_dummies(y_test).values
-uncalibrated_brier = np.mean([
-    brier_score_loss(y_test_oh[:, i], uncalibrated_probs[:, i]) for i in range(3)
-])
+print("\nValidation Classification Report:")
+print(classification_report(y_val, val_preds, target_names=expected_labels))
 
-print(f"Uncalibrated Model Log-Loss: {uncalibrated_log_loss:.4f}")
-print(f"Uncalibrated Model Brier Score: {uncalibrated_brier:.4f}")
-
-# Train calibrated classifier using 3-fold CV on training set
-calibrated_clf = CalibratedClassifierCV(estimator=uncalibrated_model, method="sigmoid", cv=3)
-calibrated_clf.fit(X_train_prep, y_train)
-
-calibrated_probs = calibrated_clf.predict_proba(X_test_prep)
-calibrated_preds = calibrated_clf.predict(X_test_prep)
-calibrated_log_loss = log_loss(y_test, calibrated_probs)
-calibrated_brier = np.mean([
-    brier_score_loss(y_test_oh[:, i], calibrated_probs[:, i]) for i in range(3)
-])
-
-print(f"Calibrated Model Log-Loss  : {calibrated_log_loss:.4f}")
-print(f"Calibrated Model Brier Score: {calibrated_brier:.4f}")
-
-if calibrated_brier < uncalibrated_brier:
-    print("\n-> Calibration Decision: ADOPTING Calibrated Classifier (improved Brier score).")
-    final_model = calibrated_clf
-    final_preds = calibrated_preds
-    final_probs = calibrated_probs
-    is_calibrated = True
-else:
-    print("\n-> Calibration Decision: RETAINING Uncalibrated Classifier (calibration did not improve score).")
-    final_model = uncalibrated_model
-    final_preds = best_candidate["predictions"]
-    final_probs = uncalibrated_probs
-    is_calibrated = False
-
-
-# ============================================================
-# 8. FINAL EVALUATION & METRICS GENERATION
-# ============================================================
-"""
-WHAT THIS DOES:
-  Computes comprehensive classification metrics on held-out 20% validation data.
-
-WHY WE NEED IT:
-  Provides objective evidence of model performance for team review and evaluation audit.
-
-WHAT HAPPENS WITHOUT IT:
-  Model claims remain unverified and prone to error.
-
-HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We report actual metrics on the held-out 20% validation set without metric manipulation."
-"""
-
-print("\n" + "=" * 70)
-print("FINAL HELD-OUT VALIDATION PERFORMANCE SUMMARY")
-print("=" * 70)
-
-final_acc = accuracy_score(y_test, final_preds)
-final_macro_f1 = f1_score(y_test, final_preds, average="macro")
-final_weighted_f1 = f1_score(y_test, final_preds, average="weighted")
-cm = confusion_matrix(y_test, final_preds)
-
-class_report = classification_report(y_test, final_preds, target_names=expected_labels, output_dict=True)
-print("\nClassification Report:")
-print(classification_report(y_test, final_preds, target_names=expected_labels))
-
-print("Confusion Matrix (Actual rows vs Predicted columns):")
+print("Validation Confusion Matrix (Actual rows vs Predicted columns):")
 print(f"            Pred Low  Pred Mod  Pred Sev")
-print(f"Actual Low     {cm[0,0]:7d}   {cm[0,1]:7d}   {cm[0,2]:7d}")
-print(f"Actual Mod     {cm[1,0]:7d}   {cm[1,1]:7d}   {cm[1,2]:7d}")
-print(f"Actual Sev     {cm[2,0]:7d}   {cm[2,1]:7d}   {cm[2,2]:7d}")
+print(f"Actual Low     {cm_val[0,0]:7d}   {cm_val[0,1]:7d}   {cm_val[0,2]:7d}")
+print(f"Actual Mod     {cm_val[1,0]:7d}   {cm_val[1,1]:7d}   {cm_val[1,2]:7d}")
+print(f"Actual Sev     {cm_val[2,0]:7d}   {cm_val[2,1]:7d}   {cm_val[2,2]:7d}")
 
-# Save Confusion Matrix Plot
 plt.figure(figsize=(7, 5))
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=expected_labels, yticklabels=expected_labels)
-plt.title(f"Confusion Matrix - Final Model ({best_model_name})")
+sns.heatmap(cm_val, annot=True, fmt="d", cmap="Blues", xticklabels=expected_labels, yticklabels=expected_labels)
+plt.title(f"Validation Confusion Matrix - {best_model_name}")
 plt.xlabel("Predicted Risk Category")
 plt.ylabel("Actual Risk Category")
 plt.tight_layout()
 cm_plot_path = OUTPUT_DIR / "confusion_matrix.png"
 plt.savefig(cm_plot_path, dpi=300, bbox_inches="tight")
 plt.close()
-print(f"\nSaved Confusion Matrix Plot: {cm_plot_path}")
+print(f"Saved Validation Confusion Matrix Plot: {cm_plot_path}")
 
 
 # ============================================================
-# 9. EXPLAINABILITY & FEATURE IMPORTANCE LEADERBOARD
+# 9. DEFENSIBLE FEATURE IMPORTANCE LEADERBOARD
 # ============================================================
 """
 WHAT THIS DOES:
-  Extracts feature importances/coefficients from the model and ranks top drivers.
-  Supports both tree-based (feature_importances_) and linear models (coef_).
+  Computes global feature importances for the selected model architecture:
+    - If Stacking Ensemble: computes averaged feature importances across base tree models (RF, XGBoost, LightGBM).
+    - If Single Tree Model (RF/XGB/LGBM): extracts model.feature_importances_.
+    - If Linear Model: computes mean absolute coefficient magnitude.
 
 WHY WE NEED IT:
-  Emergency commanders cannot act on black-box risk labels. They require clear
-  top contributing factors for tactical decisions.
-
-WHAT HAPPENS WITHOUT IT:
-  High-risk alerts lack explanatory context, reducing operator trust.
-
-HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We extract feature importance magnitude to rank key risk drivers, answering why a zone
-  was classified as Severe risk."
+  Provides defensible global feature driver rankings without false causal claims.
 """
 
-print("\n[STEP 7] Generating Defensible Feature Importance Leaderboard...")
+print("\n[STEP 8] Computing Defensible Global Feature Importance Leaderboard...")
 
-if hasattr(uncalibrated_model, "feature_importances_"):
-    importances = uncalibrated_model.feature_importances_
+if best_model_name == "Stacking_Ensemble":
+    base_m = final_model.fitted_base_models
+    rf_imp = base_m["Random_Forest"].feature_importances_
+    xgb_imp = base_m["XGBoost"].feature_importances_
+    lgb_imp = base_m["LightGBM"].feature_importances_
+    
+    # Averaged base ensemble feature importance
+    avg_imp = (rf_imp + xgb_imp + lgb_imp) / 3.0
     feat_imp_df = pd.DataFrame({
         "feature": all_feature_names,
-        "importance": importances
+        "importance": avg_imp
     }).sort_values("importance", ascending=False).reset_index(drop=True)
-elif hasattr(uncalibrated_model, "coef_"):
-    # For linear models (e.g. LogisticRegression), compute mean absolute coefficient magnitude across classes
-    importances = np.mean(np.abs(uncalibrated_model.coef_), axis=0)
+elif hasattr(final_model, "feature_importances_"):
     feat_imp_df = pd.DataFrame({
         "feature": all_feature_names,
-        "importance": importances
+        "importance": final_model.feature_importances_
+    }).sort_values("importance", ascending=False).reset_index(drop=True)
+elif hasattr(final_model, "coef_"):
+    feat_imp_df = pd.DataFrame({
+        "feature": all_feature_names,
+        "importance": np.mean(np.abs(final_model.coef_), axis=0)
     }).sort_values("importance", ascending=False).reset_index(drop=True)
 else:
     feat_imp_df = pd.DataFrame({"feature": all_feature_names, "importance": [0.0]*len(all_feature_names)})
@@ -489,7 +597,6 @@ else:
 feat_imp_path = OUTPUT_DIR / "feature_importance.csv"
 feat_imp_df.to_csv(feat_imp_path, index=False)
 print(f"Saved Feature Importance Leaderboard: {feat_imp_path}")
-
 print("\nTop 10 Feature Drivers:")
 print(feat_imp_df.head(10).to_string(index=False))
 
@@ -499,67 +606,94 @@ print(feat_imp_df.head(10).to_string(index=False))
 # ============================================================
 """
 WHAT THIS DOES:
-  Calculates instance-level feature contributions for each prediction row:
-    contribution_ij = transformed_feature_value_ij * coefficient_j (for predicted class)
-  Ranks top 3 contributing factors specific to each individual zone prediction.
+  Calculates per-prediction instance-level top factors for the validation set.
+  For each sample, ranks features by contribution magnitude (feature_value x feature_weight)
+  so each zone prediction receives tailored risk drivers.
 
 WHY WE NEED IT:
-  Different disaster zones have different risk triggers (e.g. high river level vs heavy rainfall).
-  Instance-level top factors give operators tailored explanations per record.
-
-WHAT HAPPENS WITHOUT IT:
-  Returning static global top features for every zone obscures zone-specific hazard causes.
-
-HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
-  "We compute per-prediction feature contributions (feature value x class coefficient) so every zone
-  receives custom, prediction-specific top factors."
+  Different disaster zones require zone-specific explanatory context.
 """
 
-print("\n[STEP 8] Computing Instance-Level Prediction-Specific Top Factors...")
+print("\n[STEP 9] Computing Prediction-Specific Top Factors for Validation Set...")
 
 instance_top_factors = []
-num_test = len(X_test_prep)
+num_val = len(X_val_prep)
 
-for i in range(num_test):
-    pred_class = final_preds[i]
-    x_i = X_test_prep[i]
-    
-    if hasattr(uncalibrated_model, "coef_"):
-        # Vector of coefficients corresponding to the predicted class
-        coef_class = uncalibrated_model.coef_[pred_class]
-        # Instance contribution = feature_value * coefficient
-        contributions = x_i * coef_class
-        top_indices = np.argsort(np.abs(contributions))[::-1][:3]
-        top_3 = [all_feature_names[j] for j in top_indices]
-    elif hasattr(uncalibrated_model, "feature_importances_"):
-        contributions = x_i * uncalibrated_model.feature_importances_
-        top_indices = np.argsort(np.abs(contributions))[::-1][:3]
-        top_3 = [all_feature_names[j] for j in top_indices]
+for i in range(num_val):
+    pred_c = val_preds[i]
+    x_i = X_val_prep[i]
+
+    if best_model_name == "Stacking_Ensemble":
+        base_m = final_model.fitted_base_models
+        rf_imp = base_m["Random_Forest"].feature_importances_
+        xgb_imp = base_m["XGBoost"].feature_importances_
+        lgb_imp = base_m["LightGBM"].feature_importances_
+        avg_weights = (rf_imp + xgb_imp + lgb_imp) / 3.0
+        
+        contributions = x_i * avg_weights
+        top_idx = np.argsort(np.abs(contributions))[::-1][:3]
+        top_3 = [all_feature_names[j] for j in top_idx]
+    elif hasattr(final_model, "coef_"):
+        coef_vec = final_model.coef_[pred_c]
+        contributions = x_i * coef_vec
+        top_idx = np.argsort(np.abs(contributions))[::-1][:3]
+        top_3 = [all_feature_names[j] for j in top_idx]
+    elif hasattr(final_model, "feature_importances_"):
+        contributions = x_i * final_model.feature_importances_
+        top_idx = np.argsort(np.abs(contributions))[::-1][:3]
+        top_3 = [all_feature_names[j] for j in top_idx]
     else:
         top_3 = feat_imp_df["feature"].head(3).tolist()
-        
+
     instance_top_factors.append(top_3)
 
-# Build Prediction Output DataFrame
-df_test["predicted_risk_category"] = [inv_target_map[p] for p in final_preds]
-df_test["risk_score"] = np.round(final_probs[:, 2], 4)  # Severe probability
-df_test["confidence"] = np.round(np.max(final_probs, axis=1), 4)  # Max class probability
-df_test["top_factors"] = [", ".join(f) for f in instance_top_factors]
+# Build Validation Prediction Output DataFrame
+df_val["predicted_risk_category"] = [inv_target_map[p] for p in val_preds]
+df_val["risk_score"] = np.round(val_probs[:, 2], 4)   # Severe class probability
+df_val["confidence"] = np.round(np.max(val_probs, axis=1), 4) # Max class probability
+df_val["top_factors"] = [", ".join(f) for f in instance_top_factors]
 
 pred_cols = [
     "timestamp", "state", "district", "rainfall_mm", "river_level_m",
     "river_level_threshold_m", "zone_risk", "predicted_risk_category",
     "risk_score", "confidence", "top_factors"
 ]
-df_test_preds = df_test[pred_cols]
+df_val_preds = df_val[pred_cols]
 
 predictions_csv_path = OUTPUT_DIR / "ml_predictions.csv"
-df_test_preds.to_csv(predictions_csv_path, index=False)
+df_val_preds.to_csv(predictions_csv_path, index=False)
 print(f"Saved ML Predictions CSV: {predictions_csv_path}")
 
-print("\n[STEP 9] Exporting Trained Model and Integration Artifacts...")
+# Export Integration Contract Sample JSON
+sample_records = []
+for i, (idx, row) in enumerate(df_val_preds.head(10).iterrows()):
+    sample_records.append({
+        "zone": str(row["district"]),
+        "state": str(row["state"]),
+        "timestamp": str(row["timestamp"].strftime("%d-%m-%Y %H:%M")),
+        "actual_risk": str(row["zone_risk"]),
+        "risk_category": str(row["predicted_risk_category"]),
+        "risk_score": float(row["risk_score"]),
+        "confidence": float(row["confidence"]),
+        "top_factors": instance_top_factors[i]
+    })
 
-# Build combined pipeline object
+contract_path = OUTPUT_DIR / "ml_integration_contract_sample.json"
+with open(contract_path, "w") as f:
+    json.dump(sample_records, f, indent=4)
+print(f"Saved Integration Contract Sample: {contract_path}")
+
+
+# ============================================================
+# 11. ARTIFACT PERSISTENCE & PIPELINE SERIALIZATION
+# ============================================================
+"""
+WHAT THIS DOES:
+  Serializes the complete fitted ML pipeline to joblib and saves metrics JSON summary.
+"""
+
+print("\n[STEP 10] Serializing ML Pipeline Artifacts & Metrics JSON...")
+
 full_pipeline = {
     "preprocessor": preprocessor,
     "model": final_model,
@@ -567,30 +701,34 @@ full_pipeline = {
     "feature_cols_cat": feature_cols_cat,
     "target_map": target_map,
     "inv_target_map": inv_target_map,
-    "is_calibrated": is_calibrated,
-    "model_name": best_model_name
+    "model_name": best_model_name,
+    "xgboost_available": XGB_AVAILABLE,
+    "lightgbm_available": LGBM_AVAILABLE
 }
 
 pipeline_file = MODEL_DIR / "ml_pipeline.joblib"
 joblib.dump(full_pipeline, pipeline_file)
-print(f"Saved Trained ML Pipeline: {pipeline_file}")
+print(f"Saved Serialized ML Pipeline: {pipeline_file}")
 
-# Save JSON Metrics Summary
 metrics_summary = {
     "model_selected": best_model_name,
-    "is_calibrated": is_calibrated,
     "dataset_used": str(DATA_PATH),
-    "split_strategy": "Chronological 80/20 Time-Aware Split",
+    "split_strategy": "Chronological 70/15/15 Train/Validation/Held-out Test Split",
     "train_samples": int(len(X_train)),
-    "validation_samples": int(len(X_test)),
+    "validation_samples": int(len(X_val)),
+    "held_out_test_samples": int(len(X_test_feat)),
+    "dependencies_available": {
+        "xgboost": XGB_AVAILABLE,
+        "lightgbm": LGBM_AVAILABLE
+    },
     "validation_metrics": {
-        "accuracy": float(final_acc),
-        "macro_f1": float(final_macro_f1),
-        "weighted_f1": float(final_weighted_f1),
-        "severe_recall": float(class_report["Severe"]["recall"]),
-        "severe_precision": float(class_report["Severe"]["precision"]),
-        "severe_f1": float(class_report["Severe"]["f1-score"]),
-        "log_loss": float(log_loss(y_test, final_probs))
+        "accuracy": float(val_acc),
+        "macro_f1": float(val_macro_f1),
+        "weighted_f1": float(val_weighted_f1),
+        "severe_recall": float(val_class_report["Severe"]["recall"]),
+        "severe_precision": float(val_class_report["Severe"]["precision"]),
+        "severe_f1": float(val_class_report["Severe"]["f1-score"]),
+        "log_loss": float(log_loss(y_val, val_probs))
     },
     "candidate_benchmarks": {
         k: {
@@ -607,25 +745,6 @@ metrics_json_path = OUTPUT_DIR / "ml_evaluation_metrics.json"
 with open(metrics_json_path, "w") as f:
     json.dump(metrics_summary, f, indent=4)
 print(f"Saved Evaluation Metrics JSON: {metrics_json_path}")
-
-# Generate Sample Integration Contract JSON for Integration Engineer
-sample_records = []
-for i, (idx, row) in enumerate(df_test_preds.head(10).iterrows()):
-    sample_records.append({
-        "zone": str(row["district"]),
-        "state": str(row["state"]),
-        "timestamp": str(row["timestamp"]),
-        "actual_risk": str(row["zone_risk"]),
-        "risk_category": str(row["predicted_risk_category"]),
-        "risk_score": float(row["risk_score"]),
-        "confidence": float(row["confidence"]),
-        "top_factors": instance_top_factors[i]
-    })
-
-contract_path = OUTPUT_DIR / "ml_integration_contract_sample.json"
-with open(contract_path, "w") as f:
-    json.dump(sample_records, f, indent=4)
-print(f"Saved Integration Contract Sample: {contract_path}")
 
 print("\n" + "=" * 70)
 print("STAGE 01 ML ENGINEER PIPELINE EXECUTION COMPLETED SUCCESSFULLY!")
