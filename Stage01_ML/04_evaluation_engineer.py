@@ -27,8 +27,11 @@ from sklearn.metrics import (
 # 1. PATHS & CONFIGURATION
 # ============================================================
 BASE_DIR = Path(__file__).resolve().parent
-DATA_PATH = BASE_DIR / "data" / "outputs" / "pattern" / "eda_checked_dataset.csv"
+TEST_X_PATH = BASE_DIR / "data" / "test" / "X_test.csv"
+TEST_Y_PATH = BASE_DIR / "data" / "test" / "y_test.csv"
+TRAIN_DATA_PATH = BASE_DIR / "data" / "outputs" / "pattern" / "eda_checked_dataset.csv"
 MODEL_PATH = BASE_DIR / "data" / "models" / "ml_pipeline.joblib"
+METRICS_PATH = BASE_DIR / "data" / "outputs" / "ml_evaluation_metrics.json"
 OUTPUT_DIR = BASE_DIR / "data" / "outputs"
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -38,37 +41,109 @@ print("STAGE 01 - EVALUATION ENGINEER: MODEL EVALUATION & STRESS TESTING")
 print("=" * 70)
 
 # ============================================================
-# 2. MODEL & DATA LOADING
+# 2. DATA LEAKAGE CHECK
+# ============================================================
+def check_data_leakage(test_df):
+    """
+    Checks for temporal data leakage.
+    Ensures that test data is strictly held out and chronologically after training data.
+    """
+    print("\n[STEP 1] Performing Data Leakage Checks...")
+    
+    # Load the original full data used for training
+    if not TRAIN_DATA_PATH.exists():
+        print("WARNING: Original dataset not found. Cannot perform rigorous temporal leakage check.")
+        return False
+        
+    full_df = pd.read_csv(TRAIN_DATA_PATH)
+    full_df["timestamp"] = pd.to_datetime(full_df["timestamp"], format="%d-%m-%Y %H:%M", errors="coerce")
+    if full_df["timestamp"].isnull().sum() > 0:
+        full_df["timestamp"] = pd.to_datetime(full_df["timestamp"], errors="coerce")
+    full_df = full_df.sort_values("timestamp").reset_index(drop=True)
+    
+    # Identify split index from ML Engineer (85% index)
+    total_n = len(full_df)
+    val_end = int(total_n * 0.85)
+    
+    train_val_timestamps = full_df["timestamp"].iloc[:val_end]
+    
+    # Test timestamps
+    test_timestamps = pd.to_datetime(test_df["timestamp"], format="%d-%m-%Y %H:%M", errors="coerce")
+    if test_timestamps.isnull().sum() > 0:
+        test_timestamps = pd.to_datetime(test_df["timestamp"], errors="coerce")
+        
+    max_train_val_time = train_val_timestamps.max()
+    min_test_time = test_timestamps.min()
+    
+    print(f"  Max Train/Val Timestamp: {max_train_val_time}")
+    print(f"  Min Test Timestamp     : {min_test_time}")
+    
+    if min_test_time >= max_train_val_time:
+        print("  [PASS] Temporal Data Leakage Check: Test set strictly follows Train/Val set in time.")
+        return True
+    else:
+        print("  [FAIL] Temporal Data Leakage Check: Overlapping timestamps detected between Train/Val and Test!")
+        return False
+
+
+# ============================================================
+# 3. MODEL & DATA LOADING
 # ============================================================
 def load_assets():
-    if not DATA_PATH.exists():
-        raise FileNotFoundError(f"Dataset not found: {DATA_PATH}")
+    if not TEST_X_PATH.exists() or not TEST_Y_PATH.exists():
+        raise FileNotFoundError(f"Independent test sets not found in {TEST_X_PATH.parent}")
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model pipeline not found: {MODEL_PATH}")
         
-    print(f"[STEP 1] Loading dataset from {DATA_PATH}")
-    df = pd.read_csv(DATA_PATH)
+    print(f"\n[STEP 2] Loading official independent test set...")
+    X_test_raw = pd.read_csv(TEST_X_PATH)
+    y_test_raw = pd.read_csv(TEST_Y_PATH)
+    print(f"Loaded X_test shape: {X_test_raw.shape}, y_test shape: {y_test_raw.shape}")
     
-    print(f"[STEP 1] Loading model pipeline from {MODEL_PATH}")
+    print(f"[STEP 2] Loading model pipeline from {MODEL_PATH}")
     pipeline = joblib.load(MODEL_PATH)
     
-    return df, pipeline
+    return X_test_raw, y_test_raw, pipeline
 
 # ============================================================
-# 3. TEST DATA PREPARATION
+# 4. MODEL COMPARISON (FROM ML ENGINEER)
 # ============================================================
-def prepare_test_data(df, pipeline):
+def display_model_comparison():
+    print("\n[STEP 3] ML Engineer Validation Model Comparison...")
+    if not METRICS_PATH.exists():
+        print(f"Metrics file not found at {METRICS_PATH}. Skipping comparison.")
+        return
+        
+    with open(METRICS_PATH, "r") as f:
+        metrics = json.load(f)
+        
+    benchmarks = metrics.get("candidate_benchmarks", {})
+    if not benchmarks:
+        print("No candidate benchmarks found in metrics.")
+        return
+        
+    print(f"{'Model':<20} | {'Macro F1':<10} | {'Severe Recall':<15} | {'Log Loss':<10}")
+    print("-" * 65)
+    for model_name, res in benchmarks.items():
+        print(f"{model_name:<20} | {res['macro_f1']:<10.4f} | {res['severe_recall']:<15.4f} | {res['log_loss']:<10.4f}")
+        
+    print(f"\nModel Selected by ML Engineer: {metrics.get('model_selected', 'Unknown')}")
+
+# ============================================================
+# 5. TEST DATA PREPARATION
+# ============================================================
+def prepare_test_data(X_test_raw, y_test_raw, pipeline):
     """
-    Recreates the exact preprocessing steps and chronological split
-    used by the ML Engineer to extract the test set.
+    Applies the domain feature engineering exactly as expected by the ML pipeline.
+    Does NOT refit any preprocessing transformers.
     """
-    print("\n[STEP 2] Preparing test dataset...")
+    print("\n[STEP 4] Engineering domain features on independent test set...")
+    df = X_test_raw.copy()
+    
     df["timestamp"] = pd.to_datetime(df["timestamp"], format="%d-%m-%Y %H:%M", errors="coerce")
     if df["timestamp"].isnull().sum() > 0:
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
         
-    df = df.sort_values("timestamp").reset_index(drop=True)
-    
     df["river_level_margin_m"] = df["river_level_m"] - df["river_level_threshold_m"]
     df["river_level_ratio"] = df["river_level_m"] / (df["river_level_threshold_m"] + 1e-5)
     df["hour"] = df["timestamp"].dt.hour
@@ -77,25 +152,18 @@ def prepare_test_data(df, pipeline):
     df["is_monsoon"] = df["month"].isin([6, 7, 8, 9]).astype(int)
     
     target_map = pipeline["target_map"]
-    df["target"] = df["zone_risk"].map(target_map)
+    y_test = y_test_raw["zone_risk"].map(target_map)
     
     feature_cols = pipeline["feature_cols_num"] + pipeline["feature_cols_cat"]
-    X = df[feature_cols]
-    y = df["target"]
+    X_test_feat = df[feature_cols].copy()
     
-    split_idx = int(len(df) * 0.80)
-    X_test = X.iloc[split_idx:].copy()
-    y_test = y.iloc[split_idx:].copy()
-    df_test = df.iloc[split_idx:].copy()
-    
-    print(f"Extracted chronological test set: {len(X_test)} samples")
-    return X_test, y_test, df_test
+    return X_test_feat, y_test, df
 
 # ============================================================
-# 4. PREDICTION GENERATION
+# 6. PREDICTION GENERATION
 # ============================================================
 def generate_predictions(X_test, pipeline):
-    print("\n[STEP 3] Generating predictions using the official model pipeline...")
+    print("\n[STEP 5] Generating predictions using the official model pipeline...")
     preprocessor = pipeline["preprocessor"]
     model = pipeline["model"]
     
@@ -109,10 +177,10 @@ def generate_predictions(X_test, pipeline):
     return preds, probs
 
 # ============================================================
-# 5. METRICS EVALUATION
+# 7. METRICS EVALUATION
 # ============================================================
 def evaluate_metrics(y_test, preds, pipeline):
-    print("\n[STEP 4] Evaluating Classification Metrics...")
+    print("\n[STEP 6] Evaluating Classification Metrics on Independent Test Set...")
     
     inv_target_map = pipeline["inv_target_map"]
     labels = [0, 1, 2]
@@ -125,8 +193,9 @@ def evaluate_metrics(y_test, preds, pipeline):
     
     print(f"Overall Accuracy : {acc:.4f}")
     print(f"Overall Macro F1 : {macro_f1:.4f}")
+    print(f"Severe Recall    : {report_dict['Severe']['recall']:.4f}")
     
-    print("\nClassification Report:")
+    print("\nTest Classification Report:")
     print(classification_report(y_test, preds, target_names=target_names))
     
     cm = confusion_matrix(y_test, preds, labels=labels)
@@ -151,13 +220,13 @@ def evaluate_metrics(y_test, preds, pipeline):
     }
 
 # ============================================================
-# 6. OVERCONFIDENCE & DANGEROUS ERRORS ANALYSIS
+# 8. OVERCONFIDENCE & DANGEROUS ERRORS ANALYSIS
 # ============================================================
 def analyze_overconfidence(df_test, y_test, preds, probs, pipeline):
     """
     Identifies high-confidence false negatives, particularly where Actual=Severe but Pred=Low.
     """
-    print("\n[STEP 5] Conducting Overconfidence & Severe Error Analysis...")
+    print("\n[STEP 7] Conducting Overconfidence & Severe Error Analysis...")
     
     if probs is None:
         print("Model does not provide probabilities. Overconfidence analysis is unavailable.")
@@ -198,15 +267,13 @@ def analyze_overconfidence(df_test, y_test, preds, probs, pipeline):
     }
 
 # ============================================================
-# 7. UNSEEN DISASTER / STRESS TEST
+# 9. UNSEEN DISASTER / STRESS TEST
 # ============================================================
 def stress_test_unseen_disasters(df_test, y_test, preds, pipeline):
     """
     Tests generalization by evaluating on specific unseen groups in the test set.
-    Since we don't have explicit disaster event IDs, we'll use state/district groupings 
-    to see if performance degrades significantly in certain regions.
     """
-    print("\n[STEP 6] Performing Unseen Disaster / Generalization Stress Test...")
+    print("\n[STEP 8] Performing Unseen Disaster / Generalization Stress Test...")
     
     inv_target_map = pipeline["inv_target_map"]
     severe_idx = pipeline["target_map"]["Severe"]
@@ -248,14 +315,19 @@ def stress_test_unseen_disasters(df_test, y_test, preds, pipeline):
     return generalization_results
 
 # ============================================================
-# 8. EXECUTION & SAVING
+# 10. EXECUTION & INTEGRATION CONTRACT SAVING
 # ============================================================
 def main():
     try:
-        df, pipeline = load_assets()
-        X_test, y_test, df_test = prepare_test_data(df, pipeline)
+        X_test_raw, y_test_raw, pipeline = load_assets()
         
-        preds, probs = generate_predictions(X_test, pipeline)
+        check_data_leakage(X_test_raw)
+        
+        display_model_comparison()
+        
+        X_test_feat, y_test, df_test = prepare_test_data(X_test_raw, y_test_raw, pipeline)
+        
+        preds, probs = generate_predictions(X_test_feat, pipeline)
         
         metrics_report = evaluate_metrics(y_test, preds, pipeline)
         
@@ -263,18 +335,34 @@ def main():
         
         generalization_report = stress_test_unseen_disasters(df_test, y_test, preds, pipeline)
         
-        # Save evaluation report
+        # Integration Criteria: 
+        # Pass if Severe Recall >= 0.70 and Macro F1 >= 0.65
+        severe_recall = metrics_report["classification_report"]["Severe"]["recall"]
+        macro_f1 = metrics_report["macro_f1"]
+        passed_integration = (severe_recall >= 0.70) and (macro_f1 >= 0.65)
+        
+        print(f"\n[INTEGRATION CHECK] Severe Recall: {severe_recall:.4f}, Macro F1: {macro_f1:.4f}")
+        if passed_integration:
+            print(">>> MODEL PASSED EVALUATION. READY FOR INTEGRATION. <<<")
+        else:
+            print(">>> MODEL FAILED EVALUATION. DO NOT INTEGRATE. <<<")
+        
+        # Save evaluation report / Integration Contract
         eval_report = {
+            "integration_status": {
+                "ready_for_integration": passed_integration,
+                "criteria": "Severe Recall >= 0.70 AND Macro F1 >= 0.65"
+            },
             "metrics": metrics_report,
             "overconfidence_analysis": overconfidence_report,
             "generalization_stress_test": generalization_report
         }
         
-        report_path = OUTPUT_DIR / "eval_final_report.json"
+        report_path = OUTPUT_DIR / "test_evaluation_report.json"
         with open(report_path, "w") as f:
             json.dump(eval_report, f, indent=4)
         
-        print(f"\n[STEP 7] Saved Final Evaluation Report to {report_path}")
+        print(f"\n[STEP 9] Saved Final Evaluation Report to {report_path}")
         print("\nEVALUATION COMPLETE.")
         
     except Exception as e:
