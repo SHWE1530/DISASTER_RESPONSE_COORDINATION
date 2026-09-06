@@ -32,18 +32,20 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 # Master dataset
-file_path = (
-    BASE_DIR
-    / "data"
-    / "processed"
-    / "Master_Dataset.csv"
-)
+# Prefer the cleaned output of 01_data_engineer.py (Master_Processed_Dataset.csv);
+# fall back to the raw Master_Dataset.csv if 01 has not been run yet.
+PROCESSED_DIR = BASE_DIR / "data" / "processed"
+file_path = PROCESSED_DIR / "Master_Processed_Dataset.csv"
+if not file_path.exists():
+    file_path = PROCESSED_DIR / "Master_Dataset.csv"
 
 # EDA output folder
-OUTPUT_DIR = BASE_DIR / "eda_outputs"
+OUTPUT_DIR = BASE_DIR / "data" / "outputs" / "images"
+PATTERN_DIR = BASE_DIR / "data" / "outputs" / "pattern"
 
 # Create output folder
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+PATTERN_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ============================================================
@@ -120,6 +122,11 @@ df["timestamp"] = pd.to_datetime(
     errors="coerce"
 )
 
+# Robust fallback: if the source file stored timestamps in a different format
+# (e.g. ISO datetime), re-parse the values that failed the strict format above.
+if df["timestamp"].isnull().sum() > 0:
+    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+
 print(
     "\nInvalid timestamps:",
     df["timestamp"].isnull().sum()
@@ -181,7 +188,7 @@ print(risk_analysis)
 
 # Save analysis
 risk_analysis.to_csv(
-    OUTPUT_DIR / "leading_indicator_summary.csv"
+    PATTERN_DIR / "leading_indicator_summary.csv"
 )
 
 
@@ -438,7 +445,7 @@ print(severe_percentage)
 # Save district analysis
 
 severe_percentage.to_csv(
-    OUTPUT_DIR /
+    PATTERN_DIR /
     "severe_risk_percentage_by_district.csv"
 )
 
@@ -515,7 +522,7 @@ print(threshold_risk)
 
 
 threshold_risk.to_csv(
-    OUTPUT_DIR /
+    PATTERN_DIR /
     "river_threshold_risk_analysis.csv"
 )
 
@@ -665,7 +672,7 @@ outlier_df = pd.DataFrame(
 
 
 outlier_df.to_csv(
-    OUTPUT_DIR /
+    PATTERN_DIR /
     "outlier_records.csv",
     index=False
 )
@@ -780,7 +787,7 @@ else:
 # Save suspicious records
 
 suspicious_false_alarms.to_csv(
-    OUTPUT_DIR /
+    PATTERN_DIR /
     "potential_false_alarms.csv",
     index=False
 )
@@ -909,7 +916,7 @@ print(summary)
 
 
 summary.to_csv(
-    OUTPUT_DIR /
+    PATTERN_DIR /
     "leading_indicator_summary.csv"
 )
 
@@ -1009,7 +1016,7 @@ eda_checked_df[
 # Save checked dataset
 
 eda_checked_df.to_csv(
-    OUTPUT_DIR /
+    PATTERN_DIR /
     "eda_checked_dataset.csv",
     index=False
 )
