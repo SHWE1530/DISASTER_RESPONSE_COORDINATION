@@ -46,7 +46,7 @@ numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 for col in numeric_cols:
   if df[col].isnull().sum() > 0:
     median_val = df[col].median()
-    df[col].fillna(median_val, inplace=True)
+    df[col] = df[col].fillna(median_val)
     print(f"Imputed missing values in '{col}' using median: {median_val}")
 
 categorical_cols = df.select_dtypes(
@@ -57,10 +57,10 @@ for col in categorical_cols:
     mode_values = df[col].mode()
     if not mode_values.empty:
       mode_val = mode_values.iloc[0]
-      df[col].fillna(mode_val, inplace=True)
+      df[col] = df[col].fillna(mode_val)
       print(f"Imputed missing values in '{col}' using mode: {mode_val}")
     else:
-      df[col].fillna("Unknown", inplace=True)
+      df[col] = df[col].fillna("Unknown")
       print(f"Imputed missing values in '{col}' using fallback: Unknown")
 
 # Standardize timestamp column if present
@@ -103,6 +103,13 @@ for col in target_outlier_cols:
     df[col] = np.clip(df[col], lower_bound, upper_bound)
 
 # 5. CONVERT & SAVE MASTER PROCESSED DATASET
+# Restore timestamp to the original "%d-%m-%Y %H:%M" string format so that the
+# downstream EDA/ML scripts (which parse that exact format) can consume this file.
+if "timestamp" in df.columns:
+  df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce").dt.strftime(
+      "%d-%m-%Y %H:%M"
+  )
+
 output_file = processed_dir / "Master_Processed_Dataset.csv"
 df.to_csv(output_file, index=False)
 
