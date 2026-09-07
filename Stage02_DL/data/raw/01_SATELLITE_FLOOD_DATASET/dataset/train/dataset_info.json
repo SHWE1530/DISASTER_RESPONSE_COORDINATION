@@ -1,0 +1,48 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "sdsu_mid_west_flood_2019",
+  "dataset_size": 268236264,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/youngsun05/SDSU_MidWest_Flood_2019@0a23eda7a2f5e93fee3b5ac0ddccc81271df3948/data/train-00000-of-00001.parquet": {
+      "num_bytes": 268238795,
+      "checksum": null
+    }
+  },
+  "download_size": 268238795,
+  "features": {
+    "image": {
+      "_type": "Image"
+    },
+    "mask": {
+      "_type": "Image"
+    },
+    "file_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "mask_file_name": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 536475059,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 268236264,
+      "num_examples": 500,
+      "dataset_name": "sdsu_mid_west_flood_2019"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
