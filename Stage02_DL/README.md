@@ -1,64 +1,124 @@
-## Stage02 Deep Learning
+# STAGE 02 — DEEP LEARNING (Disaster Response Coordination)
 
-This stage uses the real datasets under `data/raw` and provides three trained
-components:
+## 1. Stage 02 Overview
+This stage implements deep learning models for visual and chronological analysis of disaster data.
 
-1. A PyTorch CNN for `flooded` versus `unflooded` images in
-	`data/raw/Flood_Image_Dataset`.
-2. A PyTorch LSTM for recursive future water-level forecasting from
-	`data/Engineered_History_Trend_Dataset.csv`. It uses the engineered hourly
-	`timestamp` and `river_level_m` history after chronological sorting.
-3. A labelled zone-risk model from `data/raw/04_MASTER_DATASET/Master_Dataset.csv`.
-	Its real labels are `Low`, `Moderate`, and `Severe`.
+## 2. Mission
+"Go from patterns to instincts." The system visually analyzes imagery and sequences temporal sensor data to detect subtle risks that basic thresholds miss.
 
-### Run
+## 3. Problem Being Solved
+Stage 01 relies on hard numerical thresholds (e.g., river level > 12m). Stage 02 detects flooded roadways visually before sensors trigger, and uses sequential forecasting to predict river level breaches hours in advance.
 
-Install the runtime dependencies in the selected Python environment:
+## 4. Visual Data
+The CNN uses images of flooded and unflooded street conditions (SDSU Midwest Flood 2019 dataset).
 
-```bash
-python -m pip install torch torchvision pandas numpy scikit-learn pillow joblib seaborn matplotlib
+## 5. Satellite/Time-Series Data
+Not implemented directly in DL pipeline due to memory constraints; relying on temporal gauge data instead.
+
+## 6. Temporal Sensor Data
+Sequential river water level readings (`Engineered_History_Trend_Dataset.csv`), sampled hourly with a 24-hour lookback.
+
+## 7. CNN Architecture
+A baseline PyTorch Convolutional Neural Network (CNN) with 3 convolutional blocks and adaptive average pooling, ending in a dense classifier.
+
+## 8. CNN Preprocessing
+Images resized to 128x128. Normalized using ImageNet stats: `mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]`.
+
+## 9. Data Augmentation
+`RandomHorizontalFlip()` applied to the training split. *Note: Brightness variation/noise for night/rain conditions is not currently implemented in the pipeline.*
+
+## 10. CNN Training
+- **Loss:** Weighted CrossEntropyLoss
+- **Optimizer:** Adam (lr=1e-3)
+- **Batch Size:** 32
+
+## 11. CNN Evaluation
+- **Test Accuracy:** 0.8000
+- **Macro F1:** 0.4444
+- **Precision (Macro):** 0.4000
+- **Recall (Macro):** 0.5000
+*Note: Due to severe class imbalance, the F1 score for the 'flooded' class is low.*
+
+## 12. Confusion Matrix
+See `data/outputs/cnn_confusion_matrix.png`. The model heavily biases toward one class.
+
+## 13. Wet-Asphalt Failure Analysis
+*Limitation: Due to missing localized image annotations, wet-asphalt false positives could not be numerically isolated in the current test set.*
+
+## 14. Saliency/Grad-CAM Analysis
+*Limitation: A true Grad-CAM is missing. `02_eda_engineer.py` attempts a basic "dark-pixel overlap" screening, but it cannot guarantee the model is focusing on water rather than shadows.*
+
+## 15. LSTM/Transformer Architecture
+A 2-layer PyTorch LSTM with 64 hidden units, taking 1-dimensional features.
+
+## 16. Time-Series Preprocessing
+StandardScaler fitted *only* on the training data. Data partitioned chronologically (70/15/15) with no temporal leakage.
+
+## 17. 3-Hour Forecasting Approach
+The model is trained for 1-step forecasting, and the inference API (`forecast_water_levels`) autoregressively rolls the prediction forward for the specified horizon.
+
+## 18. Forecast Metrics (LSTM)
+- **MAE:** 23.45 m
+- **RMSE:** 49.39 m
+*Note: High error indicates the model struggles to accurately forecast the exact scale of water level changes without exogenous variables (like rainfall).*
+
+## 19. Forecast Examples/Results
+See `data/outputs/lstm_actual_vs_predicted.png`.
+
+## 20. ML vs DL Benchmark
+*Limitation: A direct side-by-side Visual Benchmark Reel between Stage 01 and Stage 02 is missing from the evaluation script.*
+
+## 21. Model Save/Load
+Models are saved properly as PyTorch state dictionaries (`disaster_cnn.pt`, `water_level_lstm.pt`) and Scikit-Learn pipelines (`severity_model.joblib`).
+
+## 22. Inference Workflow
+`05_integration_engineer.py` isolates inference from training, ensuring only the necessary preprocessing steps run during deployment.
+
+## 23. Unified Alert API
+The `DLIntegrationEngine` provides a robust API wrapping all three models.
+
+## 24. API Example Request
+```python
+engine = DLIntegrationEngine()
+engine.forecast_water_levels([10.1, 10.2, ... 10.5], horizon=3)
 ```
 
-Run training and evaluation from the repository root:
-
-```bash
-python Stage02_DL/03_dl_engineer.py
+## 25. API Example Response
+```json
+{
+    "forecast_water_level": 11.2,
+    "forecast_water_levels": [10.8, 11.0, 11.2],
+    "horizon": 3,
+    "lookback": 24
+}
 ```
 
-`STAGE02_EPOCHS` and `STAGE02_LOOKBACK` can override the defaults of 5 epochs
-and 24 historical observations. The CNN uses class-balanced sampling and
-weighted cross-entropy so the minority `flooded` class is not ignored. The
-splits are reproducible with seed 42. The LSTM split is chronological and its
-scaler is fit on the training partition.
+## 26. Automated Tests
+A suite of Pytest checks (`test/test_stage02.py`) validates sequence shapes, CNN tensor shapes, and API exception handling (e.g., rejecting invalid inputs).
 
-### Artifacts
+## 27. Project Structure
+```text
+Stage02_DL/
+  ├── 01_data_engineer.py (Broken locally due to Colab paths)
+  ├── 02_eda_engineer.py
+  ├── 03_dl_engineer.py
+  ├── 04_evaluation_engineer.py
+  ├── 05_integration_engineer.py
+  ├── test/test_stage02.py
+  └── data/
+```
 
-Models are written to `data/models`:
+## 28. How to run Stage 02
+1. Run `python 03_dl_engineer.py` to train DL models.
+2. Run `python 04_evaluation_engineer.py` to generate reports.
+3. Run `pytest test/ -v` to verify endpoints.
 
-- `disaster_cnn.pt`
-- `water_level_lstm.pt`
-- `water_level_scaler.joblib`
-- `severity_model.joblib`
+## 29. Known Limitations
+1. `01_data_engineer.py` is hardcoded for Google Colab and relies on Keras instead of PyTorch.
+2. Missing true Grad-CAM implementation.
+3. Missing heavy rain / night data augmentation.
+4. Missing Visual Benchmark Reel.
 
-Evaluation files and plots are written to `data/outputs`:
-
-- `dl_training_metrics.json`
-- `cnn_confusion_matrix.png`
-- `cnn_training_curves.png`
-- `lstm_actual_vs_predicted.png`
-- `severity_confusion_matrix.png`
-
-The `03_dl_engineer.py` module also exposes `predict_image`,
-`forecast_water_level`, `forecast_water_levels`, and `predict_severity` for
-inference without retraining. `forecast_water_levels` recursively predicts a
-future horizon of 1 to 168 steps from the latest 24 readings.
-
-### Limitations
-
-The image benchmark is imbalanced: the current held-out test split contains
-many more `unflooded` than `flooded` images. Reported CNN accuracy must be read
-with its per-class precision/recall and confusion matrix; the trained baseline
-does not yet provide reliable flooded-class recall. The satellite Arrow data
-is a separate Hugging Face image/mask benchmark and is not used as road-blockage
-ground truth. No severity label is fabricated: the severity component uses the
-real `zone_risk` labels in the master dataset.
+## 30. Final Completion Status
+**PARTIALLY COMPLETE / READY WITH MINOR LIMITATIONS**
+The core ML integration API and model files function properly on valid inputs, but the evaluation pipeline lacks deep interpretability and robust augmentation.

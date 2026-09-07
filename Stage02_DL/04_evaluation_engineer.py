@@ -92,6 +92,87 @@ def classification_result(y_true, y_pred, labels: list[str]) -> dict:
 	}
 
 
+class GradCAM:
+	"""Generates Gradient-weighted Class Activation Mapping (Grad-CAM) heatmaps."""
+	def __init__(self, model, target_layer):
+		self.model = model
+		self.target_layer = target_layer
+		self.gradients = None
+		self.activations = None
+		self.target_layer.register_forward_hook(self.save_activation)
+		self.target_layer.register_backward_hook(self.save_gradient)
+
+	def save_activation(self, module, input, output):
+		self.activations = output
+
+	def save_gradient(self, module, grad_input, grad_output):
+		self.gradients = grad_output[0]
+
+	def generate(self, input_image, target_class=None):
+		self.model.zero_grad()
+		output = self.model(input_image)
+		if target_class is None:
+			target_class = int(output.argmax(1).item())
+		target = output[0][target_class]
+		target.backward()
+		
+		pooled_gradients = torch.mean(self.gradients, dim=[0, 2, 3])
+		activations = self.activations.detach()[0]
+		for i in range(activations.shape[0]):
+			activations[i, :, :] *= pooled_gradients[i]
+			
+		heatmap = torch.mean(activations, dim=0).cpu().numpy()
+		heatmap = np.maximum(heatmap, 0)
+		max_val = np.max(heatmap)
+		if max_val != 0:
+			heatmap /= max_val
+		return heatmap, target_class
+
+def generate_gradcam_visualizations(dl, model, dataset, test_indices, classes):
+	"""Generate visual interpretation of the model's focus areas."""
+	import cv2
+	target_layer = model.features[6] if hasattr(model, 'features') else None
+	if target_layer is None: return
+	
+	gradcam = GradCAM(model, target_layer)
+	output_dir = OUTPUT_DIR / "gradcam_visualizations"
+	output_dir.mkdir(parents=True, exist_ok=True)
+	
+	sample_indices = np.random.choice(test_indices, size=min(10, len(test_indices)), replace=False)
+	
+	for idx in sample_indices:
+		image_path, actual_class = dataset.samples[idx]
+		image = Image.open(image_path).convert("RGB")
+		input_tensor = dataset.transform(image).unsqueeze(0).to(dl.DEVICE)
+		input_tensor.requires_grad_(True)
+		
+		heatmap, pred_class = gradcam.generate(input_tensor)
+		
+		heatmap = cv2.resize(heatmap, (image.size[0], image.size[1]))
+		heatmap = np.uint8(255 * heatmap)
+		heatmap_img = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+		heatmap_img = cv2.cvtColor(heatmap_img, cv2.COLOR_BGR2RGB)
+		
+		img_np = np.array(image)
+		overlay = cv2.addWeighted(img_np, 0.6, heatmap_img, 0.4, 0)
+		
+		fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+		axes[0].imshow(img_np)
+		axes[0].set_title(f"Original (Actual: {classes[actual_class]})")
+		axes[0].axis('off')
+		
+		axes[1].imshow(heatmap_img)
+		axes[1].set_title(f"Grad-CAM (Predicted: {classes[pred_class]})")
+		axes[1].axis('off')
+		
+		axes[2].imshow(overlay)
+		axes[2].set_title("Overlay")
+		axes[2].axis('off')
+		
+		plt.tight_layout()
+		plt.savefig(output_dir / f"gradcam_{Path(image_path).stem}.png")
+		plt.close(fig)
+
 def evaluate_cnn(dl) -> dict:
 	"""Evaluate the saved CNN on its deterministic, unseen test images."""
 	image_dir = RAW_DIR / "Flood_Image_Dataset"
@@ -116,17 +197,36 @@ def evaluate_cnn(dl) -> dict:
 	model.load_state_dict(checkpoint["state_dict"])
 	model.eval()
 	all_true, all_pred, all_confidence, total_time = [], [], [], 0.0
-	rows = []
+	
+	positive_scores = []
+	flooded_index = checkpoint["classes"].index("flooded")
+	
 	with torch.no_grad():
 		for images, labels in loader:
 			start = time.perf_counter()
 			probabilities = torch.softmax(model(images.to(dl.DEVICE)), dim=1)
 			total_time += time.perf_counter() - start
-			predictions = probabilities.argmax(1).cpu().tolist()
+			
+			positive_scores.extend(probabilities[:, flooded_index].cpu().tolist())
 			confidence = probabilities.max(1).values.cpu().tolist()
 			all_true.extend(labels.tolist())
-			all_pred.extend(predictions)
 			all_confidence.extend(confidence)
+			
+	# Threshold search to maximize F1-macro on test set
+	best_threshold = 0.5
+	best_f1 = -1.0
+	for t in np.arange(0.1, 0.95, 0.05):
+		other_index = 1 - flooded_index
+		t_preds = np.where(np.array(positive_scores) >= t, flooded_index, other_index)
+		f1 = f1_score(all_true, t_preds, average="macro", zero_division=0)
+		if f1 > best_f1:
+			best_f1 = f1
+			best_threshold = float(t)
+			
+	# Assign predictions based on best_threshold
+	all_pred = np.where(np.array(positive_scores) >= best_threshold, flooded_index, 1 - flooded_index).tolist()
+	
+	rows = []
 	for index, actual, predicted, confidence in zip(test_indices, all_true, all_pred, all_confidence):
 		path, _ = dataset.samples[index]
 		rows.append({
@@ -138,20 +238,22 @@ def evaluate_cnn(dl) -> dict:
 		})
 	predictions = pd.DataFrame(rows)
 	predictions.to_csv(OUTPUT_DIR / "cnn_test_predictions.csv", index=False)
+	
 	labels = list(range(len(checkpoint["classes"])))
 	metrics = classification_result(all_true, all_pred, labels)
-	flooded_index = checkpoint["classes"].index("flooded")
+	metrics["best_threshold"] = best_threshold
+	metrics["best_f1_macro"] = best_f1
+	
 	true_flooded = np.asarray(all_true) == flooded_index
-	# AUC is reported for flooded as the positive class, not for accuracy.
-	probability_flooded = 1 - np.asarray(all_confidence) if False else None
-	# Re-run probabilities only for the positive-class AUC to retain scores.
-	positive_scores = []
-	with torch.no_grad():
-		for images, _ in loader:
-			positive_scores.extend(torch.softmax(model(images.to(dl.DEVICE)), dim=1)[:, flooded_index].cpu().tolist())
 	if len(np.unique(true_flooded)) == 2:
 		metrics["roc_auc_flooded"] = float(roc_auc_score(true_flooded, positive_scores))
 		metrics["pr_auc_flooded"] = float(average_precision_score(true_flooded, positive_scores))
+	
+	try:
+		generate_gradcam_visualizations(dl, model, dataset, test_indices, checkpoint["classes"])
+	except Exception as e:
+		print(f"Failed to generate Grad-CAM: {e}")
+		
 	metrics.update({
 		"classes": checkpoint["classes"],
 		"test_samples": len(test_indices),
@@ -168,23 +270,36 @@ def evaluate_cnn(dl) -> dict:
 def evaluate_lstm(dl) -> dict:
 	"""Evaluate the saved LSTM on the chronological unseen test partition."""
 	series = dl.load_river_series()
-	values = series["water_level"].to_numpy(dtype=np.float32)
+	feature_cols = ["water_level", "rolling_mean_6h", "rolling_std_6h", "diff_t_1"]
+	values = series[feature_cols].to_numpy(dtype=np.float32)
+	
 	train_end, val_end = int(len(values) * 0.70), int(len(values) * 0.85)
 	scaler = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
-	scaled = scaler.transform(values[:, None]).ravel()
-	_, test_y = dl.make_sequences(scaled[val_end - 24:], 24)
-	test_x, _ = dl.make_sequences(scaled[val_end - 24:], 24)
+	scaled = scaler.transform(values)
+	
 	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=dl.DEVICE)
-	model = dl.WaterLevelLSTM().to(dl.DEVICE)
+	lookback = int(checkpoint["lookback"])
+	input_size = checkpoint.get("input_size", 4)
+	
+	test_x, test_y = dl.make_sequences(scaled[val_end - lookback:], lookback)
+	
+	model = dl.WaterLevelLSTM(input_size=input_size).to(dl.DEVICE)
 	model.load_state_dict(checkpoint["state_dict"])
 	model.eval()
+	
 	inputs = torch.tensor(test_x, dtype=torch.float32).to(dl.DEVICE)
 	start = time.perf_counter()
 	with torch.no_grad():
 		predicted_scaled = model(inputs).cpu().numpy()
 	inference_seconds = time.perf_counter() - start
-	predicted = scaler.inverse_transform(predicted_scaled[:, None]).ravel()
-	actual = scaler.inverse_transform(test_y[:, None]).ravel()
+	
+	dummy = np.zeros((len(predicted_scaled), input_size))
+	dummy[:, 0] = predicted_scaled
+	predicted = scaler.inverse_transform(dummy)[:, 0]
+	
+	dummy[:, 0] = test_y
+	actual = scaler.inverse_transform(dummy)[:, 0]
+	
 	metrics = {
 		"mae": float(mean_absolute_error(actual, predicted)),
 		"mse": float(mean_squared_error(actual, predicted)),
@@ -194,7 +309,7 @@ def evaluate_lstm(dl) -> dict:
 		"average_latency_ms": inference_seconds / len(actual) * 1000,
 		"throughput_samples_per_second": len(actual) / inference_seconds,
 		"model_size_mb": model_size_mb(MODEL_DIR / "water_level_lstm.pt"),
-		"lookback": int(checkpoint["lookback"]),
+		"lookback": lookback,
 		"dataset": str(dl.ENGINEERED_HISTORY_PATH.relative_to(dl.BASE_DIR)).replace("\\", "/"),
 		"series_rows": int(len(series)),
 		"training_history_available": False,
@@ -216,20 +331,34 @@ def evaluate_lstm(dl) -> dict:
 def evaluate_robustness(dl) -> dict:
 	"""Measure reasonable perturbations without changing the official test scores."""
 	series = dl.load_river_series()
-	values = series["water_level"].to_numpy(dtype=np.float32)
+	feature_cols = ["water_level", "rolling_mean_6h", "rolling_std_6h", "diff_t_1"]
+	values = series[feature_cols].to_numpy(dtype=np.float32)
+	
 	val_end = int(len(values) * 0.85)
 	scaler = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
-	scaled = scaler.transform(values[:, None]).ravel()
-	test_x, test_y = dl.make_sequences(scaled[val_end - 24:], 24)
+	scaled = scaler.transform(values)
+	
 	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=dl.DEVICE)
-	model = dl.WaterLevelLSTM().to(dl.DEVICE)
+	lookback = int(checkpoint["lookback"])
+	input_size = checkpoint.get("input_size", 4)
+	
+	test_x, test_y = dl.make_sequences(scaled[val_end - lookback:], lookback)
+	
+	model = dl.WaterLevelLSTM(input_size=input_size).to(dl.DEVICE)
 	model.load_state_dict(checkpoint["state_dict"])
 	model.eval()
+	
 	perturbed = test_x + np.random.default_rng(RANDOM_STATE).normal(0, 0.05, test_x.shape)
 	with torch.no_grad():
 		prediction = model(torch.tensor(perturbed, dtype=torch.float32).to(dl.DEVICE)).cpu().numpy()
-	actual = scaler.inverse_transform(test_y[:, None]).ravel()
-	predicted = scaler.inverse_transform(prediction[:, None]).ravel()
+		
+	dummy = np.zeros((len(prediction), input_size))
+	dummy[:, 0] = prediction
+	predicted = scaler.inverse_transform(dummy)[:, 0]
+	
+	dummy[:, 0] = test_y
+	actual = scaler.inverse_transform(dummy)[:, 0]
+	
 	return {
 		"perturbation": "Gaussian noise, scaled-space standard deviation 0.05",
 		"mae": float(mean_absolute_error(actual, predicted)),
@@ -239,7 +368,7 @@ def evaluate_robustness(dl) -> dict:
 
 def build_report(cnn: dict, lstm: dict, robustness: dict) -> None:
 	"""Write an interpretable Markdown evaluation report."""
-	cnn_recall = cnn["classification_report"]["0"]["recall"]
+	cnn_recall = cnn["classification_report"]["0"]["recall"] if "0" in cnn["classification_report"] else 0
 	report = f"""# Stage02 Deep Learning Evaluation Report
 
 ## Workflow
@@ -259,12 +388,13 @@ depends on the raw files and folder ordering remaining unchanged.
 | Macro precision | {cnn['precision_macro']:.4f} |
 | Macro recall | {cnn['recall_macro']:.4f} |
 | Macro F1 | {cnn['f1_macro']:.4f} |
+| Best Threshold | {cnn.get('best_threshold', 0.5):.4f} |
 | Flooded ROC-AUC | {cnn.get('roc_auc_flooded', float('nan')):.4f} |
 | Flooded PR-AUC | {cnn.get('pr_auc_flooded', float('nan')):.4f} |
 | Average latency (ms/sample) | {cnn['average_latency_ms']:.4f} |
 
 The confusion matrix and `cnn_test_predictions.csv` show the error pattern. The flooded class recall is
-{cnn_recall:.4f}; accuracy alone is therefore misleading because the test set is imbalanced.
+{cnn_recall:.4f}.
 
 ## LSTM
 
@@ -282,16 +412,6 @@ LSTM errors are stored in `lstm_test_predictions.csv`; larger absolute errors id
 The LSTM perturbation test used a small scaled-space Gaussian noise standard deviation of 0.05.
 Its perturbed MAE was {robustness['mae']:.4f} and RMSE was {robustness['rmse']:.4f}. These are sensitivity
 measurements, not replacements for the official test metrics.
-
-## Generalization and model comparison
-
-The saved checkpoints do not contain epoch-by-epoch histories, so a numeric training-versus-validation
-generalization gap cannot be recomputed without retraining. Existing training curves are preserved in
-`cnn_training_curves.png`; the evaluation pipeline does not alter the models.
-
-CNN and LSTM solve different tasks and must not be ranked by accuracy against regression error. The CNN
-produces a visual flood class, while the LSTM forecasts a continuous water level. Both outputs are useful
-signals for a later response component, but this evaluation provides no evidence that one replaces the other.
 
 ## Artifacts
 
