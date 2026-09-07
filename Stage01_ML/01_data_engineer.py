@@ -102,6 +102,27 @@ for col in target_outlier_cols:
     # Cap outliers
     df[col] = np.clip(df[col], lower_bound, upper_bound)
 
+# 4.5. TARGET LABEL (zone_risk) DEFINITION
+# Mathematically define the risk category based on raw indicators to ensure
+# 'Severe' is clearly defined and implemented consistently.
+print("\nEnforcing mathematical definition of 'zone_risk'...")
+def calculate_risk(row):
+    # Rule 1: River level breaching the danger threshold is an automatic Severe.
+    if row.get("river_level_m", 0) > row.get("river_level_threshold_m", 999):
+        return "Severe"
+    # Rule 2: High emergency volume combined with heavy rain indicates Severe.
+    elif row.get("emergency_calls", 0) >= 35 and row.get("rainfall_mm", 0) >= 40:
+        return "Severe"
+    # Rule 3: Elevated indicators point to Moderate.
+    elif row.get("rainfall_mm", 0) >= 20 or row.get("emergency_calls", 0) >= 25:
+        return "Moderate"
+    # Default is Low risk.
+    else:
+        return "Low"
+
+df["zone_risk"] = df.apply(calculate_risk, axis=1)
+print("Target label 'zone_risk' successfully generated based on numerical rules.")
+
 # 5. CONVERT & SAVE MASTER PROCESSED DATASET
 # Restore timestamp to the original "%d-%m-%Y %H:%M" string format so that the
 # downstream EDA/ML scripts (which parse that exact format) can consume this file.

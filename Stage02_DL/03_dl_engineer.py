@@ -55,10 +55,10 @@ MODEL_DIR = BASE_DIR / "data" / "models"
 OUTPUT_DIR = BASE_DIR / "data" / "outputs"
 ENGINEERED_HISTORY_PATH = BASE_DIR / "data" / "Engineered_History_Trend_Dataset.csv"
 RANDOM_STATE = 42
-IMAGE_SIZE = 128
+IMAGE_SIZE = 224
 BATCH_SIZE = 32
-EPOCHS = int(os.getenv("STAGE02_EPOCHS", "5"))
-LOOKBACK = int(os.getenv("STAGE02_LOOKBACK", "24"))
+EPOCHS = 100
+LOOKBACK = 72
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -113,7 +113,7 @@ def save_confusion_matrix(y_true, y_pred, labels: list[str], path: Path, title: 
 
 
 class DisasterCNN(nn.Module):
-	"""Small baseline CNN suitable for the 700x700 raw flood images."""
+	"""Small baseline CNN suitable for the raw flood images."""
 
 	def __init__(self, classes: int = 2):
 		super().__init__()
@@ -176,20 +176,29 @@ def train_cnn() -> dict:
 	)
 	train_targets = np.asarray(base_dataset.targets)[train_indices]
 	class_counts = np.bincount(train_targets, minlength=len(labels)).astype(np.float32)
-	class_weights = len(train_targets) / np.maximum(class_counts, 1)
-	class_weights = class_weights / class_weights.mean()
+	
+	# User explicitly wanted normalized inverse class counts for CrossEntropyLoss weight
+	weights_inv = 1.0 / np.maximum(class_counts, 1)
+	class_weights = weights_inv / weights_inv.sum()
+	
 	sample_weights = class_weights[train_targets]
 	train_sampler = WeightedRandomSampler(
 		torch.as_tensor(sample_weights, dtype=torch.double),
 		num_samples=len(sample_weights),
 		replacement=True,
 	)
+	
 	train_dataset = vision_datasets.ImageFolder(
 		image_dir, transform=transforms.Compose([
-			transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-			transforms.RandomHorizontalFlip(), transforms.ToTensor(), normalize,
+			transforms.RandomResizedCrop(IMAGE_SIZE, scale=(0.8, 1.0)),
+			transforms.RandomHorizontalFlip(p=0.5),
+			transforms.RandomRotation(15),
+			transforms.ColorJitter(brightness=0.2, contrast=0.2),
+			transforms.ToTensor(),
+			normalize,
 		])
 	)
+	
 	eval_dataset = vision_datasets.ImageFolder(
 		image_dir, transform=transforms.Compose([
 			transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)), transforms.ToTensor(), normalize,
@@ -203,19 +212,32 @@ def train_cnn() -> dict:
 	model = DisasterCNN(len(labels)).to(DEVICE)
 	optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 	history = {"train_loss": [], "val_loss": [], "train_accuracy": [], "val_accuracy": []}
-	best_state, best_val_loss = None, float("inf")
-	for epoch in range(EPOCHS):
+	best_state, best_val_f1 = None, -1.0
+	patience = 7
+	patience_counter = 0
+	
+	for epoch in range(50):
 		train_loss, train_true, train_pred = run_cnn_epoch(
 			model, loaders["train"], optimizer, torch.tensor(class_weights, dtype=torch.float32)
 		)
 		val_loss, val_true, val_pred = run_cnn_epoch(model, loaders["val"])
+		val_f1 = f1_score(val_true, val_pred, average="macro", zero_division=0)
+		
 		history["train_loss"].append(train_loss)
 		history["val_loss"].append(val_loss)
 		history["train_accuracy"].append(float(accuracy_score(train_true, train_pred)))
 		history["val_accuracy"].append(float(accuracy_score(val_true, val_pred)))
-		if val_loss < best_val_loss:
-			best_val_loss = val_loss
+		
+		if val_f1 > best_val_f1:
+			best_val_f1 = val_f1
 			best_state = {key: value.cpu().clone() for key, value in model.state_dict().items()}
+			patience_counter = 0
+		else:
+			patience_counter += 1
+			if patience_counter >= patience:
+				print(f"CNN Early stopping triggered at epoch {epoch}")
+				break
+				
 	if best_state is not None:
 		model.load_state_dict(best_state)
 	test_loss, test_true, test_pred = run_cnn_epoch(model, loaders["test"])
@@ -236,6 +258,7 @@ def train_cnn() -> dict:
 		"class_weights": class_weights.tolist(),
 	}, MODEL_DIR / "disaster_cnn.pt")
 	save_confusion_matrix(test_true, test_pred, list(range(len(labels))), OUTPUT_DIR / "cnn_confusion_matrix.png", "CNN test confusion matrix")
+	
 	figure, axes = plt.subplots(1, 2, figsize=(11, 4))
 	axes[0].plot(history["train_loss"], label="train")
 	axes[0].plot(history["val_loss"], label="validation")
@@ -252,30 +275,32 @@ def train_cnn() -> dict:
 
 
 def load_river_series() -> pd.DataFrame:
-	"""Load the engineered hourly history-trend water-level series."""
+	"""Load the engineered hourly history-trend water-level series and create additional features."""
 	if not ENGINEERED_HISTORY_PATH.exists():
 		raise FileNotFoundError(
 			f"Engineered history-trend dataset not found: {ENGINEERED_HISTORY_PATH}"
 		)
 	frame = pd.read_csv(ENGINEERED_HISTORY_PATH, low_memory=False)
-	required_columns = {"timestamp", "river_level_m"}
-	missing = sorted(required_columns.difference(frame.columns))
-	if missing:
-		raise ValueError(f"Engineered dataset is missing columns: {missing}")
 	frame["timestamp"] = pd.to_datetime(frame["timestamp"], errors="coerce")
 	frame["water_level"] = pd.to_numeric(frame["river_level_m"], errors="coerce")
-	return (
+	
+	df = (
 		frame[["timestamp", "water_level"]]
 		.dropna()
 		.sort_values("timestamp")
 		.drop_duplicates("timestamp")
 		.reset_index(drop=True)
 	)
+	
+	df["rolling_mean_6h"] = df["water_level"].rolling(window=6, min_periods=1).mean()
+	df["rolling_std_6h"] = df["water_level"].rolling(window=6, min_periods=1).std().fillna(0.0)
+	df["diff_t_1"] = df["water_level"].diff().fillna(0.0)
+	
+	return df
 
 
 class SequenceDataset(Dataset):
 	"""Dataset for LSTM inputs shaped as (samples, timesteps, features)."""
-
 	def __init__(self, sequences: np.ndarray, targets: np.ndarray):
 		self.sequences = torch.tensor(sequences, dtype=torch.float32)
 		self.targets = torch.tensor(targets, dtype=torch.float32)
@@ -288,11 +313,10 @@ class SequenceDataset(Dataset):
 
 
 class WaterLevelLSTM(nn.Module):
-	"""Baseline univariate water-level forecaster."""
-
-	def __init__(self):
+	"""Univariate/Multivariate water-level forecaster."""
+	def __init__(self, input_size: int = 4):
 		super().__init__()
-		self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True, dropout=0.2)
+		self.lstm = nn.LSTM(input_size=input_size, hidden_size=64, num_layers=2, batch_first=True, dropout=0.2)
 		self.output = nn.Linear(64, 1)
 
 	def forward(self, inputs):
@@ -300,34 +324,43 @@ class WaterLevelLSTM(nn.Module):
 		return self.output(outputs[:, -1, :]).squeeze(-1)
 
 
-def make_sequences(values: np.ndarray, lookback: int) -> tuple[np.ndarray, np.ndarray]:
-	"""Create chronological one-step forecasting windows."""
-	sequences = np.asarray([values[index:index + lookback] for index in range(len(values) - lookback)])
-	targets = values[lookback:]
-	return sequences[:, :, None], targets
+def make_sequences(features: np.ndarray, lookback: int) -> tuple[np.ndarray, np.ndarray]:
+	"""Create chronological one-step forecasting windows. Target is water_level (col 0)."""
+	sequences = np.asarray([features[index:index + lookback] for index in range(len(features) - lookback)])
+	targets = features[lookback:, 0]
+	return sequences, targets
 
 
 def train_lstm() -> dict:
-	"""Train and evaluate the water-level LSTM without temporal leakage."""
-	from sklearn.preprocessing import StandardScaler
-
+	"""Train and evaluate the water-level LSTM with temporal features."""
 	series = load_river_series()
-	values = series["water_level"].to_numpy(dtype=np.float32)
+	feature_cols = ["water_level", "rolling_mean_6h", "rolling_std_6h", "diff_t_1"]
+	values = series[feature_cols].to_numpy(dtype=np.float32)
+	
 	train_end = int(len(values) * 0.70)
 	val_end = int(len(values) * 0.85)
-	scaler = StandardScaler().fit(values[:train_end, None])
-	scaled = scaler.transform(values[:, None]).ravel()
+	
+	scaler = StandardScaler().fit(values[:train_end])
+	scaled = scaler.transform(values)
+	
 	train_x, train_y = make_sequences(scaled[:train_end], LOOKBACK)
 	val_x, val_y = make_sequences(scaled[train_end - LOOKBACK:val_end], LOOKBACK)
 	test_x, test_y = make_sequences(scaled[val_end - LOOKBACK:], LOOKBACK)
+	
 	train_loader = DataLoader(SequenceDataset(train_x, train_y), BATCH_SIZE, shuffle=False)
-	model = WaterLevelLSTM().to(DEVICE)
+	val_dataset = SequenceDataset(val_x, val_y)
+	
+	model = WaterLevelLSTM(input_size=4).to(DEVICE)
 	optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+	scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 	loss_function = nn.MSELoss()
+	
 	history = {"train_loss": [], "val_loss": []}
 	best_state, best_val = None, float("inf")
-	val_dataset = SequenceDataset(val_x, val_y)
-	for _ in range(EPOCHS):
+	patience = 10
+	patience_counter = 0
+	
+	for epoch in range(100):
 		model.train()
 		train_total = 0.0
 		for batch_x, batch_y in train_loader:
@@ -337,21 +370,44 @@ def train_lstm() -> dict:
 			loss.backward()
 			optimizer.step()
 			train_total += loss.item() * len(batch_y)
+			
 		model.eval()
 		with torch.no_grad():
-			val_loss = loss_function(model(val_dataset.sequences.to(DEVICE)), val_dataset.targets.to(DEVICE)).item()
+			val_preds = model(val_dataset.sequences.to(DEVICE))
+			val_loss = loss_function(val_preds, val_dataset.targets.to(DEVICE)).item()
+			val_rmse = np.sqrt(val_loss)
+			
+		scheduler.step(val_rmse)
+			
 		history["train_loss"].append(train_total / len(train_loader.dataset))
 		history["val_loss"].append(val_loss)
-		if val_loss < best_val:
-			best_val = val_loss
+		
+		if val_rmse < best_val:
+			best_val = val_rmse
 			best_state = {key: value.cpu().clone() for key, value in model.state_dict().items()}
+			patience_counter = 0
+		else:
+			patience_counter += 1
+			if patience_counter >= patience:
+				print(f"LSTM Early stopping triggered at epoch {epoch}")
+				break
+				
 	if best_state is not None:
 		model.load_state_dict(best_state)
+		
 	model.eval()
 	with torch.no_grad():
 		pred_scaled = model(torch.tensor(test_x, dtype=torch.float32).to(DEVICE)).cpu().numpy()
-	predicted = scaler.inverse_transform(pred_scaled.reshape(-1, 1)).ravel()
-	actual = scaler.inverse_transform(test_y.reshape(-1, 1)).ravel()
+		
+	# Inverse transform requires all 4 columns, we only have predicted col 0
+	# Create dummy array
+	dummy = np.zeros((len(pred_scaled), 4))
+	dummy[:, 0] = pred_scaled
+	predicted = scaler.inverse_transform(dummy)[:, 0]
+	
+	dummy[:, 0] = test_y
+	actual = scaler.inverse_transform(dummy)[:, 0]
+	
 	metrics = {
 		"mae": float(mean_absolute_error(actual, predicted)),
 		"mse": float(mean_squared_error(actual, predicted)),
@@ -361,8 +417,10 @@ def train_lstm() -> dict:
 		"device": str(DEVICE),
 		"dataset": str(ENGINEERED_HISTORY_PATH.relative_to(BASE_DIR)).replace("\\", "/"),
 	}
-	torch.save({"state_dict": model.state_dict(), "lookback": LOOKBACK}, MODEL_DIR / "water_level_lstm.pt")
+	
+	torch.save({"state_dict": model.state_dict(), "lookback": LOOKBACK, "input_size": 4}, MODEL_DIR / "water_level_lstm.pt")
 	joblib.dump(scaler, MODEL_DIR / "water_level_scaler.joblib")
+	
 	figure, axis = plt.subplots(figsize=(11, 4))
 	axis.plot(actual[:500], label="actual")
 	axis.plot(predicted[:500], label="predicted")
@@ -429,43 +487,53 @@ def predict_image(image_path: str | Path) -> dict:
 	return {"label": checkpoint["classes"][index], "confidence": float(probabilities[index])}
 
 
+def make_features_for_inference(levels_list: list[float]) -> np.ndarray:
+	s = pd.Series(levels_list)
+	df = pd.DataFrame({"water_level": s})
+	df["rolling_mean_6h"] = df["water_level"].rolling(6, min_periods=1).mean()
+	df["rolling_std_6h"] = df["water_level"].rolling(6, min_periods=1).std().fillna(0.0)
+	df["diff_t_1"] = df["water_level"].diff().fillna(0.0)
+	return df.to_numpy(dtype=np.float32)
+
+
 def forecast_water_level(recent_levels: Iterable[float]) -> float:
 	"""Forecast one next water-level value from the saved LSTM and scaler."""
-	values = np.asarray(list(recent_levels), dtype=np.float32)
-	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=DEVICE)
-	if len(values) < checkpoint["lookback"]:
-		raise ValueError(f"At least {checkpoint['lookback']} water-level values are required")
-	scaler = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
-	scaled = scaler.transform(values[-checkpoint["lookback"]:, None])
-	model = WaterLevelLSTM().to(DEVICE)
-	model.load_state_dict(checkpoint["state_dict"])
-	model.eval()
-	with torch.no_grad():
-		prediction = model(torch.tensor(scaled[None], dtype=torch.float32).to(DEVICE)).cpu().item()
-	return float(scaler.inverse_transform([[prediction]])[0, 0])
+	return forecast_water_levels(recent_levels, 1)[0]
 
 
 def forecast_water_levels(recent_levels: Iterable[float], horizon: int = 6) -> list[float]:
 	"""Recursively forecast multiple future water-level steps."""
 	if horizon < 1 or horizon > 168:
 		raise ValueError("horizon must be between 1 and 168 steps")
-	values = np.asarray(list(recent_levels), dtype=np.float32)
+	
 	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=DEVICE)
 	lookback = int(checkpoint["lookback"])
+	input_size = checkpoint.get("input_size", 4)
+	
+	values = list(recent_levels)
 	if len(values) < lookback:
 		raise ValueError(f"At least {lookback} water-level values are required")
+	
 	scaler = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
-	scaled_history = list(scaler.transform(values[:, None]).ravel())
-	model = WaterLevelLSTM().to(DEVICE)
+	model = WaterLevelLSTM(input_size=input_size).to(DEVICE)
 	model.load_state_dict(checkpoint["state_dict"])
 	model.eval()
+	
 	forecasts = []
 	with torch.no_grad():
 		for _ in range(horizon):
-			window = np.asarray(scaled_history[-lookback:], dtype=np.float32)[None, :, None]
-			next_scaled = model(torch.tensor(window, dtype=torch.float32).to(DEVICE)).cpu().item()
-			scaled_history.append(next_scaled)
-			forecasts.append(float(scaler.inverse_transform([[next_scaled]])[0, 0]))
+			feats = make_features_for_inference(values[-lookback:])
+			scaled_window = scaler.transform(feats)[None, :, :]
+			
+			next_scaled_val = model(torch.tensor(scaled_window, dtype=torch.float32).to(DEVICE)).cpu().item()
+			
+			dummy = np.zeros((1, input_size))
+			dummy[0, 0] = next_scaled_val
+			next_val = float(scaler.inverse_transform(dummy)[0, 0])
+			
+			forecasts.append(next_val)
+			values.append(next_val)
+			
 	return forecasts
 
 
