@@ -1,0 +1,316 @@
+{
+    "integration_status": {
+        "ready_for_integration": true,
+        "criteria": "Severe Recall >= 0.70 AND Macro F1 >= 0.65"
+    },
+    "metrics": {
+        "accuracy": 0.9686666666666667,
+        "macro_f1": 0.9152296300296805,
+        "classification_report": {
+            "Low": {
+                "precision": 1.0,
+                "recall": 0.7096774193548387,
+                "f1-score": 0.8301886792452831,
+                "support": 31.0
+            },
+            "Moderate": {
+                "precision": 0.9310344827586207,
+                "recall": 0.9337175792507204,
+                "f1-score": 0.9323741007194245,
+                "support": 347.0
+            },
+            "Severe": {
+                "precision": 0.9796460176991151,
+                "recall": 0.9866310160427807,
+                "f1-score": 0.9831261101243339,
+                "support": 1122.0
+            },
+            "accuracy": 0.9686666666666667,
+            "macro avg": {
+                "precision": 0.970226833485912,
+                "recall": 0.8766753382161133,
+                "f1-score": 0.9152296300296805,
+                "support": 1500.0
+            },
+            "weighted avg": {
+                "precision": 0.9688211982504323,
+                "recall": 0.9686666666666667,
+                "f1-score": 0.9682247717104978,
+                "support": 1500.0
+            }
+        },
+        "confusion_matrix": [
+            [
+                22,
+                9,
+                0
+            ],
+            [
+                0,
+                324,
+                23
+            ],
+            [
+                0,
+                15,
+                1107
+            ]
+        ]
+    },
+    "overconfidence_analysis": {
+        "missed_severe_count": 15,
+        "critical_overconfident_errors": 0
+    },
+    "generalization_stress_test": {
+        "Vadodara": {
+            "samples": 26,
+            "accuracy": 0.9615384615384616,
+            "severe_recall": 0.9545454545454546
+        },
+        "Malda": {
+            "samples": 21,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Prayagraj": {
+            "samples": 32,
+            "accuracy": 0.96875,
+            "severe_recall": 0.9523809523809523
+        },
+        "Puri": {
+            "samples": 30,
+            "accuracy": 0.9666666666666667,
+            "severe_recall": 1.0
+        },
+        "Bhubaneswar": {
+            "samples": 30,
+            "accuracy": 0.9,
+            "severe_recall": 0.9090909090909091
+        },
+        "Bhagalpur": {
+            "samples": 23,
+            "accuracy": 0.9130434782608695,
+            "severe_recall": 1.0
+        },
+        "Cuttack": {
+            "samples": 27,
+            "accuracy": 0.9629629629629629,
+            "severe_recall": 1.0
+        },
+        "Gorakhpur": {
+            "samples": 35,
+            "accuracy": 0.9142857142857143,
+            "severe_recall": 1.0
+        },
+        "Varanasi": {
+            "samples": 36,
+            "accuracy": 0.9444444444444444,
+            "severe_recall": 1.0
+        },
+        "Kendrapara": {
+            "samples": 25,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Kochi": {
+            "samples": 36,
+            "accuracy": 0.9444444444444444,
+            "severe_recall": 0.9615384615384616
+        },
+        "Chennai": {
+            "samples": 38,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Madurai": {
+            "samples": 37,
+            "accuracy": 0.9459459459459459,
+            "severe_recall": 1.0
+        },
+        "Bengaluru": {
+            "samples": 31,
+            "accuracy": 0.967741935483871,
+            "severe_recall": 1.0
+        },
+        "Dhemaji": {
+            "samples": 26,
+            "accuracy": 0.9615384615384616,
+            "severe_recall": 1.0
+        },
+        "Thrissur": {
+            "samples": 24,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Surat": {
+            "samples": 26,
+            "accuracy": 0.9615384615384616,
+            "severe_recall": 0.9473684210526315
+        },
+        "Pune": {
+            "samples": 28,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Nashik": {
+            "samples": 34,
+            "accuracy": 0.9411764705882353,
+            "severe_recall": 0.92
+        },
+        "Barpeta": {
+            "samples": 25,
+            "accuracy": 0.96,
+            "severe_recall": 1.0
+        },
+        "Gaya": {
+            "samples": 30,
+            "accuracy": 0.9333333333333333,
+            "severe_recall": 1.0
+        },
+        "Ahmedabad": {
+            "samples": 41,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Mumbai": {
+            "samples": 37,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Murshidabad": {
+            "samples": 28,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Mysuru": {
+            "samples": 29,
+            "accuracy": 0.9310344827586207,
+            "severe_recall": 0.9523809523809523
+        },
+        "Patna": {
+            "samples": 27,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Darjeeling": {
+            "samples": 38,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Guwahati": {
+            "samples": 27,
+            "accuracy": 0.9629629629629629,
+            "severe_recall": 1.0
+        },
+        "Kottayam": {
+            "samples": 21,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Bharuch": {
+            "samples": 28,
+            "accuracy": 0.9642857142857143,
+            "severe_recall": 1.0
+        },
+        "Rajkot": {
+            "samples": 36,
+            "accuracy": 0.9722222222222222,
+            "severe_recall": 0.967741935483871
+        },
+        "Balasore": {
+            "samples": 37,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Alappuzha": {
+            "samples": 36,
+            "accuracy": 0.9722222222222222,
+            "severe_recall": 1.0
+        },
+        "Nagpur": {
+            "samples": 24,
+            "accuracy": 0.9583333333333334,
+            "severe_recall": 1.0
+        },
+        "Kolhapur": {
+            "samples": 24,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Lucknow": {
+            "samples": 31,
+            "accuracy": 0.967741935483871,
+            "severe_recall": 0.9583333333333334
+        },
+        "Kozhikode": {
+            "samples": 22,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Kolkata": {
+            "samples": 30,
+            "accuracy": 0.9666666666666667,
+            "severe_recall": 0.96
+        },
+        "Tiruppur": {
+            "samples": 42,
+            "accuracy": 0.9761904761904762,
+            "severe_recall": 1.0
+        },
+        "Coimbatore": {
+            "samples": 44,
+            "accuracy": 0.9545454545454546,
+            "severe_recall": 1.0
+        },
+        "Udupi": {
+            "samples": 41,
+            "accuracy": 0.975609756097561,
+            "severe_recall": 1.0
+        },
+        "Kanpur": {
+            "samples": 35,
+            "accuracy": 0.8857142857142857,
+            "severe_recall": 0.9523809523809523
+        },
+        "Darbhanga": {
+            "samples": 30,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Jorhat": {
+            "samples": 26,
+            "accuracy": 0.9230769230769231,
+            "severe_recall": 0.95
+        },
+        "Howrah": {
+            "samples": 29,
+            "accuracy": 0.9655172413793104,
+            "severe_recall": 1.0
+        },
+        "Dibrugarh": {
+            "samples": 22,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Kodagu": {
+            "samples": 24,
+            "accuracy": 0.9583333333333334,
+            "severe_recall": 0.9523809523809523
+        },
+        "Thanjavur": {
+            "samples": 23,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Mangaluru": {
+            "samples": 28,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        },
+        "Muzaffarpur": {
+            "samples": 20,
+            "accuracy": 1.0,
+            "severe_recall": 1.0
+        }
+    }
+}
