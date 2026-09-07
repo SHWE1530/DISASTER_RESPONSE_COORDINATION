@@ -1,0 +1,2 @@
+source,file_count,total_size_mb,dimensions,pillow_available
+flood_images,500,27.767,"{'width_min': 700, 'width_max': 700, 'height_min': 700, 'height_max': 700}",True

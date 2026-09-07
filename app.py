@@ -1,8 +1,10 @@
 from importlib import import_module
+import importlib.util
 from datetime import datetime
 import json
 from pathlib import Path
 import sys
+from tempfile import NamedTemporaryFile
 
 import pandas as pd
 from flask import Flask, jsonify, request
@@ -14,6 +16,14 @@ sys.path.insert(0, str(STAGE01_DIR))
 
 integration_module = import_module("05_integration_engineer")
 integration_engine = integration_module.integration_engine
+stage02_spec = importlib.util.spec_from_file_location(
+	"stage02_integration_engineer",
+	BASE_DIR / "Stage02_DL" / "05_integration_engineer.py",
+)
+stage02_integration_module = importlib.util.module_from_spec(stage02_spec)
+assert stage02_spec.loader is not None
+stage02_spec.loader.exec_module(stage02_integration_module)
+stage02_integration_engine = stage02_integration_module.dl_integration_engine
 
 app = Flask(__name__)
 
@@ -115,6 +125,7 @@ def dashboard_data():
 		"history": history[:20],
 		"model_loaded": integration_engine.model is not None,
 		"load_error": integration_engine.load_error,
+		"stage02": stage02_integration_engine.summary(),
 	}
 
 
@@ -241,6 +252,11 @@ def compact_dashboard_html():
 <main class="shell">
 <header><div><p class="eyebrow">Stage 01 / ML intelligence</p><h1>Disaster Response Coordination</h1><p class="subtitle">See what is happening, understand the risk, and check a zone when you need to.</p></div><div class="header-actions"><span class="online" id="system-state">Everything is working</span><span id="clock">--</span><button class="refresh" id="refresh">Refresh</button></div></header>
 <section><div class="section-title"><h2>At a glance</h2><span id="updated">Getting the latest information...</span></div><div class="constraint-grid" id="constraints"><div class="loading">Getting things ready...</div></div></section>
+<section><div class="section-title"><h2>Deep learning signals</h2><span>Stage 02 / trained artifacts</span></div><div class="constraint-grid" id="dl-signals"><div class="loading">Loading deep-learning models...</div></div></section>
+<section><div class="section-title"><h2>Deep learning workspace</h2><span>CNN image classification and LSTM forecasting</span></div><div class="constraint-grid">
+<article class="constraint model" style="min-height:230px"><div class="constraint-name">CNN flood classifier</div><div class="key-value" style="font-size:20px">Upload an image</div><form id="dl-image-form"><input id="dl-image-file" name="image" type="file" accept="image/*" required style="width:100%;margin:12px 0"><button type="submit">Predict flooded status</button></form><div id="dl-image-result" class="status" style="display:block;margin-top:14px">Choose a flood image to begin.</div></article>
+<article class="constraint model" style="min-height:230px"><div class="constraint-name">LSTM water-level forecast</div><div class="key-value" style="font-size:20px">Future water level</div><form id="dl-forecast-form"><textarea id="dl-water-levels" rows="4" placeholder="Enter 24 readings separated by commas or new lines" required style="width:100%;padding:10px;margin:12px 0;background:#09182a;color:#e8eef7;border:1px solid var(--line);resize:vertical"></textarea><input id="dl-horizon" type="number" min="1" max="168" value="6" required style="width:100%;padding:10px;margin:0 0 12px;background:#09182a;color:#e8eef7;border:1px solid var(--line)"><button type="submit">Forecast future levels</button></form><div id="dl-forecast-result" class="status" style="display:block;margin-top:14px">The LSTM requires 24 readings.</div></article>
+</div></section>
 <div class="footer-row"><span>Choose a card to see the details behind it.</span><button id="assess">Check a zone</button></div>
 </main>
 <dialog class="dialog" id="details-dialog"><div class="dialog-head"><h3 id="dialog-title">Details</h3><button class="close" data-close>&times;</button></div><div class="dialog-body" id="dialog-body"></div></dialog>
@@ -249,10 +265,13 @@ def compact_dashboard_html():
 const $=id=>document.getElementById(id), details=$('details-dialog'), assessment=$('assessment-dialog'); let dashboard=null;
 const pct=v=>v==null?'N/A':(v*100).toFixed(1)+'%'; const num=v=>v==null?'N/A':Number(v).toLocaleString();
 function card(name,value,status,kind,key,detail){return '<article class="constraint '+kind+'"><div class="constraint-name">'+name+'</div><div class="key-value">'+value+'</div><div class="constraint-meta"><span class="status '+status.class+'">'+status.label+'</span><button class="details-link" data-detail="'+key+'">View details</button></div></article>';}
-function render(data){dashboard=data; const c=data.risk_counts, total=data.records||0; $('constraints').innerHTML=[card('Information available',num(total),{label:'Ready to explore',class:'ready'},'','dataset',''),card('Places needing attention',pct(total?c.Severe/total:null),{label:c.Severe?'Worth a closer look':'Looking good',class:c.Severe?'alert':'ready'},'risk','risk',''),card('Risk model',data.model,{label:data.model_loaded?'Ready to help':'Needs attention',class:data.model_loaded?'ready':'alert'},'model','model',''),card('How accurate is it?',pct(data.model_metrics.accuracy),{label:data.model_metrics.accuracy==null?'Not available':'Checked on test data',class:data.model_metrics.accuracy==null?'attention':'ready'},'','accuracy',''),card('What matters most?',data.feature_importance[0]?.feature||'Not available',{label:data.feature_importance.length?'Main signal':'Not available',class:data.feature_importance.length?'ready':'attention'},'','factors',''),card('Checks made so far',num(data.predictions),{label:data.predictions?'Saved for review':'No checks yet',class:data.predictions?'ready':'neutral'},'system','history','')].join(''); $('updated').textContent='Last updated '+data.generated_at; document.querySelectorAll('[data-detail]').forEach(b=>b.onclick=()=>showDetails(b.dataset.detail));}
+function renderDL(data){const d=data.stage02||{};const c=d.cnn||{},l=d.lstm||{};$('dl-signals').innerHTML=[card('Visual flood signal',d.models?.cnn?'CNN ready':'Unavailable',{label:d.models?.cnn?'Flooded / unflooded':'Needs attention',class:d.models?.cnn?'ready':'alert'},'model','dl-cnn',''),card('CNN test F1',pct(c.f1),{label:'Image classification',class:'ready'},'','dl-cnn',''),card('Water-level forecast',d.models?.lstm?'LSTM ready':'Unavailable',{label:l.lookback?'24-step lookback':'Needs attention',class:d.models?.lstm?'ready':'alert'},'model','dl-lstm',''),card('LSTM test RMSE',num(l.rmse),{label:'Continuous forecast',class:'ready'},'','dl-lstm',''),card('DL model status',d.status||'Unavailable',{label:d.image_samples+' images available',class:d.status==='healthy'?'ready':'alert'},'system','dl-status','')].join('');}
+function render(data){dashboard=data; const c=data.risk_counts, total=data.records||0; $('constraints').innerHTML=[card('Information available',num(total),{label:'Ready to explore',class:'ready'},'','dataset',''),card('Places needing attention',pct(total?c.Severe/total:null),{label:c.Severe?'Worth a closer look':'Looking good',class:c.Severe?'alert':'ready'},'risk','risk',''),card('Risk model',data.model,{label:data.model_loaded?'Ready to help':'Needs attention',class:data.model_loaded?'ready':'alert'},'model','model',''),card('How accurate is it?',pct(data.model_metrics.accuracy),{label:data.model_metrics.accuracy==null?'Not available':'Checked on test data',class:data.model_metrics.accuracy==null?'attention':'ready'},'','accuracy',''),card('What matters most?',data.feature_importance[0]?.feature||'Not available',{label:data.feature_importance.length?'Main signal':'Not available',class:data.feature_importance.length?'ready':'attention'},'','factors',''),card('Checks made so far',num(data.predictions),{label:data.predictions?'Saved for review':'No checks yet',class:data.predictions?'ready':'neutral'},'system','history','')].join(''); renderDL(data); $('updated').textContent='Last updated '+data.generated_at; document.querySelectorAll('[data-detail]').forEach(b=>b.onclick=()=>showDetails(b.dataset.detail));}
 function detail(title,items,extra=''){ $('dialog-title').textContent=title; $('dialog-body').innerHTML='<div class="detail-grid">'+items.map(x=>'<div class="detail"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('')+'</div>'+extra; details.showModal(); }
 function showDetails(key){const d=dashboard;if(key==='dataset')detail('Dataset coverage',[['Records',num(d.records)],['Low risk',num(d.risk_counts.Low)],['Moderate risk',num(d.risk_counts.Moderate)],['Severe risk',num(d.risk_counts.Severe)],['Predictions',num(d.predictions)],['Last refresh',d.generated_at]]);if(key==='risk')detail('Risk exposure',[['Severe',num(d.risk_counts.Severe)],['Moderate',num(d.risk_counts.Moderate)],['Low',num(d.risk_counts.Low)],['Severe rate',pct(d.records?d.risk_counts.Severe/d.records:null)],['Top district',d.districts[0]?.district||'N/A'],['Top district rate',d.districts[0]?.severe_rate+'%'||'N/A']]);if(key==='model'||key==='accuracy')detail('Model intelligence',[['Selected model',d.model],['Accuracy',pct(d.model_metrics.accuracy)],['Precision',pct(d.model_metrics.precision)],['Recall',pct(d.model_metrics.recall)],['Macro F1',pct(d.model_metrics.f1)],['ROC-AUC','N/A']],'<p class="panel-sub">Evaluation values are loaded from the existing Stage 01 artifacts.</p>');if(key==='factors')detail('Top risk factors',d.feature_importance.slice(0,8).map(x=>[x.feature,x.importance]));if(key==='history'){const rows=d.history.map(x=>'<tr><td>'+x.timestamp+'</td><td>'+x.district+'</td><td><span class="badge '+x.risk+'">'+x.risk+'</span></td><td>'+pct(x.confidence)+'</td></tr>').join('');detail('Prediction history',[], '<div class="table-wrap"><table><thead><tr><th>Timestamp</th><th>District</th><th>Risk</th><th>Confidence</th></tr></thead><tbody>'+rows+'</tbody></table></div>');}}
 async function load(){try{const r=await fetch('/api/dashboard');dashboard=await r.json();render(dashboard);$('system-state').textContent=dashboard.model_loaded?'Everything is working':'The model needs attention';}catch(e){$('constraints').innerHTML='<div class="empty">We could not load the dashboard right now.</div>';$('system-state').textContent='Something needs attention';}}
+$('dl-image-form').onsubmit=async e=>{e.preventDefault();const result=$('dl-image-result'),file=$('dl-image-file').files[0];if(!file)return;result.textContent='Analyzing image...';try{const body=new FormData();body.append('image',file);const response=await fetch('/api/stage02/predict-upload',{method:'POST',body});const payload=await response.json();if(!response.ok||!payload.result)throw Error(payload.error||'Prediction failed');result.innerHTML='<strong>'+payload.result.label.toUpperCase()+'</strong><br>Confidence: '+(payload.result.confidence*100).toFixed(1)+'%';}catch(error){result.textContent=error.message||'Image prediction failed.';}};
+ $('dl-forecast-form').onsubmit=async e=>{e.preventDefault();const result=$('dl-forecast-result');const values=$('dl-water-levels').value.replaceAll(String.fromCharCode(10),',').split(',').map(value=>value.trim()).filter(Boolean).map(Number);const horizon=Number($('dl-horizon').value);if(values.length!==24||values.some(Number.isNaN)){result.textContent='Enter exactly 24 numeric readings.';return;}if(!Number.isInteger(horizon)||horizon<1||horizon>168){result.textContent='Forecast horizon must be between 1 and 168 steps.';return;}result.textContent='Forecasting...';try{const response=await fetch('/api/stage02/forecast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({water_levels:values,horizon})});const payload=await response.json();if(!response.ok||!payload.result)throw Error(payload.error||'Forecast failed');result.innerHTML='<strong>'+payload.result.forecast_water_levels.map(value=>Number(value).toFixed(3)+' m').join(' | ')+'</strong><br>'+payload.result.horizon+' future steps forecast.';}catch(error){result.textContent=error.message||'Water-level forecast failed.';}};
 $('refresh').onclick=load;$('assess').onclick=()=>assessment.showModal();document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('prediction-form').onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target));Object.keys(data).forEach(k=>{if(!['district','state','timestamp'].includes(k))data[k]=Number(data[k]);});const result=$('assessment-result');result.textContent='Assessing...';try{const r=await fetch('/api/ml/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const p=await r.json();if(!r.ok)throw Error();result.innerHTML='<strong class="'+p.result.risk_category.toLowerCase()+'">'+p.result.risk_category+'</strong><p>Confidence: '+pct(p.result.confidence)+' | '+p.result.top_factors.join(', ')+'</p>';load();}catch(e){result.textContent='Assessment failed. Please verify the supplied inputs.';}};setInterval(()=>{$('clock').textContent=new Date().toLocaleString();},1000);load();
 </script>
 </body></html>
@@ -523,6 +542,76 @@ def stage01_status():
 		},
 		"health": health_result,
 	})
+
+
+@app.get("/api/stage02/status")
+def stage02_status():
+	return jsonify(stage02_integration_engine.health_check())
+
+
+@app.get("/api/stage02/summary")
+def stage02_summary():
+	return jsonify(stage02_integration_engine.summary())
+
+
+@app.post("/api/stage02/predict-image")
+def stage02_predict_image():
+	try:
+		data = request.get_json(silent=True) or {}
+		return jsonify({
+			"success": True,
+			"result": stage02_integration_engine.predict_image(data.get("image_path", "")),
+		})
+	except ValueError as exc:
+		return jsonify({"success": False, "error": str(exc)}), 400
+	except RuntimeError as exc:
+		return jsonify({"success": False, "error": str(exc)}), 503
+
+
+@app.post("/api/stage02/predict-upload")
+def stage02_predict_upload():
+	"""Run CNN inference on a browser upload and remove the temporary file."""
+	temporary_path = None
+	try:
+		upload = request.files.get("image")
+		if upload is None or not upload.filename:
+			return jsonify({"success": False, "error": "An image file is required"}), 400
+		if not (upload.mimetype or "").startswith("image/"):
+			return jsonify({"success": False, "error": "Only image uploads are supported"}), 400
+		with NamedTemporaryFile(
+			dir=stage02_integration_module.RAW_DIR,
+			suffix=Path(upload.filename).suffix.lower() or ".jpg",
+			delete=False,
+		) as temporary_file:
+			upload.save(temporary_file)
+			temporary_path = Path(temporary_file.name)
+		return jsonify({
+			"success": True,
+			"result": stage02_integration_engine.predict_image(str(temporary_path)),
+		})
+	except ValueError as exc:
+		return jsonify({"success": False, "error": str(exc)}), 400
+	except RuntimeError as exc:
+		return jsonify({"success": False, "error": str(exc)}), 503
+	finally:
+		if temporary_path is not None:
+			temporary_path.unlink(missing_ok=True)
+
+
+@app.post("/api/stage02/forecast")
+def stage02_forecast():
+	try:
+		data = request.get_json(silent=True) or {}
+		return jsonify({
+			"success": True,
+			"result": stage02_integration_engine.forecast_water_levels(
+				data.get("water_levels", []), data.get("horizon", 6)
+			),
+		})
+	except ValueError as exc:
+		return jsonify({"success": False, "error": str(exc)}), 400
+	except RuntimeError as exc:
+		return jsonify({"success": False, "error": str(exc)}), 503
 
 
 if __name__ == "__main__":

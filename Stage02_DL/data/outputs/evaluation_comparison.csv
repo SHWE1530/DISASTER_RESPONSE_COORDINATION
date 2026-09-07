@@ -1,0 +1,7 @@
+metric,cnn,lstm,applicable
+accuracy,0.6933333333333334,,CNN classification only
+macro_f1,0.643668663499277,,CNN classification only
+mae,,0.2950364351272583,LSTM regression only
+rmse,,0.7443279521176468,LSTM regression only
+average_latency_ms,3.514903999554614,0.10348295281206002,"Both, different workloads"
+model_size_mb,0.3606,0.1967,Both

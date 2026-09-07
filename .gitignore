@@ -4,3 +4,9 @@ frontend/node_modules/
 frontend/dist/
 .env
 *.pyc
+.venv/
+__pycache__/
+
+# Prevent accidental commit of large raw datasets
+Stage02_DL/data/raw/*
+!Stage02_DL/data/raw/.gitkeep

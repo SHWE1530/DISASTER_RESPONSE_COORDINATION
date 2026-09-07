@@ -1,0 +1,2003 @@
+{
+  "tabular_datasets": [
+    {
+      "file": "data/raw/01_SATELLITE_FLOOD_DATASET/dataset/train/data-00000-of-00001.arrow",
+      "rows_analyzed": 500,
+      "columns": 4,
+      "column_names": [
+        "image",
+        "mask",
+        "file_name",
+        "mask_file_name"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {},
+      "source": "satellite"
+    },
+    {
+      "file": "data/raw/01_SATELLITE_FLOOD_DATASET/dataset/dataset_dict.json",
+      "rows_analyzed": 1,
+      "columns": 1,
+      "column_names": [
+        "splits"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {},
+      "source": "satellite"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_ap_2021_2025.csv",
+      "rows_analyzed": 31274,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Telemetry Hourly Rainfall (mm)": 8369
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 31274.0,
+          "mean": 15637.5,
+          "std": 9028.1705,
+          "min": 1.0,
+          "25%": 7819.25,
+          "50%": 15637.5,
+          "75%": 23455.75,
+          "max": 31274.0
+        },
+        "State LGD Code": {
+          "count": 31274.0,
+          "mean": 28.0,
+          "std": 0.0,
+          "min": 28.0,
+          "25%": 28.0,
+          "50%": 28.0,
+          "75%": 28.0,
+          "max": 28.0
+        },
+        "District LGD Code": {
+          "count": 31274.0,
+          "mean": 539.653,
+          "std": 73.5849,
+          "min": 503.0,
+          "25%": 510.0,
+          "50%": 519.0,
+          "75%": 519.0,
+          "max": 748.0
+        },
+        "Latitude": {
+          "count": 31274.0,
+          "mean": 17.0565,
+          "std": 2.5102,
+          "min": 13.3364,
+          "25%": 14.4703,
+          "50%": 17.2458,
+          "75%": 18.6881,
+          "max": 23.1172
+        },
+        "Longitude": {
+          "count": 31274.0,
+          "mean": 81.7037,
+          "std": 2.3116,
+          "min": 77.42,
+          "25%": 79.9889,
+          "50%": 81.6597,
+          "75%": 83.9639,
+          "max": 85.6194
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 22905.0,
+          "mean": 123.7886,
+          "std": 178.485,
+          "min": 0.1,
+          "25%": 1.0,
+          "50%": 7.0,
+          "75%": 240.0,
+          "max": 511.5
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_ar_2021_2025.csv",
+      "rows_analyzed": 18290,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 18290.0,
+          "mean": 9145.5,
+          "std": 5280.0125,
+          "min": 1.0,
+          "25%": 4573.25,
+          "50%": 9145.5,
+          "75%": 13717.75,
+          "max": 18290.0
+        },
+        "State LGD Code": {
+          "count": 18290.0,
+          "mean": 12.0,
+          "std": 0.0,
+          "min": 12.0,
+          "25%": 12.0,
+          "50%": 12.0,
+          "75%": 12.0,
+          "max": 12.0
+        },
+        "District LGD Code": {
+          "count": 18290.0,
+          "mean": 319.4004,
+          "std": 168.8977,
+          "min": 229.0,
+          "25%": 231.0,
+          "50%": 240.0,
+          "75%": 243.0,
+          "max": 678.0
+        },
+        "Latitude": {
+          "count": 18290.0,
+          "mean": 27.8042,
+          "std": 0.5597,
+          "min": 27.0175,
+          "25%": 27.4936,
+          "50%": 27.6356,
+          "75%": 28.2572,
+          "max": 28.995
+        },
+        "Longitude": {
+          "count": 18290.0,
+          "mean": 94.9498,
+          "std": 1.4078,
+          "min": 92.6375,
+          "25%": 93.5597,
+          "50%": 95.1631,
+          "75%": 96.2192,
+          "max": 97.0258
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 18290.0,
+          "mean": 34.2307,
+          "std": 94.3896,
+          "min": 0.5,
+          "25%": 0.5,
+          "50%": 2.0,
+          "75%": 8.5,
+          "max": 511.5
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_as_2021_2025.csv",
+      "rows_analyzed": 137659,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Telemetry Hourly Rainfall (mm)": 102350
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 137659.0,
+          "mean": 68830.0,
+          "std": 39738.8747,
+          "min": 1.0,
+          "25%": 34415.5,
+          "50%": 68830.0,
+          "75%": 103244.5,
+          "max": 137659.0
+        },
+        "State LGD Code": {
+          "count": 137659.0,
+          "mean": 18.0,
+          "std": 0.0,
+          "min": 18.0,
+          "25%": 18.0,
+          "50%": 18.0,
+          "75%": 18.0,
+          "max": 18.0
+        },
+        "District LGD Code": {
+          "count": 137659.0,
+          "mean": 294.6991,
+          "std": 45.3726,
+          "min": 280.0,
+          "25%": 285.0,
+          "50%": 288.0,
+          "75%": 291.0,
+          "max": 708.0
+        },
+        "Latitude": {
+          "count": 137659.0,
+          "mean": 26.4802,
+          "std": 0.5825,
+          "min": 24.2853,
+          "25%": 26.1847,
+          "50%": 26.6158,
+          "75%": 26.8603,
+          "max": 27.7636
+        },
+        "Longitude": {
+          "count": 137659.0,
+          "mean": 92.23,
+          "std": 1.7087,
+          "min": 89.8236,
+          "25%": 90.6339,
+          "50%": 91.7431,
+          "75%": 94.2522,
+          "max": 95.6628
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 35309.0,
+          "mean": 14.5208,
+          "std": 59.4892,
+          "min": 0.5,
+          "25%": 0.5,
+          "50%": 1.5,
+          "75%": 6.0,
+          "max": 1005.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_br_2021_2025.csv",
+      "rows_analyzed": 73554,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Telemetry Hourly Rainfall (mm)": 20733
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 73554.0,
+          "mean": 36777.5,
+          "std": 21233.3552,
+          "min": 1.0,
+          "25%": 18389.25,
+          "50%": 36777.5,
+          "75%": 55165.75,
+          "max": 73554.0
+        },
+        "State LGD Code": {
+          "count": 73554.0,
+          "mean": 10.0,
+          "std": 0.0,
+          "min": 10.0,
+          "25%": 10.0,
+          "50%": 10.0,
+          "75%": 10.0,
+          "max": 10.0
+        },
+        "District LGD Code": {
+          "count": 73554.0,
+          "mean": 214.3982,
+          "std": 55.1675,
+          "min": 188.0,
+          "25%": 197.0,
+          "50%": 210.0,
+          "75%": 215.0,
+          "max": 611.0
+        },
+        "Latitude": {
+          "count": 73554.0,
+          "mean": 26.0353,
+          "std": 0.7012,
+          "min": 24.7708,
+          "25%": 25.5714,
+          "50%": 26.0406,
+          "75%": 26.59,
+          "max": 27.4357
+        },
+        "Longitude": {
+          "count": 73554.0,
+          "mean": 86.228,
+          "std": 2.2898,
+          "min": 83.9069,
+          "25%": 84.7978,
+          "50%": 85.4001,
+          "75%": 87.234,
+          "max": 94.0667
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 52821.0,
+          "mean": 13.9848,
+          "std": 47.2307,
+          "min": -99.0,
+          "25%": 0.5,
+          "50%": 1.5,
+          "75%": 7.0,
+          "max": 510.5
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_cg_2021_2025.csv",
+      "rows_analyzed": 40151,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 40151.0,
+          "mean": 20076.0,
+          "std": 11590.7397,
+          "min": 1.0,
+          "25%": 10038.5,
+          "50%": 20076.0,
+          "75%": 30113.5,
+          "max": 40151.0
+        },
+        "State LGD Code": {
+          "count": 40151.0,
+          "mean": 22.0,
+          "std": 0.0,
+          "min": 22.0,
+          "25%": 22.0,
+          "50%": 22.0,
+          "75%": 22.0,
+          "max": 22.0
+        },
+        "District LGD Code": {
+          "count": 40151.0,
+          "mean": 429.7486,
+          "std": 102.8882,
+          "min": 374.0,
+          "25%": 376.0,
+          "50%": 384.0,
+          "75%": 386.0,
+          "max": 650.0
+        },
+        "Latitude": {
+          "count": 40151.0,
+          "mean": 21.2647,
+          "std": 1.4009,
+          "min": 17.7989,
+          "25%": 20.3231,
+          "50%": 21.7169,
+          "75%": 22.0486,
+          "max": 23.5019
+        },
+        "Longitude": {
+          "count": 40151.0,
+          "mean": 82.3018,
+          "std": 0.7187,
+          "min": 80.35,
+          "25%": 81.6817,
+          "50%": 82.2217,
+          "75%": 82.7881,
+          "max": 83.9336
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 40151.0,
+          "mean": 9.089,
+          "std": 37.0938,
+          "min": 0.5,
+          "25%": 0.5,
+          "50%": 1.0,
+          "75%": 3.5,
+          "max": 509.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_dl_2021_2025.csv",
+      "rows_analyzed": 342,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 342.0,
+          "mean": 171.5,
+          "std": 98.8711,
+          "min": 1.0,
+          "25%": 86.25,
+          "50%": 171.5,
+          "75%": 256.75,
+          "max": 342.0
+        },
+        "State LGD Code": {
+          "count": 342.0,
+          "mean": 7.0,
+          "std": 0.0,
+          "min": 7.0,
+          "25%": 7.0,
+          "50%": 7.0,
+          "75%": 7.0,
+          "max": 7.0
+        },
+        "District LGD Code": {
+          "count": 342.0,
+          "mean": 80.0,
+          "std": 0.0,
+          "min": 80.0,
+          "25%": 80.0,
+          "50%": 80.0,
+          "75%": 80.0,
+          "max": 80.0
+        },
+        "Latitude": {
+          "count": 342.0,
+          "mean": 28.6625,
+          "std": 0.0,
+          "min": 28.6625,
+          "25%": 28.6625,
+          "50%": 28.6625,
+          "75%": 28.6625,
+          "max": 28.6625
+        },
+        "Longitude": {
+          "count": 342.0,
+          "mean": 77.2489,
+          "std": 0.0,
+          "min": 77.2489,
+          "25%": 77.2489,
+          "50%": 77.2489,
+          "75%": 77.2489,
+          "max": 77.2489
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 342.0,
+          "mean": 13.6579,
+          "std": 41.137,
+          "min": 0.5,
+          "25%": 0.5,
+          "50%": 1.0,
+          "75%": 3.0,
+          "max": 243.5
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_dn_2021_2025.csv",
+      "rows_analyzed": 12928,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Telemetry Hourly Rainfall (mm)": 11144
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 12928.0,
+          "mean": 6464.5,
+          "std": 3732.1365,
+          "min": 1.0,
+          "25%": 3232.75,
+          "50%": 6464.5,
+          "75%": 9696.25,
+          "max": 12928.0
+        },
+        "State LGD Code": {
+          "count": 12928.0,
+          "mean": 38.0,
+          "std": 0.0,
+          "min": 38.0,
+          "25%": 38.0,
+          "50%": 38.0,
+          "75%": 38.0,
+          "max": 38.0
+        },
+        "District LGD Code": {
+          "count": 12928.0,
+          "mean": 465.0,
+          "std": 0.0,
+          "min": 465.0,
+          "25%": 465.0,
+          "50%": 465.0,
+          "75%": 465.0,
+          "max": 465.0
+        },
+        "Latitude": {
+          "count": 12928.0,
+          "mean": 20.2387,
+          "std": 0.0323,
+          "min": 20.2089,
+          "25%": 20.2089,
+          "50%": 20.2089,
+          "75%": 20.2681,
+          "max": 20.2842
+        },
+        "Longitude": {
+          "count": 12928.0,
+          "mean": 72.9902,
+          "std": 0.0044,
+          "min": 72.9856,
+          "25%": 72.9856,
+          "50%": 72.9906,
+          "75%": 72.9906,
+          "max": 72.9997
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 1784.0,
+          "mean": 3.9525,
+          "std": 12.4808,
+          "min": 0.1,
+          "25%": 0.2,
+          "50%": 0.6,
+          "75%": 2.0,
+          "max": 98.9
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_gj_2021_2025.csv",
+      "rows_analyzed": 491009,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Telemetry Hourly Rainfall (mm)": 483822
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 491009.0,
+          "mean": 245505.0,
+          "std": 141742.2335,
+          "min": 1.0,
+          "25%": 122753.0,
+          "50%": 245505.0,
+          "75%": 368257.0,
+          "max": 491009.0
+        },
+        "State LGD Code": {
+          "count": 491009.0,
+          "mean": 24.0,
+          "std": 0.0,
+          "min": 24.0,
+          "25%": 24.0,
+          "50%": 24.0,
+          "75%": 24.0,
+          "max": 24.0
+        },
+        "District LGD Code": {
+          "count": 491009.0,
+          "mean": 465.5784,
+          "std": 57.6918,
+          "min": 438.0,
+          "25%": 441.0,
+          "50%": 450.0,
+          "75%": 459.0,
+          "max": 675.0
+        },
+        "Latitude": {
+          "count": 491009.0,
+          "mean": 22.6739,
+          "std": 1.205,
+          "min": 20.1933,
+          "25%": 21.5431,
+          "50%": 22.9475,
+          "75%": 23.5753,
+          "max": 24.3969
+        },
+        "Longitude": {
+          "count": 491009.0,
+          "mean": 73.0069,
+          "std": 0.5128,
+          "min": 71.0475,
+          "25%": 72.6894,
+          "50%": 72.9678,
+          "75%": 73.4294,
+          "max": 74.3194
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 7187.0,
+          "mean": 9.4598,
+          "std": 37.1918,
+          "min": 0.1,
+          "25%": 0.1,
+          "50%": 0.5,
+          "75%": 2.2,
+          "max": 490.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_hp_2021_2025.csv",
+      "rows_analyzed": 48114,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Telemetry Hourly Rainfall (mm)": 41513
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 48114.0,
+          "mean": 24057.5,
+          "std": 13889.4598,
+          "min": 1.0,
+          "25%": 12029.25,
+          "50%": 24057.5,
+          "75%": 36085.75,
+          "max": 48114.0
+        },
+        "State LGD Code": {
+          "count": 48114.0,
+          "mean": 2.0,
+          "std": 0.0,
+          "min": 2.0,
+          "25%": 2.0,
+          "50%": 2.0,
+          "75%": 2.0,
+          "max": 2.0
+        },
+        "District LGD Code": {
+          "count": 48114.0,
+          "mean": 19.6967,
+          "std": 1.7709,
+          "min": 19.0,
+          "25%": 19.0,
+          "50%": 19.0,
+          "75%": 19.0,
+          "max": 25.0
+        },
+        "Latitude": {
+          "count": 48114.0,
+          "mean": 31.5014,
+          "std": 0.2858,
+          "min": 30.4177,
+          "25%": 31.5333,
+          "50%": 31.5333,
+          "75%": 31.5664,
+          "max": 32.3478
+        },
+        "Longitude": {
+          "count": 48114.0,
+          "mean": 78.1873,
+          "std": 0.4001,
+          "min": 77.0942,
+          "25%": 77.9831,
+          "50%": 78.2833,
+          "75%": 78.2833,
+          "max": 78.7325
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 6601.0,
+          "mean": 20.5506,
+          "std": 68.6105,
+          "min": 0.1,
+          "25%": 1.0,
+          "50%": 3.0,
+          "75%": 11.5,
+          "max": 960.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_hr_2021_2025.csv",
+      "rows_analyzed": 1693,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 1693.0,
+          "mean": 847.0,
+          "std": 488.8713,
+          "min": 1.0,
+          "25%": 424.0,
+          "50%": 847.0,
+          "75%": 1270.0,
+          "max": 1693.0
+        },
+        "State LGD Code": {
+          "count": 1693.0,
+          "mean": 6.0,
+          "std": 0.0,
+          "min": 6.0,
+          "25%": 6.0,
+          "50%": 6.0,
+          "75%": 6.0,
+          "max": 6.0
+        },
+        "District LGD Code": {
+          "count": 1693.0,
+          "mean": 66.2103,
+          "std": 2.2152,
+          "min": 60.0,
+          "25%": 67.0,
+          "50%": 67.0,
+          "75%": 67.0,
+          "max": 67.0
+        },
+        "Latitude": {
+          "count": 1693.0,
+          "mean": 29.5886,
+          "std": 0.4869,
+          "min": 28.2236,
+          "25%": 29.7622,
+          "50%": 29.7622,
+          "75%": 29.7622,
+          "max": 29.7622
+        },
+        "Longitude": {
+          "count": 1693.0,
+          "mean": 77.1682,
+          "std": 0.1026,
+          "min": 77.1317,
+          "25%": 77.1317,
+          "50%": 77.1317,
+          "75%": 77.1317,
+          "max": 77.4558
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 1693.0,
+          "mean": 62.5499,
+          "std": 104.0211,
+          "min": 0.5,
+          "25%": 3.0,
+          "50%": 11.5,
+          "75%": 69.0,
+          "max": 510.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_tn_1991_2020.csv",
+      "rows_analyzed": 30535,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Latitude": 5080,
+        "Longitude": 5080,
+        "Telemetry Hourly Rainfall (mm)": 16231
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 30535.0,
+          "mean": 15268.0,
+          "std": 8814.8396,
+          "min": 1.0,
+          "25%": 7634.5,
+          "50%": 15268.0,
+          "75%": 22901.5,
+          "max": 30535.0
+        },
+        "State LGD Code": {
+          "count": 30535.0,
+          "mean": 33.0,
+          "std": 0.0,
+          "min": 33.0,
+          "25%": 33.0,
+          "50%": 33.0,
+          "75%": 33.0,
+          "max": 33.0
+        },
+        "District LGD Code": {
+          "count": 30535.0,
+          "mean": 573.5411,
+          "std": 23.2477,
+          "min": 568.0,
+          "25%": 568.0,
+          "50%": 568.0,
+          "75%": 569.0,
+          "max": 731.0
+        },
+        "Latitude": {
+          "count": 25455.0,
+          "mean": 20.7937,
+          "std": 6.7905,
+          "min": 9.9256,
+          "25%": 11.47,
+          "50%": 25.5875,
+          "75%": 25.7,
+          "max": 26.1333
+        },
+        "Longitude": {
+          "count": 25455.0,
+          "mean": 80.9531,
+          "std": 3.3517,
+          "min": 74.3333,
+          "25%": 78.0961,
+          "50%": 79.3667,
+          "75%": 85.1725,
+          "max": 86.1011
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 14304.0,
+          "mean": 8.2919,
+          "std": 27.967,
+          "min": 0.1,
+          "25%": 0.5,
+          "50%": 1.0,
+          "75%": 3.5,
+          "max": 768.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_tn_2021_2025.csv",
+      "rows_analyzed": 81008,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Latitude": 12885,
+        "Longitude": 12885,
+        "Telemetry Hourly Rainfall (mm)": 25736
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 81008.0,
+          "mean": 40504.5,
+          "std": 23385.1396,
+          "min": 1.0,
+          "25%": 20252.75,
+          "50%": 40504.5,
+          "75%": 60756.25,
+          "max": 81008.0
+        },
+        "State LGD Code": {
+          "count": 81008.0,
+          "mean": 33.0,
+          "std": 0.0,
+          "min": 33.0,
+          "25%": 33.0,
+          "50%": 33.0,
+          "75%": 33.0,
+          "max": 33.0
+        },
+        "District LGD Code": {
+          "count": 81008.0,
+          "mean": 584.5585,
+          "std": 38.8904,
+          "min": 568.0,
+          "25%": 568.0,
+          "50%": 568.0,
+          "75%": 589.0,
+          "max": 731.0
+        },
+        "Latitude": {
+          "count": 68123.0,
+          "mean": 17.1205,
+          "std": 6.73,
+          "min": 9.9256,
+          "25%": 11.4431,
+          "50%": 13.0392,
+          "75%": 25.7,
+          "max": 26.4167
+        },
+        "Longitude": {
+          "count": 68123.0,
+          "mean": 79.5094,
+          "std": 1.918,
+          "min": 76.8911,
+          "25%": 78.4403,
+          "50%": 79.3667,
+          "75%": 79.9767,
+          "max": 86.1011
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 55272.0,
+          "mean": 26.703,
+          "std": 102.6078,
+          "min": 0.1,
+          "25%": 0.5,
+          "50%": 1.0,
+          "75%": 4.4,
+          "max": 1013.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_tn_2026_2030.csv",
+      "rows_analyzed": 1509,
+      "columns": 20,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Data Acquisition Time",
+        "Telemetry Hourly Rainfall (mm)"
+      ],
+      "missing_values": {
+        "Latitude": 274,
+        "Longitude": 274
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 1509.0,
+          "mean": 755.0,
+          "std": 435.7551,
+          "min": 1.0,
+          "25%": 378.0,
+          "50%": 755.0,
+          "75%": 1132.0,
+          "max": 1509.0
+        },
+        "State LGD Code": {
+          "count": 1509.0,
+          "mean": 33.0,
+          "std": 0.0,
+          "min": 33.0,
+          "25%": 33.0,
+          "50%": 33.0,
+          "75%": 33.0,
+          "max": 33.0
+        },
+        "District LGD Code": {
+          "count": 1509.0,
+          "mean": 584.1385,
+          "std": 29.3315,
+          "min": 568.0,
+          "25%": 569.0,
+          "50%": 578.0,
+          "75%": 589.0,
+          "max": 729.0
+        },
+        "Latitude": {
+          "count": 1235.0,
+          "mean": 11.8855,
+          "std": 2.3357,
+          "min": 10.0011,
+          "25%": 10.7201,
+          "50%": 11.4431,
+          "75%": 12.555,
+          "max": 26.1333
+        },
+        "Longitude": {
+          "count": 1235.0,
+          "mean": 78.7335,
+          "std": 1.4015,
+          "min": 76.8911,
+          "25%": 77.9719,
+          "50%": 78.4403,
+          "75%": 79.0244,
+          "max": 86.1011
+        },
+        "Telemetry Hourly Rainfall (mm)": {
+          "count": 1509.0,
+          "mean": 45.4433,
+          "std": 96.0446,
+          "min": 0.1,
+          "25%": 0.5,
+          "50%": 3.5,
+          "75%": 45.5,
+          "max": 768.0
+        }
+      },
+      "source": "rainfall"
+    },
+    {
+      "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_004_1991_2020.csv",
+      "rows_analyzed": 193684,
+      "columns": 23,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Is_DischargeDataAvailable",
+        "RL_of_zeroGauge",
+        "MeanSeaLevel",
+        "Data Acquisition Time",
+        "River Water Level Telemetry Hourly (meter)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 193684.0,
+          "mean": 96842.5,
+          "std": 55911.8991,
+          "min": 1.0,
+          "25%": 48421.75,
+          "50%": 96842.5,
+          "75%": 145263.25,
+          "max": 193684.0
+        },
+        "State LGD Code": {
+          "count": 193684.0,
+          "mean": 21.0691,
+          "std": 0.6905,
+          "min": 20.0,
+          "25%": 21.0,
+          "50%": 21.0,
+          "75%": 21.0,
+          "max": 24.0
+        },
+        "District LGD Code": {
+          "count": 193684.0,
+          "mean": 362.4888,
+          "std": 19.6635,
+          "min": 342.0,
+          "25%": 351.0,
+          "50%": 361.0,
+          "75%": 365.0,
+          "max": 441.0
+        },
+        "Latitude": {
+          "count": 193684.0,
+          "mean": 21.7088,
+          "std": 0.7796,
+          "min": 20.6164,
+          "25%": 21.2111,
+          "50%": 21.5408,
+          "75%": 22.0689,
+          "max": 24.3678
+        },
+        "Longitude": {
+          "count": 193684.0,
+          "mean": 84.8272,
+          "std": 2.7545,
+          "min": 72.5467,
+          "25%": 84.8519,
+          "50%": 85.2356,
+          "75%": 86.0144,
+          "max": 86.3958
+        },
+        "RL_of_zeroGauge": {
+          "count": 193684.0,
+          "mean": 154.6172,
+          "std": 140.3052,
+          "min": 0.0,
+          "25%": 28.0,
+          "50%": 135.0,
+          "75%": 302.0,
+          "max": 455.0
+        },
+        "MeanSeaLevel": {
+          "count": 193684.0,
+          "mean": 105.1977,
+          "std": 143.1539,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 13.0,
+          "75%": 185.0,
+          "max": 455.0
+        },
+        "River Water Level Telemetry Hourly (meter)": {
+          "count": 193684.0,
+          "mean": 147.9887,
+          "std": 138.3115,
+          "min": 0.0,
+          "25%": 33.52,
+          "50%": 139.68,
+          "75%": 291.127,
+          "max": 13993.0
+        }
+      },
+      "source": "river_water_level"
+    },
+    {
+      "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_005_1991_2020.csv",
+      "rows_analyzed": 246528,
+      "columns": 23,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Is_DischargeDataAvailable",
+        "RL_of_zeroGauge",
+        "MeanSeaLevel",
+        "Data Acquisition Time",
+        "River Water Level Telemetry Hourly (meter)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 246528.0,
+          "mean": 123264.5,
+          "std": 71166.6479,
+          "min": 1.0,
+          "25%": 61632.75,
+          "50%": 123264.5,
+          "75%": 184896.25,
+          "max": 246528.0
+        },
+        "State LGD Code": {
+          "count": 246528.0,
+          "mean": 21.5006,
+          "std": 0.5,
+          "min": 21.0,
+          "25%": 21.0,
+          "50%": 22.0,
+          "75%": 22.0,
+          "max": 22.0
+        },
+        "District LGD Code": {
+          "count": 246528.0,
+          "mean": 395.4651,
+          "std": 82.1741,
+          "min": 344.0,
+          "25%": 357.0,
+          "50%": 375.0,
+          "75%": 385.0,
+          "max": 650.0
+        },
+        "Latitude": {
+          "count": 246528.0,
+          "mean": 21.3728,
+          "std": 0.7956,
+          "min": 20.0608,
+          "25%": 20.5989,
+          "50%": 21.5672,
+          "75%": 21.8911,
+          "max": 23.2014
+        },
+        "Longitude": {
+          "count": 246528.0,
+          "mean": 83.6269,
+          "std": 1.314,
+          "min": 81.56,
+          "25%": 82.6514,
+          "50%": 83.3992,
+          "75%": 84.1061,
+          "max": 86.2492
+        },
+        "RL_of_zeroGauge": {
+          "count": 246528.0,
+          "mean": 158.8371,
+          "std": 109.9443,
+          "min": 0.0,
+          "25%": 45.0,
+          "50%": 188.0,
+          "75%": 223.0,
+          "max": 409.5
+        },
+        "MeanSeaLevel": {
+          "count": 246528.0,
+          "mean": 148.2023,
+          "std": 113.296,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 174.0,
+          "75%": 223.0,
+          "max": 411.0
+        },
+        "River Water Level Telemetry Hourly (meter)": {
+          "count": 246528.0,
+          "mean": 173.3828,
+          "std": 106.7571,
+          "min": 0.0,
+          "25%": 98.41,
+          "50%": 206.017,
+          "75%": 246.005,
+          "max": 1212.03
+        }
+      },
+      "source": "river_water_level"
+    },
+    {
+      "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_007_1991_2020.csv",
+      "rows_analyzed": 427080,
+      "columns": 23,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Is_DischargeDataAvailable",
+        "RL_of_zeroGauge",
+        "MeanSeaLevel",
+        "Data Acquisition Time",
+        "River Water Level Telemetry Hourly (meter)"
+      ],
+      "missing_values": {
+        "River Water Level Telemetry Hourly (meter)": 204
+      },
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 427080.0,
+          "mean": 213540.5,
+          "std": 123287.5208,
+          "min": 1.0,
+          "25%": 106770.75,
+          "50%": 213540.5,
+          "75%": 320310.25,
+          "max": 427080.0
+        },
+        "State LGD Code": {
+          "count": 427080.0,
+          "mean": 29.4306,
+          "std": 2.4699,
+          "min": 27.0,
+          "25%": 28.0,
+          "50%": 29.0,
+          "75%": 29.0,
+          "max": 36.0
+        },
+        "District LGD Code": {
+          "count": 427080.0,
+          "mean": 532.6517,
+          "std": 38.8866,
+          "min": 480.0,
+          "25%": 510.0,
+          "50%": 527.0,
+          "75%": 540.0,
+          "max": 695.0
+        },
+        "Latitude": {
+          "count": 427080.0,
+          "mean": 16.1085,
+          "std": 0.9778,
+          "min": 13.6972,
+          "25%": 15.8792,
+          "50%": 16.3822,
+          "75%": 16.7375,
+          "max": 17.5342
+        },
+        "Longitude": {
+          "count": 427080.0,
+          "mean": 77.1745,
+          "std": 1.8832,
+          "min": 74.5275,
+          "25%": 75.6744,
+          "50%": 76.9231,
+          "75%": 77.9572,
+          "max": 80.6211
+        },
+        "RL_of_zeroGauge": {
+          "count": 427080.0,
+          "mean": 285.7068,
+          "std": 209.7794,
+          "min": 0.0,
+          "25%": 44.5,
+          "50%": 342.24,
+          "75%": 507.551,
+          "max": 585.0
+        },
+        "MeanSeaLevel": {
+          "count": 427080.0,
+          "mean": 206.717,
+          "std": 223.0679,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 52.0,
+          "75%": 362.0,
+          "max": 585.0
+        },
+        "River Water Level Telemetry Hourly (meter)": {
+          "count": 426876.0,
+          "mean": 304.0062,
+          "std": 7855.1975,
+          "min": -762.33,
+          "25%": 49.52,
+          "50%": 327.463,
+          "75%": 507.3202,
+          "max": 5073693.0
+        }
+      },
+      "source": "river_water_level"
+    },
+    {
+      "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_008_1991_2020.csv",
+      "rows_analyzed": 22568,
+      "columns": 23,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Is_DischargeDataAvailable",
+        "RL_of_zeroGauge",
+        "MeanSeaLevel",
+        "Data Acquisition Time",
+        "River Water Level Telemetry Hourly (meter)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 22568.0,
+          "mean": 11284.5,
+          "std": 6514.9648,
+          "min": 1.0,
+          "25%": 5642.75,
+          "50%": 11284.5,
+          "75%": 16926.25,
+          "max": 22568.0
+        },
+        "State LGD Code": {
+          "count": 22568.0,
+          "mean": 28.0,
+          "std": 0.0,
+          "min": 28.0,
+          "25%": 28.0,
+          "50%": 28.0,
+          "75%": 28.0,
+          "max": 28.0
+        },
+        "District LGD Code": {
+          "count": 22568.0,
+          "mean": 508.0465,
+          "std": 5.3046,
+          "min": 504.0,
+          "25%": 504.0,
+          "50%": 504.0,
+          "75%": 515.0,
+          "max": 515.0
+        },
+        "Latitude": {
+          "count": 22568.0,
+          "mean": 14.5836,
+          "std": 0.1009,
+          "min": 14.4703,
+          "25%": 14.48,
+          "50%": 14.5722,
+          "75%": 14.7211,
+          "max": 14.7211
+        },
+        "Longitude": {
+          "count": 22568.0,
+          "mean": 79.1428,
+          "std": 0.377,
+          "min": 78.8,
+          "25%": 78.8,
+          "50%": 79.0189,
+          "75%": 79.3,
+          "max": 79.9889
+        },
+        "RL_of_zeroGauge": {
+          "count": 22568.0,
+          "mean": 67.0709,
+          "std": 49.8192,
+          "min": 0.0,
+          "25%": 7.23,
+          "50%": 95.0,
+          "75%": 114.0,
+          "max": 114.0
+        },
+        "MeanSeaLevel": {
+          "count": 22568.0,
+          "mean": 6.9561,
+          "std": 17.897,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 0.0,
+          "75%": 0.0,
+          "max": 53.0
+        },
+        "River Water Level Telemetry Hourly (meter)": {
+          "count": 22568.0,
+          "mean": 83.5301,
+          "std": 35.2216,
+          "min": 0.0,
+          "25%": 67.18,
+          "50%": 96.105,
+          "75%": 116.185,
+          "max": 295.07
+        }
+      },
+      "source": "river_water_level"
+    },
+    {
+      "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_27_1991_2020.csv",
+      "rows_analyzed": 56645,
+      "columns": 23,
+      "column_names": [
+        "SlNo",
+        "Station",
+        "Agency",
+        "State LGD Code",
+        "State",
+        "District LGD Code",
+        "District",
+        "Tehsil",
+        "Block",
+        "Village",
+        "River",
+        "Basin",
+        "Tributary",
+        "Subtributary",
+        "SubSubtributary",
+        "Local River",
+        "Latitude",
+        "Longitude",
+        "Is_DischargeDataAvailable",
+        "RL_of_zeroGauge",
+        "MeanSeaLevel",
+        "Data Acquisition Time",
+        "River Water Level Telemetry Hourly (meter)"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "SlNo": {
+          "count": 56645.0,
+          "mean": 28323.0,
+          "std": 16352.1473,
+          "min": 1.0,
+          "25%": 14162.0,
+          "50%": 28323.0,
+          "75%": 42484.0,
+          "max": 56645.0
+        },
+        "State LGD Code": {
+          "count": 56645.0,
+          "mean": 32.5256,
+          "std": 1.4653,
+          "min": 28.0,
+          "25%": 33.0,
+          "50%": 33.0,
+          "75%": 33.0,
+          "max": 33.0
+        },
+        "District LGD Code": {
+          "count": 56645.0,
+          "mean": 598.1128,
+          "std": 62.73,
+          "min": 503.0,
+          "25%": 570.0,
+          "50%": 588.0,
+          "75%": 588.0,
+          "max": 731.0
+        },
+        "Latitude": {
+          "count": 56645.0,
+          "mean": 11.4167,
+          "std": 1.2933,
+          "min": 9.9256,
+          "25%": 10.0011,
+          "50%": 11.4431,
+          "75%": 12.555,
+          "max": 13.3364
+        },
+        "Longitude": {
+          "count": 56645.0,
+          "mean": 78.4506,
+          "std": 0.8943,
+          "min": 77.485,
+          "25%": 77.5117,
+          "50%": 78.1383,
+          "75%": 79.0244,
+          "max": 79.875
+        },
+        "RL_of_zeroGauge": {
+          "count": 56645.0,
+          "mean": 224.0267,
+          "std": 138.5381,
+          "min": 75.5,
+          "25%": 97.0,
+          "50%": 257.556,
+          "75%": 295.0,
+          "max": 490.0
+        },
+        "MeanSeaLevel": {
+          "count": 56645.0,
+          "mean": 71.1448,
+          "std": 174.6751,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 0.0,
+          "75%": 0.0,
+          "max": 500.0
+        },
+        "River Water Level Telemetry Hourly (meter)": {
+          "count": 56645.0,
+          "mean": 2.5022,
+          "std": 32.3322,
+          "min": -0.999,
+          "25%": -0.006,
+          "50%": 0.0,
+          "75%": 0.857,
+          "max": 1023.0
+        }
+      },
+      "source": "river_water_level"
+    },
+    {
+      "file": "data/raw/04_MASTER_DATASET/Master_Dataset.csv",
+      "rows_analyzed": 10000,
+      "columns": 13,
+      "column_names": [
+        "timestamp",
+        "state",
+        "district",
+        "rainfall_mm",
+        "river_level_m",
+        "river_level_threshold_m",
+        "emergency_calls",
+        "road_closures",
+        "bridge_closures",
+        "flood_history_count",
+        "population_affected",
+        "water_level_change_m",
+        "zone_risk"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "rainfall_mm": {
+          "count": 10000.0,
+          "mean": 39.3053,
+          "std": 24.8775,
+          "min": 0.25,
+          "25%": 19.94,
+          "50%": 34.09,
+          "75%": 53.5725,
+          "max": 104.0212
+        },
+        "river_level_m": {
+          "count": 10000.0,
+          "mean": 4.9756,
+          "std": 2.3214,
+          "min": 1.0,
+          "25%": 2.95,
+          "50%": 4.94,
+          "75%": 7.02,
+          "max": 9.0
+        },
+        "river_level_threshold_m": {
+          "count": 10000.0,
+          "mean": 5.5085,
+          "std": 0.8625,
+          "min": 4.0,
+          "25%": 4.77,
+          "50%": 5.52,
+          "75%": 6.25,
+          "max": 7.0
+        },
+        "emergency_calls": {
+          "count": 10000.0,
+          "mean": 38.871,
+          "std": 10.7354,
+          "min": 13.0,
+          "25%": 31.0,
+          "50%": 37.0,
+          "75%": 45.0,
+          "max": 66.0
+        },
+        "road_closures": {
+          "count": 10000.0,
+          "mean": 1.3561,
+          "std": 1.2572,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 1.0,
+          "75%": 2.0,
+          "max": 5.0
+        },
+        "bridge_closures": {
+          "count": 10000.0,
+          "mean": 0.6126,
+          "std": 0.759,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 0.0,
+          "75%": 1.0,
+          "max": 2.5
+        },
+        "flood_history_count": {
+          "count": 10000.0,
+          "mean": 3.9774,
+          "std": 1.9171,
+          "min": 0.0,
+          "25%": 3.0,
+          "50%": 4.0,
+          "75%": 5.0,
+          "max": 8.0
+        },
+        "population_affected": {
+          "count": 10000.0,
+          "mean": 2241.2958,
+          "std": 878.9078,
+          "min": 0.0,
+          "25%": 1616.75,
+          "50%": 2179.0,
+          "75%": 2807.0,
+          "max": 4592.375
+        },
+        "water_level_change_m": {
+          "count": 10000.0,
+          "mean": 0.3503,
+          "std": 0.4521,
+          "min": -0.865,
+          "25%": 0.05,
+          "50%": 0.35,
+          "75%": 0.66,
+          "max": 1.575
+        }
+      },
+      "source": "master"
+    },
+    {
+      "file": "data/raw/05_METADATA/DATASET_INVENTORY.csv",
+      "rows_analyzed": 19,
+      "columns": 5,
+      "column_names": [
+        "file_name",
+        "relative_path",
+        "rows",
+        "columns",
+        "column_names"
+      ],
+      "missing_values": {},
+      "duplicate_rows": 0,
+      "numeric_summary": {
+        "rows": {
+          "count": 19.0,
+          "mean": 101293.2105,
+          "std": 142967.677,
+          "min": 342.0,
+          "25%": 15609.0,
+          "50%": 40151.0,
+          "75%": 109333.5,
+          "max": 491009.0
+        },
+        "columns": {
+          "count": 19.0,
+          "mean": 20.4211,
+          "std": 2.2439,
+          "min": 13.0,
+          "25%": 20.0,
+          "50%": 20.0,
+          "75%": 21.5,
+          "max": 23.0
+        }
+      },
+      "source": "metadata"
+    }
+  ],
+  "image_datasets": [
+    {
+      "source": "flood_images",
+      "file_count": 500,
+      "total_size_mb": 27.767,
+      "dimensions": {
+        "width_min": 700,
+        "width_max": 700,
+        "height_min": 700,
+        "height_max": 700
+      },
+      "pillow_available": true
+    }
+  ],
+  "saliency_audit": {
+    "status": "generated",
+    "images_reviewed": 6,
+    "mean_dark_pixel_overlap": 0.010982306284319709,
+    "samples_above_dark_overlap_threshold": 0,
+    "maps_directory": "data/outputs/saliency_maps",
+    "audit_csv": "data/outputs/saliency_audit.csv",
+    "review_report": "data/outputs/saliency_review.md",
+    "interpretation": "Review overlays manually; dark-pixel overlap is a screening statistic, not a water/shadow label."
+  }
+}
