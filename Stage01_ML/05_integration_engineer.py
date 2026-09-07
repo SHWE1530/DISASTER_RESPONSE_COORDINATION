@@ -1,317 +1,202 @@
+"""Stage 01 ML integration layer.
+
+Loads the serialized model contract and exposes a small API for the Flask
+application without retraining or duplicating model-selection logic.
+"""
+
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import joblib
+import numpy as np
 import pandas as pd
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-
-from pydantic import BaseModel, Field
-
-import uvicorn
-
-
-# ============================================================
-# PATHS
-# ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "data" / "models" / "ml_pipeline.joblib"
+FEATURE_IMPORTANCE_PATH = BASE_DIR / "data" / "outputs" / "feature_importance.csv"
 
-MODEL_PATH = (
-    BASE_DIR
-    / "data"
-    / "models"
-    / "ml_pipeline.joblib"
-)
-
-FRONTEND_DIR = (
-    BASE_DIR
-    / "frontend"
-)
-
-
-# ============================================================
-# LOAD MODEL
-# ============================================================
-
-if not MODEL_PATH.exists():
-    raise FileNotFoundError(
-        f"Model not found at: {MODEL_PATH}"
-    )
-
-model_bundle = joblib.load(MODEL_PATH)
-
-if isinstance(model_bundle, dict):
-    preprocessor = model_bundle["preprocessor"]
-    model = model_bundle["model"]
-    feature_columns = (
-        model_bundle["feature_cols_num"]
-        + model_bundle["feature_cols_cat"]
-    )
-    inverse_target_map = model_bundle.get("inv_target_map", {})
-else:
-    preprocessor = None
-    model = model_bundle
-    feature_columns = None
-    inverse_target_map = {}
-
-if not hasattr(model, "multi_class"):
-    model.multi_class = "auto"
-
-
-# ============================================================
-# FASTAPI
-# ============================================================
-
-app = FastAPI(
-    title="Disaster Response AI",
-    description="Real-time Zone Risk Prediction API",
-    version="1.0.0"
+RAW_REQUIRED_COLUMNS = (
+	"timestamp",
+	"state",
+	"district",
+	"rainfall_mm",
+	"river_level_m",
+	"river_level_threshold_m",
+	"emergency_calls",
+	"road_closures",
+	"bridge_closures",
+	"flood_history_count",
+	"population_affected",
+	"water_level_change_m",
 )
 
 
-# ============================================================
-# CORS
-# ============================================================
+class IntegrationEngine:
+	"""Serve predictions from the persisted Stage 01 ML pipeline."""
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+	def __init__(self, model_path: Path = MODEL_PATH) -> None:
+		self.model_path = Path(model_path)
+		self.pipeline: dict[str, Any] | None = None
+		self.preprocessor: Any = None
+		self.model: Any = None
+		self.metrics: dict[str, Any] = {}
+		self.feature_importance = self._load_feature_importance()
+		self.load_error: str | None = None
+		self._load_pipeline()
 
+	def _load_pipeline(self) -> None:
+		if not self.model_path.exists():
+			self.load_error = f"Model pipeline not found: {self.model_path}"
+			return
 
-# ============================================================
-# REQUEST SCHEMA
-# ============================================================
+		try:
+			pipeline = joblib.load(self.model_path)
+			required_keys = {
+				"preprocessor",
+				"model",
+				"feature_cols_num",
+				"feature_cols_cat",
+				"target_map",
+				"inv_target_map",
+			}
+			missing_keys = sorted(required_keys.difference(pipeline))
+			if missing_keys:
+				raise ValueError(f"Model pipeline is missing keys: {missing_keys}")
 
-class RiskPredictionRequest(BaseModel):
+			self.pipeline = pipeline
+			self.preprocessor = pipeline["preprocessor"]
+			self.model = pipeline["model"]
+		except Exception as exc:
+			self.load_error = f"Unable to load model pipeline: {exc}"
 
-    timestamp: str
+	@staticmethod
+	def _load_feature_importance() -> list[str]:
+		if not FEATURE_IMPORTANCE_PATH.exists():
+			return []
+		importance = pd.read_csv(FEATURE_IMPORTANCE_PATH)
+		if "feature" not in importance.columns:
+			return []
+		return importance["feature"].dropna().astype(str).head(3).tolist()
 
-    state: str
+	def _require_pipeline(self) -> dict[str, Any]:
+		if self.pipeline is None or self.preprocessor is None or self.model is None:
+			raise RuntimeError(self.load_error or "Model pipeline is unavailable")
+		return self.pipeline
 
-    district: str
+	@staticmethod
+	def _validate_records(records: Any) -> pd.DataFrame:
+		if not isinstance(records, dict) and not isinstance(records, list):
+			raise ValueError("Input must be a JSON object or a list of objects")
 
-    rainfall_mm: float = Field(..., ge=0)
+		rows = [records] if isinstance(records, dict) else records
+		if not rows or not all(isinstance(row, dict) for row in rows):
+			raise ValueError("Input records must be non-empty JSON objects")
 
-    river_level_m: float = Field(..., ge=0)
+		missing = sorted(set(RAW_REQUIRED_COLUMNS).difference(rows[0]))
+		if missing:
+			raise ValueError(f"Missing required fields: {missing}")
 
-    river_level_threshold_m: float = Field(..., ge=0)
+		frame = pd.DataFrame(rows)
+		timestamp = pd.to_datetime(
+			frame["timestamp"], format="%d-%m-%Y %H:%M", errors="coerce"
+		)
+		if timestamp.isna().any():
+			timestamp = pd.to_datetime(frame["timestamp"], errors="coerce")
+		if timestamp.isna().any():
+			raise ValueError("timestamp must be a valid date/time")
+		frame["timestamp"] = timestamp
+		return frame
 
-    emergency_calls: int = Field(..., ge=0)
+	def _prepare_features(self, records: Any) -> tuple[pd.DataFrame, pd.DataFrame]:
+		pipeline = self._require_pipeline()
+		frame = self._validate_records(records)
+		frame["river_level_margin_m"] = (
+			frame["river_level_m"] - frame["river_level_threshold_m"]
+		)
+		frame["river_level_ratio"] = frame["river_level_m"] / (
+			frame["river_level_threshold_m"] + 1e-5
+		)
+		frame["hour"] = frame["timestamp"].dt.hour
+		frame["month"] = frame["timestamp"].dt.month
+		frame["dayofweek"] = frame["timestamp"].dt.dayofweek
+		frame["is_monsoon"] = frame["month"].isin([6, 7, 8, 9]).astype(int)
 
-    road_closures: int = Field(..., ge=0)
+		feature_columns = pipeline["feature_cols_num"] + pipeline["feature_cols_cat"]
+		features = frame[feature_columns].copy()
+		return frame, features
 
-    bridge_closures: int = Field(..., ge=0)
+	def predict(self, records: dict[str, Any]) -> dict[str, Any]:
+		frame, features = self._prepare_features(records)
+		transformed = self.preprocessor.transform(features)
+		predictions = np.asarray(self.model.predict(transformed))
+		probabilities = (
+			np.asarray(self.model.predict_proba(transformed))
+			if hasattr(self.model, "predict_proba")
+			else None
+		)
+		pipeline = self._require_pipeline()
+		inverse_map = pipeline["inv_target_map"]
+		results = self._format_predictions(frame, predictions, probabilities, inverse_map)
+		return results[0]
 
-    flood_history_count: int = Field(..., ge=0)
+	def predict_batch(self, records: list[dict[str, Any]]) -> dict[str, Any]:
+		frame, features = self._prepare_features(records)
+		transformed = self.preprocessor.transform(features)
+		predictions = np.asarray(self.model.predict(transformed))
+		probabilities = (
+			np.asarray(self.model.predict_proba(transformed))
+			if hasattr(self.model, "predict_proba")
+			else None
+		)
+		pipeline = self._require_pipeline()
+		results = self._format_predictions(frame, predictions, probabilities, pipeline["inv_target_map"])
+		return {"count": len(results), "predictions": results}
 
-    population_affected: int = Field(..., ge=0)
+	def _format_predictions(
+		self,
+		frame: pd.DataFrame,
+		predictions: np.ndarray,
+		probabilities: np.ndarray | None,
+		inverse_map: dict[int, str],
+	) -> list[dict[str, Any]]:
+		results = []
+		for index, prediction in enumerate(predictions):
+			risk_category = inverse_map[int(prediction)]
+			probability = probabilities[index] if probabilities is not None else None
+			risk_score = float(probability[2]) if probability is not None and len(probability) > 2 else None
+			confidence = float(np.max(probability)) if probability is not None else None
+			row = frame.iloc[index]
+			results.append(
+				{
+					"zone": str(row["district"]),
+					"state": str(row["state"]),
+					"timestamp": row["timestamp"].strftime("%d-%m-%Y %H:%M"),
+					"risk_category": risk_category,
+					"risk_score": risk_score,
+					"confidence": confidence,
+					"top_factors": self.feature_importance,
+				}
+			)
+		return results
 
-    water_level_change_m: float
+	def health_check(self) -> dict[str, Any]:
+		return {
+			"status": "healthy" if self.model is not None else "unavailable",
+			"model_loaded": self.model is not None,
+			"model_path": str(self.model_path),
+			"error": self.load_error,
+		}
 
-
-# ============================================================
-# FRONTEND
-# ============================================================
-
-@app.get("/", include_in_schema=False)
-def home():
-
-    return FileResponse(
-        FRONTEND_DIR / "index.html"
-    )
-
-
-@app.get("/style.css", include_in_schema=False)
-def css():
-
-    return FileResponse(
-        FRONTEND_DIR / "style.css",
-        media_type="text/css"
-    )
-
-
-@app.get("/script.js", include_in_schema=False)
-def javascript():
-
-    return FileResponse(
-        FRONTEND_DIR / "script.js",
-        media_type="application/javascript"
-    )
-
-
-# ============================================================
-# HEALTH CHECK
-# ============================================================
-
-@app.get("/health")
-def health():
-
-    return {
-        "status": "healthy",
-        "model_loaded": model is not None
-    }
-
-
-# ============================================================
-# PREDICT RISK
-# ============================================================
-
-@app.post("/predict-risk")
-def predict_risk(
-    request: RiskPredictionRequest
-):
-
-    try:
-
-        data = {
-            "timestamp": [request.timestamp],
-            "state": [request.state],
-            "district": [request.district],
-            "rainfall_mm": [request.rainfall_mm],
-            "river_level_m": [request.river_level_m],
-            "river_level_threshold_m": [
-                request.river_level_threshold_m
-            ],
-            "emergency_calls": [
-                request.emergency_calls
-            ],
-            "road_closures": [
-                request.road_closures
-            ],
-            "bridge_closures": [
-                request.bridge_closures
-            ],
-            "flood_history_count": [
-                request.flood_history_count
-            ],
-            "population_affected": [
-                request.population_affected
-            ],
-            "water_level_change_m": [
-                request.water_level_change_m
-            ]
-        }
-
-        df = pd.DataFrame(data)
-
-        # Timestamp processing
-        df["timestamp"] = pd.to_datetime(
-            df["timestamp"],
-            errors="coerce",
-            dayfirst=True
-        )
-
-        if df["timestamp"].isna().any():
-
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid timestamp."
-            )
-
-        # Time features
-        df["hour"] = df["timestamp"].dt.hour
-        df["month"] = df["timestamp"].dt.month
-        df["dayofweek"] = (
-            df["timestamp"].dt.dayofweek
-        )
-        df["is_monsoon"] = df["month"].isin(
-            [6, 7, 8, 9]
-        ).astype(int)
-        df["river_level_margin_m"] = (
-            df["river_level_m"]
-            - df["river_level_threshold_m"]
-        )
-        df["river_level_ratio"] = (
-            df["river_level_m"]
-            / (df["river_level_threshold_m"] + 1e-5)
-        )
-
-        df.drop(
-            columns=["timestamp"],
-            inplace=True
-        )
-
-        # Apply the same feature transformation used during training.
-        model_input = (
-            df[feature_columns]
-            if feature_columns is not None
-            else df
-        )
-        transformed_input = (
-            preprocessor.transform(model_input)
-            if preprocessor is not None
-            else model_input
-        )
-
-        # Prediction
-        prediction = model.predict(transformed_input)[0]
-        prediction = inverse_target_map.get(prediction, prediction)
-
-        prediction = str(prediction)
-
-        # Confidence
-        confidence: Optional[float] = None
-
-        if hasattr(model, "predict_proba"):
-
-            probabilities = model.predict_proba(transformed_input)[0]
-
-            confidence = float(
-                max(probabilities)
-            )
-
-        return {
-            "district": request.district,
-            "risk_level": prediction,
-            "confidence": (
-                round(confidence, 4)
-                if confidence is not None
-                else None
-            ),
-            "status": "prediction_successful"
-        }
-
-    except HTTPException:
-        raise
-
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+	def get_model_info(self) -> dict[str, Any]:
+		pipeline = self._require_pipeline()
+		return {
+			"model_name": pipeline.get("model_name", "unknown"),
+			"model_path": str(self.model_path),
+			"numeric_features": pipeline["feature_cols_num"],
+			"categorical_features": pipeline["feature_cols_cat"],
+			"target_map": pipeline["target_map"],
+		}
 
 
-# ============================================================
-# START SERVER
-# ============================================================
-
-if __name__ == "__main__":
-
-    print("=" * 60)
-    print("DISASTER RESPONSE AI")
-    print("Integration Engineer")
-    print("=" * 60)
-
-    print(
-        "Dashboard: http://127.0.0.1:8000"
-    )
-
-    print(
-        "API Docs: http://127.0.0.1:8000/docs"
-    )
-
-    print("=" * 60)
-
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000
-    )
+integration_engine = IntegrationEngine()
