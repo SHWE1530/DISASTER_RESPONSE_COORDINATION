@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Disaster Response AI</title>
+
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+
+        <div>
+
+            <p class="brand">
+                DISASTER RESPONSE AI
+            </p>
+
+            <h1>
+                Real-Time Emergency
+                <span>Risk Intelligence</span>
+            </h1>
+
+            <p class="subtitle">
+                AI-powered zone risk assessment
+                for rapid emergency response.
+            </p>
+
+        </div>
+
+        <div
+            id="backendStatus"
+            class="status offline"
+        >
+            ● Backend Offline
+        </div>
+
+    </header>
+
+
+    <main>
+
+        <!-- INPUT -->
+
+        <section class="card">
+
+            <h2>
+                📡 Sensor & Emergency Data
+            </h2>
+
+            <p class="description">
+                Enter current zone conditions.
+            </p>
+
+
+            <h3>📍 Location</h3>
+
+            <div class="grid">
+
+                <div>
+                    <label>State</label>
+
+                    <input
+                        id="state"
+                        value="West Bengal"
+                    >
+                </div>
+
+
+                <div>
+                    <label>District / Zone</label>
+
+                    <input
+                        id="district"
+                        value="Murshidabad"
+                    >
+                </div>
+
+
+                <div class="full">
+
+                    <label>Timestamp</label>
+
+                    <input
+                        id="timestamp"
+                        value="18-09-2025 12:00"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <h3>🌧 Environmental Conditions</h3>
+
+            <div class="grid">
+
+                <div>
+
+                    <label>Rainfall (mm)</label>
+
+                    <input
+                        id="rainfall_mm"
+                        type="number"
+                        value="83.72"
+                        min="0"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>River Level (m)</label>
+
+                    <input
+                        id="river_level_m"
+                        type="number"
+                        value="7.28"
+                        min="0"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>River Threshold (m)</label>
+
+                    <input
+                        id="river_level_threshold_m"
+                        type="number"
+                        value="6.04"
+                        min="0"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>Water Level Change (m)</label>
+
+                    <input
+                        id="water_level_change_m"
+                        type="number"
+                        value="0.02"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <h3>📞 Emergency Information</h3>
+
+            <div class="grid">
+
+                <div>
+
+                    <label>Emergency Calls</label>
+
+                    <input
+                        id="emergency_calls"
+                        type="number"
+                        value="51"
+                        min="0"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>Population Affected</label>
+
+                    <input
+                        id="population_affected"
+                        type="number"
+                        value="4111"
+                        min="0"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <h3>🚧 Infrastructure</h3>
+
+            <div class="grid">
+
+                <div>
+
+                    <label>Road Closures</label>
+
+                    <input
+                        id="road_closures"
+                        type="number"
+                        value="2"
+                        min="0"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>Bridge Closures</label>
+
+                    <input
+                        id="bridge_closures"
+                        type="number"
+                        value="2"
+                        min="0"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <h3>📚 Historical Data</h3>
+
+            <div>
+
+                <label>Historical Flood Count</label>
+
+                <input
+                    id="flood_history_count"
+                    type="number"
+                    value="5"
+                    min="0"
+                >
+
+            </div>
+
+
+            <button id="predictButton">
+
+                🚨 ANALYZE ZONE RISK
+
+            </button>
+
+        </section>
+
+
+        <!-- RESULT -->
+
+        <section class="card result-card">
+
+            <h2>
+                🎯 AI Risk Assessment
+            </h2>
+
+            <p class="description">
+                Real-time ML model prediction.
+            </p>
+
+
+            <div
+                id="emptyState"
+                class="empty"
+            >
+
+                <div>
+                    🛡️
+                </div>
+
+                <h3>
+                    Awaiting Analysis
+                </h3>
+
+                <p>
+                    Enter zone conditions and
+                    click analyze.
+                </p>
+
+            </div>
+
+
+            <div
+                id="result"
+                class="hidden"
+            >
+
+                <div
+                    id="riskBadge"
+                    class="risk-badge"
+                >
+                    SEVERE
+                </div>
+
+
+                <div class="zone">
+
+                    <small>ZONE</small>
+
+                    <strong
+                        id="resultDistrict"
+                    >
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="confidence">
+
+                    <small>
+                        MODEL CONFIDENCE
+                    </small>
+
+                    <strong
+                        id="confidence"
+                    >
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="details">
+
+                    <h3>
+                        Prediction Details
+                    </h3>
+
+
+                    <div>
+                        <span>Rainfall</span>
+                        <strong id="resultRainfall">
+                            --
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>River Level</span>
+                        <strong id="resultRiver">
+                            --
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Emergency Calls</span>
+                        <strong id="resultCalls">
+                            --
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Road Closures</span>
+                        <strong id="resultRoads">
+                            --
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Bridge Closures</span>
+                        <strong id="resultBridges">
+                            --
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="errorBox"
+                class="error hidden"
+            ></div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        Stage 01 · Machine Learning ·
+        Integration Engineer
+
+    </footer>
+
+</div>
+
+
+<script src="/script.js"></script>
+
+</body>
+
+</html>
