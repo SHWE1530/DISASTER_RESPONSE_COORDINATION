@@ -1,0 +1,7 @@
+image,actual_class,predicted_class,top_10_percent_saliency_dark_pixel_overlap,overlay
+data/raw/Flood_Image_Dataset/flooded/flood_0000.jpg,flooded,flooded,0.0,data/outputs/saliency_maps/flood_0000_saliency.png
+data/raw/Flood_Image_Dataset/flooded/flood_0001.jpg,flooded,unflooded,0.0,data/outputs/saliency_maps/flood_0001_saliency.png
+data/raw/Flood_Image_Dataset/flooded/flood_0002.jpg,flooded,flooded,0.003050640634533252,data/outputs/saliency_maps/flood_0002_saliency.png
+data/raw/Flood_Image_Dataset/unflooded/unflood_0000.jpg,unflooded,unflooded,0.0,data/outputs/saliency_maps/unflood_0000_saliency.png
+data/raw/Flood_Image_Dataset/unflooded/unflood_0001.jpg,unflooded,unflooded,0.0,data/outputs/saliency_maps/unflood_0001_saliency.png
+data/raw/Flood_Image_Dataset/unflooded/unflood_0002.jpg,unflooded,unflooded,0.0,data/outputs/saliency_maps/unflood_0002_saliency.png
