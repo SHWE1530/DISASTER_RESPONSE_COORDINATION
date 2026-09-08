@@ -1,0 +1,1 @@
+timestamp,state,district,rainfall_mm,river_level_m,river_level_threshold_m,emergency_calls,road_closures,bridge_closures,flood_history_count,population_affected,water_level_change_m,river_level_margin_m,river_level_ratio,hour,month,dayofweek,is_monsoon,zone_risk,target,actual,predicted,confidence,severe_prob

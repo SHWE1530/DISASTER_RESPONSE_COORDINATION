@@ -316,8 +316,12 @@ HTML_TEMPLATE = """
             const btn = e.target;
             btn.innerText = "Simulating...";
 
-            // Send dummy sequence (24 hours of rising water levels)
-            const inputSeq = [9.5, 9.6, 9.7, 9.9, 10.2, 10.4, 10.8, 11.1, 11.3, 11.5, 11.7, 12.0, 12.4, 12.8, 13.0, 13.2, 13.5, 13.8, 14.0, 14.2, 14.4, 14.5, 14.7, 15.0];
+            // Send dummy sequence (72 hours of water levels)
+            // Start around 8.0, slowly rising, then the last 24 match the old array roughly.
+            const inputSeq = Array.from({length: 48}, (_, i) => 8.0 + (i * 1.5 / 48)).concat([
+                9.5, 9.6, 9.7, 9.9, 10.2, 10.4, 10.8, 11.1, 11.3, 11.5, 11.7, 12.0, 
+                12.4, 12.8, 13.0, 13.2, 13.5, 13.8, 14.0, 14.2, 14.4, 14.5, 14.7, 15.0
+            ]);
 
             try {
                 const res = await fetch('/api/predict/dl/lstm', {
@@ -333,9 +337,9 @@ HTML_TEMPLATE = """
                 document.getElementById('lstm-result').style.display = 'block';
                 document.getElementById('lstm-val').innerText = forecasts[forecasts.length - 1].toFixed(2);
 
-                const labels = Array.from({length: 30}, (_, i) => `T-${24-i}`);
+                const labels = Array.from({length: 78}, (_, i) => `T-${72-i}`);
                 const histData = [...inputSeq, ...Array(6).fill(null)];
-                const foreData = [...Array(23).fill(null), inputSeq[23], ...forecasts];
+                const foreData = [...Array(71).fill(null), inputSeq[71], ...forecasts];
 
                 if(lstmChart) lstmChart.destroy();
 
