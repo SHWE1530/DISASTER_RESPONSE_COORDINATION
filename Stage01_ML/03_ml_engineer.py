@@ -14,7 +14,6 @@ Outputs:
   - Stage01_ML/data/test/X_test.csv  (Held-out for Evaluation Engineer)
   - Stage01_ML/data/test/y_test.csv  (Held-out for Evaluation Engineer)
 
-STRICT BOUNDARY: Modifies ONLY 03_ml_engineer.py.
 """
 
 from pathlib import Path

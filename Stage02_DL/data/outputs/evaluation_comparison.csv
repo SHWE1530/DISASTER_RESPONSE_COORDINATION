@@ -3,5 +3,5 @@ accuracy,0.8933333333333333,,CNN classification only
 macro_f1,0.8243559718969555,,CNN classification only
 mae,,0.2306401569730211,LSTM regression only
 rmse,,0.7089585958987721,LSTM regression only
-average_latency_ms,13.02758933355411,0.17037663624382363,"Both, different workloads"
+average_latency_ms,21.340805334039032,0.3544553272501258,"Both, different workloads"
 model_size_mb,0.3606,0.1997,Both

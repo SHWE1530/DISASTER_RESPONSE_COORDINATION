@@ -20,7 +20,7 @@ depends on the raw files and folder ordering remaining unchanged.
 | Best Threshold | 0.7500 |
 | Flooded ROC-AUC | 0.8744 |
 | Flooded PR-AUC | 0.7990 |
-| Average latency (ms/sample) | 13.0276 |
+| Average latency (ms/sample) | 21.3408 |
 
 The confusion matrix and `cnn_test_predictions.csv` show the error pattern. The flooded class recall is
 0.6667.
@@ -32,7 +32,7 @@ The confusion matrix and `cnn_test_predictions.csv` show the error pattern. The 
 | MAE | 0.2306 |
 | MSE | 0.5026 |
 | RMSE | 0.7090 |
-| Average latency (ms/sample) | 0.1704 |
+| Average latency (ms/sample) | 0.3545 |
 
 LSTM errors are stored in `lstm_test_predictions.csv`; larger absolute errors identify difficult periods.
 
