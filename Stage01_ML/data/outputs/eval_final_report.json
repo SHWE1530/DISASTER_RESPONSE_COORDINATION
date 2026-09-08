@@ -311,5 +311,48 @@
             "accuracy": 1.0,
             "severe_recall": 1.0
         }
+    },
+    "evaluation_summary": {
+        "decision": "CONDITIONAL PASS / REVIEW REQUIRED",
+        "reason": "Thresholds met, but Low recall is weak and there are 15 missed Severe cases requiring ML Engineer review.",
+        "overall_accuracy": 0.9686666666666667,
+        "macro_f1": 0.9152296300296805,
+        "class_metrics": {
+            "Low": {
+                "precision": 1.0,
+                "recall": 0.7096774193548387,
+                "f1-score": 0.8301886792452831,
+                "support": 31.0
+            },
+            "Moderate": {
+                "precision": 0.9310344827586207,
+                "recall": 0.9337175792507204,
+                "f1-score": 0.9323741007194245,
+                "support": 347.0
+            },
+            "Severe": {
+                "precision": 0.9796460176991151,
+                "recall": 0.9866310160427807,
+                "f1-score": 0.9831261101243339,
+                "support": 1122.0
+            },
+            "accuracy": 0.9686666666666667,
+            "macro avg": {
+                "precision": 0.970226833485912,
+                "recall": 0.8766753382161133,
+                "f1-score": 0.9152296300296805,
+                "support": 1500.0
+            },
+            "weighted avg": {
+                "precision": 0.9688211982504323,
+                "recall": 0.9686666666666667,
+                "f1-score": 0.9682247717104978,
+                "support": 1500.0
+            }
+        },
+        "severe_recall": 0.9866310160427807,
+        "missed_severe_count": 15,
+        "critical_overconfident_errors": 0,
+        "weakest_district": "Bhubaneswar"
     }
 }

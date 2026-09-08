@@ -49,3 +49,42 @@ When assessing a zone, the intelligence system prioritizes these signals in orde
 1. **Live Assessment:** Enter the latest readings from the field (Rainfall, River Level, Call Volumes) into the "Live risk assessment" panel to get an instant classification.
 2. **Confidence Score:** Pay attention to the Confidence Score percentage. A high confidence (e.g., >95%) means the current conditions strongly match past disasters.
 3. **Monitor Trends:** Use the "Risk Trend" and "Risk by Region" panels to see which districts have the highest frequency of Severe events.
+
+---
+
+## EVALUATION ENGINEER (Model Audit & Feedback Loop)
+
+The Evaluation Engineer stage (`04_evaluation_engineer.py`) acts as the final gatekeeper before a model is integrated into the web application.
+
+### Purpose
+To rigorously audit the finalized Machine Learning model on **independent, held-out test data** that the model has never seen during training or tuning. This ensures honest metrics and uncovers real-world failure modes.
+
+### Key Terminology
+- **Prediction/Inference:** The act of the model generating a guess (Low/Moderate/Severe) for a set of data.
+- **Evaluation / Testing:** The rigorous, automated process of comparing the model's predictions against known "ground truth" answers.
+- **Validation:** An earlier step performed by the ML Engineer to tune the model.
+- **Error Analysis:** Deep-diving into specific mistakes (e.g., missed severe floods) to find data gaps.
+- **Model Approval:** The final business decision (Pass/Needs Improvement) based on established thresholds.
+
+### Workflow & Inputs
+1. **Inputs:** Loads the serialized model (`ml_pipeline.joblib`) and the independent test sets (`X_test.csv` and `y_test.csv`).
+2. **Feature Engineering:** Re-creates the exact features (e.g., `river_level_margin_m`, `is_monsoon`) so inference works perfectly.
+3. **Inference:** Generates predictions without retraining the model.
+
+### Key Outputs
+- `eval_final_report.json`: Classification metrics (Accuracy, F1, Precision, Recall).
+- `eval_confusion_matrix.png`: Visual heatmap of where the model is making classification mistakes.
+- `missed_severe_cases.csv`: A strict log of every single instance where a "Severe" flood occurred but the model missed it.
+- `critical_errors.csv`: High-priority errors where a Severe flood was confidently predicted as "Low".
+- `district_generalization.csv`: Stress-testing the model's recall across different geographic regions to prevent bias.
+- `evaluation_summary.json`: The final PASS/FAIL verdict based on criteria (Severe Recall >= 0.70 & Macro F1 >= 0.65).
+
+### The ML Feedback Loop
+If the Evaluation Engineer determines the model **NEEDS IMPROVEMENT** or is a **CONDITIONAL PASS**, the model is NOT integrated. Instead, it triggers a feedback loop:
+1. **Evaluation Engine** generates the missed severe reports.
+2. **Feedback to ML Engineer:** The ML Engineer inspects `missed_severe_cases.csv` to find patterns (e.g., "The model struggles in Nashik during June").
+3. **Model Improvement:** The ML Engineer tweaks hyperparameters, adds new features, or cleans data.
+4. **Retrain & Re-Evaluate:** The ML Engineer outputs a new model, and the Evaluation Engineer runs the audit again.
+
+### Handoff to Integration
+Once the model passes the evaluation thresholds (PASS), the Integration Engineer (`05_integration_engineer.py`) wraps the `.joblib` model into a clean API that the Flask dashboard can easily query without duplicating any feature engineering logic.

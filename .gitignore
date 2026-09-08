@@ -6,5 +6,5 @@ frontend/dist/
 *.pyc
 .venv/
 __pycache__/
-
+Stage02_DL/data/raw/dashboard_upload.jpg
 
