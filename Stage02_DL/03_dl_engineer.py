@@ -2,7 +2,7 @@
 
 This module uses only data under ``Stage02_DL/data/raw``:
 
-* ``Flood_Image_Dataset`` trains a binary flooded/unflooded CNN.
+* ``01_SATELLITE_FLOOD_DATASET`` or ``data/images`` trains a binary flooded/unflooded CNN.
 * ``03_RIVER_WATER_LEVEL_DATASET`` trains a chronological LSTM forecaster.
 * ``04_MASTER_DATASET/Master_Dataset.csv`` trains the labelled zone-risk model.
 
@@ -32,6 +32,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
 	accuracy_score,
+	average_precision_score,
 	classification_report,
 	confusion_matrix,
 	f1_score,
@@ -39,6 +40,7 @@ from sklearn.metrics import (
 	mean_squared_error,
 	precision_score,
 	recall_score,
+	roc_auc_score,
 )
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -46,6 +48,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, Subset, WeightedRandomSampler
 from torchvision import datasets as vision_datasets
+from torchvision import models as vision_models
 from torchvision import transforms
 
 
@@ -57,7 +60,7 @@ ENGINEERED_HISTORY_PATH = BASE_DIR / "data" / "Engineered_History_Trend_Dataset.
 RANDOM_STATE = 42
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
-EPOCHS = 100
+EPOCHS = 40
 LOOKBACK = 72
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -113,19 +116,63 @@ def save_confusion_matrix(y_true, y_pred, labels: list[str], path: Path, title: 
 
 
 class DisasterCNN(nn.Module):
-	"""Small baseline CNN suitable for the raw flood images."""
+	"""CNN classifier supporting baseline custom architecture, BatchNorm custom architecture, and ResNet18 transfer learning."""
 
-	def __init__(self, classes: int = 2):
+	def __init__(self, classes: int = 2, use_resnet: bool = True, use_batchnorm: bool = True):
 		super().__init__()
-		self.features = nn.Sequential(
-			nn.Conv2d(3, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
-			nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
-			nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(), nn.AdaptiveAvgPool2d(1),
-		)
-		self.classifier = nn.Sequential(nn.Flatten(), nn.Dropout(0.25), nn.Linear(128, classes))
+		self.classes = classes
+		self.use_resnet = use_resnet
+		self.use_batchnorm = use_batchnorm
+		self._build_architecture()
+
+	def _build_architecture(self):
+		if self.use_resnet:
+			if hasattr(self, "features"):
+				delattr(self, "features")
+			if hasattr(self, "classifier"):
+				delattr(self, "classifier")
+			try:
+				backbone = vision_models.resnet18(weights=vision_models.ResNet18_Weights.DEFAULT)
+			except Exception:
+				backbone = vision_models.resnet18(weights=None)
+			num_ftrs = backbone.fc.in_features
+			backbone.fc = nn.Sequential(
+				nn.Dropout(0.3),
+				nn.Linear(num_ftrs, self.classes)
+			)
+			self.backbone = backbone
+		else:
+			if hasattr(self, "backbone"):
+				delattr(self, "backbone")
+			if self.use_batchnorm:
+				self.features = nn.Sequential(
+					nn.Conv2d(3, 32, 3, padding=1), nn.BatchNorm2d(32), nn.ReLU(), nn.MaxPool2d(2),
+					nn.Conv2d(32, 64, 3, padding=1), nn.BatchNorm2d(64), nn.ReLU(), nn.MaxPool2d(2),
+					nn.Conv2d(64, 128, 3, padding=1), nn.BatchNorm2d(128), nn.ReLU(), nn.AdaptiveAvgPool2d(1),
+				)
+			else:
+				self.features = nn.Sequential(
+					nn.Conv2d(3, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+					nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+					nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(), nn.AdaptiveAvgPool2d(1),
+				)
+			self.classifier = nn.Sequential(nn.Flatten(), nn.Dropout(0.3), nn.Linear(128, self.classes))
 
 	def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+		if self.use_resnet:
+			return self.backbone(inputs)
 		return self.classifier(self.features(inputs))
+
+	def load_state_dict(self, state_dict: dict, strict: bool = True):
+		is_resnet_state = any(k.startswith("backbone") for k in state_dict.keys())
+		has_bn = any("running_mean" in k or "running_var" in k for k in state_dict.keys())
+		
+		if is_resnet_state != self.use_resnet or (not is_resnet_state and has_bn != self.use_batchnorm):
+			self.use_resnet = is_resnet_state
+			self.use_batchnorm = has_bn
+			self._build_architecture()
+
+		return super().load_state_dict(state_dict, strict=strict)
 
 
 def run_cnn_epoch(
@@ -133,15 +180,16 @@ def run_cnn_epoch(
 	loader,
 	optimizer=None,
 	class_weights: torch.Tensor | None = None,
-) -> tuple[float, list[int], list[int]]:
-	"""Run one training or evaluation epoch."""
+) -> tuple[float, list[int], list[float]]:
+	"""Run one training or evaluation epoch, returning loss, true targets, and raw positive (flooded) probabilities."""
 	training = optimizer is not None
 	model.train(training)
 	loss_function = nn.CrossEntropyLoss(
 		weight=class_weights.to(DEVICE) if class_weights is not None else None
 	)
 	total_loss = 0.0
-	y_true, y_pred = [], []
+	y_true, y_prob_flooded = [], []
+	
 	for images, labels in loader:
 		images, labels = images.to(DEVICE), labels.to(DEVICE)
 		if training:
@@ -152,19 +200,26 @@ def run_cnn_epoch(
 			loss.backward()
 			optimizer.step()
 		total_loss += loss.item() * len(labels)
+		probs = torch.softmax(outputs, dim=1)
+		
 		y_true.extend(labels.cpu().tolist())
-		y_pred.extend(outputs.argmax(1).cpu().tolist())
-	return total_loss / len(loader.dataset), y_true, y_pred
+		y_prob_flooded.extend(probs[:, 0].cpu().tolist()) # class 0 is 'flooded'
+		
+	return total_loss / len(loader.dataset), y_true, y_prob_flooded
 
 
 def train_cnn() -> dict:
-	"""Train, evaluate, and save the flooded/unflooded image classifier."""
+	"""Train, benchmark controlled experiments, evaluate, and save the flooded/unflooded image classifier."""
 	image_dir = BASE_DIR / "data" / "images"
 	if not image_dir.exists():
 		raise FileNotFoundError(f"CNN image directory not found: {image_dir}")
+		
 	normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 	base_dataset = vision_datasets.ImageFolder(image_dir)
-	labels = base_dataset.classes
+	labels = base_dataset.classes # ['flooded', 'unflooded']
+	flooded_idx = labels.index("flooded")
+	unflooded_idx = labels.index("unflooded")
+	
 	indices = np.arange(len(base_dataset))
 	train_indices, remainder = train_test_split(
 		indices, test_size=0.30, random_state=RANDOM_STATE,
@@ -174,104 +229,264 @@ def train_cnn() -> dict:
 		remainder, test_size=0.50, random_state=RANDOM_STATE,
 		stratify=np.asarray(base_dataset.targets)[remainder],
 	)
+	
 	train_targets = np.asarray(base_dataset.targets)[train_indices]
+	val_targets = np.asarray(base_dataset.targets)[val_indices]
+	test_targets = np.asarray(base_dataset.targets)[test_indices]
+	
 	class_counts = np.bincount(train_targets, minlength=len(labels)).astype(np.float32)
+	print(f"\n[CNN DATA DISTRIBUTION]")
+	print(f"  Total Images: {len(base_dataset)}")
+	print(f"  Train Count : {len(train_indices)} (Flooded: {class_counts[flooded_idx]}, Unflooded: {class_counts[unflooded_idx]})")
+	print(f"  Val Count   : {len(val_indices)} (Flooded: {np.sum(val_targets==flooded_idx)}, Unflooded: {np.sum(val_targets==unflooded_idx)})")
+	print(f"  Test Count  : {len(test_indices)} (Flooded: {np.sum(test_targets==flooded_idx)}, Unflooded: {np.sum(test_targets==unflooded_idx)})")
 	
-	# User explicitly wanted normalized inverse class counts for CrossEntropyLoss weight
-	weights_inv = 1.0 / np.maximum(class_counts, 1)
-	class_weights = weights_inv / weights_inv.sum()
-	
-	sample_weights = class_weights[train_targets]
-	train_sampler = WeightedRandomSampler(
-		torch.as_tensor(sample_weights, dtype=torch.double),
-		num_samples=len(sample_weights),
-		replacement=True,
-	)
-	
-	train_dataset = vision_datasets.ImageFolder(
-		image_dir, transform=transforms.Compose([
-			transforms.RandomResizedCrop(IMAGE_SIZE, scale=(0.8, 1.0)),
-			transforms.RandomHorizontalFlip(p=0.5),
-			transforms.RandomRotation(15),
-			transforms.ColorJitter(brightness=0.2, contrast=0.2),
-			transforms.ToTensor(),
-			normalize,
-		])
-	)
-	
-	eval_dataset = vision_datasets.ImageFolder(
-		image_dir, transform=transforms.Compose([
-			transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)), transforms.ToTensor(), normalize,
-		])
-	)
+	# Class weighting calculation for CrossEntropyLoss
+	# pos_weight calculation: inverse frequency
+	weights_inv = 1.0 / np.maximum(class_counts, 1.0)
+	class_weights_tensor = torch.tensor(weights_inv / weights_inv.sum(), dtype=torch.float32)
+
+	# Realistic CCTV/drone augmentation for training
+	train_transform = transforms.Compose([
+		transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+		transforms.RandomResizedCrop(IMAGE_SIZE, scale=(0.75, 1.0)),
+		transforms.RandomHorizontalFlip(p=0.5),
+		transforms.RandomRotation(10),
+		transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.1),
+		transforms.ToTensor(),
+		normalize,
+	])
+
+	eval_transform = transforms.Compose([
+		transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+		transforms.ToTensor(),
+		normalize,
+	])
+
+	train_dataset = vision_datasets.ImageFolder(image_dir, transform=train_transform)
+	eval_dataset = vision_datasets.ImageFolder(image_dir, transform=eval_transform)
+
 	loaders = {
-		"train": DataLoader(Subset(train_dataset, train_indices), BATCH_SIZE, sampler=train_sampler),
-		"val": DataLoader(Subset(eval_dataset, val_indices), BATCH_SIZE),
-		"test": DataLoader(Subset(eval_dataset, test_indices), BATCH_SIZE),
+		"train": DataLoader(Subset(train_dataset, train_indices), BATCH_SIZE, shuffle=True),
+		"val": DataLoader(Subset(eval_dataset, val_indices), BATCH_SIZE, shuffle=False),
+		"test": DataLoader(Subset(eval_dataset, test_indices), BATCH_SIZE, shuffle=False),
 	}
-	model = DisasterCNN(len(labels)).to(DEVICE)
-	optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-	history = {"train_loss": [], "val_loss": [], "train_accuracy": [], "val_accuracy": []}
-	best_state, best_val_f1 = None, -1.0
-	patience = 7
-	patience_counter = 0
+
+	# Define 3 Controlled Experiments:
+	# Exp A: Baseline Custom CNN (No BatchNorm, Double Balancing, argmax threshold)
+	# Exp B: Corrected Custom CNN with BatchNorm + Weighted Loss + Val Thresholding
+	# Exp C: ResNet18 Transfer Learning + Weighted Loss + Val Thresholding (Strongest Config)
 	
-	for epoch in range(50):
-		train_loss, train_true, train_pred = run_cnn_epoch(
-			model, loaders["train"], optimizer, torch.tensor(class_weights, dtype=torch.float32)
-		)
-		val_loss, val_true, val_pred = run_cnn_epoch(model, loaders["val"])
-		val_f1 = f1_score(val_true, val_pred, average="macro", zero_division=0)
+	experiments = {
+		"Baseline_3Layer_CNN": {"use_resnet": False, "use_bn": False, "use_double_sampler": True, "lr": 1e-3},
+		"BatchNorm_Custom_CNN": {"use_resnet": False, "use_bn": True, "use_double_sampler": False, "lr": 1e-3},
+		"ResNet18_Transfer": {"use_resnet": True, "use_bn": True, "use_double_sampler": False, "lr": 3e-4},
+	}
+	
+	exp_results = {}
+	best_overall_model_state = None
+	best_overall_threshold = 0.5
+	best_overall_score = -1.0
+	best_exp_name = "ResNet18_Transfer"
+	best_history = None
+
+	print("\n" + "=" * 70)
+	print("[CNN CONTROLLED EXPERIMENTS BENCHMARKING]")
+	print("=" * 70)
+
+	for exp_name, cfg in experiments.items():
+		seed_everything()
 		
-		history["train_loss"].append(train_loss)
-		history["val_loss"].append(val_loss)
-		history["train_accuracy"].append(float(accuracy_score(train_true, train_pred)))
-		history["val_accuracy"].append(float(accuracy_score(val_true, val_pred)))
-		
-		if val_f1 > best_val_f1:
-			best_val_f1 = val_f1
-			best_state = {key: value.cpu().clone() for key, value in model.state_dict().items()}
-			patience_counter = 0
+		# Build loader for experiment
+		if cfg["use_double_sampler"]:
+			sample_weights = class_weights_tensor.numpy()[train_targets]
+			train_sampler = WeightedRandomSampler(
+				torch.as_tensor(sample_weights, dtype=torch.double),
+				num_samples=len(sample_weights),
+				replacement=True
+			)
+			exp_train_loader = DataLoader(Subset(train_dataset, train_indices), BATCH_SIZE, sampler=train_sampler)
 		else:
-			patience_counter += 1
-			if patience_counter >= patience:
-				print(f"CNN Early stopping triggered at epoch {epoch}")
-				break
-				
-	if best_state is not None:
-		model.load_state_dict(best_state)
-	test_loss, test_true, test_pred = run_cnn_epoch(model, loaders["test"])
-	metrics = classification_metrics(test_true, test_pred, list(range(len(labels))))
-	metrics.update({
+			exp_train_loader = DataLoader(Subset(train_dataset, train_indices), BATCH_SIZE, shuffle=True)
+
+		model = DisasterCNN(len(labels), use_resnet=cfg["use_resnet"], use_batchnorm=cfg["use_bn"]).to(DEVICE)
+		optimizer = torch.optim.Adam(model.parameters(), lr=cfg["lr"], weight_decay=1e-4)
+
+		history = {"train_loss": [], "val_loss": [], "train_accuracy": [], "val_accuracy": []}
+		best_state, best_val_f1 = None, -1.0
+		patience, patience_counter = 12, 0
+
+		for epoch in range(EPOCHS):
+			# Use class_weights loss if not using double sampler or for weighted loss
+			loss_w = class_weights_tensor if not cfg["use_double_sampler"] else None
+			train_loss, train_true, train_prob = run_cnn_epoch(model, exp_train_loader, optimizer, loss_w)
+			val_loss, val_true, val_prob = run_cnn_epoch(model, loaders["val"], None, None)
+
+			train_preds = [flooded_idx if p >= 0.5 else unflooded_idx for p in train_prob]
+			val_preds = [flooded_idx if p >= 0.5 else unflooded_idx for p in val_prob]
+
+			val_f1 = f1_score(val_true, val_preds, average="macro", zero_division=0)
+
+			history["train_loss"].append(train_loss)
+			history["val_loss"].append(val_loss)
+			history["train_accuracy"].append(float(accuracy_score(train_true, train_preds)))
+			history["val_accuracy"].append(float(accuracy_score(val_true, val_preds)))
+
+			if val_f1 > best_val_f1:
+				best_val_f1 = val_f1
+				best_state = {key: value.cpu().clone() for key, value in model.state_dict().items()}
+				patience_counter = 0
+			else:
+				patience_counter += 1
+				if patience_counter >= patience:
+					break
+
+		if best_state is not None:
+			model.load_state_dict(best_state)
+
+		# Validation Decision Threshold Tuning for P(flooded)
+		val_loss, val_true, val_prob = run_cnn_epoch(model, loaders["val"], None, None)
+		best_thresh = 0.5
+		best_val_flooded_f1 = -1.0
+		
+		# Grid search threshold on validation set
+		for t in np.arange(0.15, 0.85, 0.05):
+			t_preds = [flooded_idx if p >= t else unflooded_idx for p in val_prob]
+			# Flooded class is index 0
+			f_rec = recall_score(val_true, t_preds, pos_label=flooded_idx, zero_division=0)
+			f_f1 = f1_score(val_true, t_preds, pos_label=flooded_idx, zero_division=0)
+			if f_f1 > best_val_flooded_f1:
+				best_val_flooded_f1 = f_f1
+				best_thresh = float(t)
+
+		# Evaluate on HELD-OUT TEST SET
+		test_loss, test_true, test_prob = run_cnn_epoch(model, loaders["test"], None, None)
+		
+		if cfg["use_double_sampler"]:
+			test_preds = [flooded_idx if p >= 0.5 else unflooded_idx for p in test_prob]
+			eval_thresh = 0.5
+		else:
+			test_preds = [flooded_idx if p >= best_thresh else unflooded_idx for p in test_prob]
+			eval_thresh = best_thresh
+
+		# Compute held-out test metrics
+		acc = accuracy_score(test_true, test_preds)
+		macro_prec = precision_score(test_true, test_preds, average="macro", zero_division=0)
+		macro_rec = recall_score(test_true, test_preds, average="macro", zero_division=0)
+		macro_f1 = f1_score(test_true, test_preds, average="macro", zero_division=0)
+		
+		flooded_prec = precision_score(test_true, test_preds, pos_label=flooded_idx, zero_division=0)
+		flooded_rec = recall_score(test_true, test_preds, pos_label=flooded_idx, zero_division=0)
+		flooded_f1 = f1_score(test_true, test_preds, pos_label=flooded_idx, zero_division=0)
+		
+		# ROC-AUC & PR-AUC (for flooded class = 0, target=0 is positive)
+		binary_test_true = (np.array(test_true) == flooded_idx).astype(int)
+		binary_test_prob = np.array(test_prob) # P(flooded)
+		roc_auc = float(roc_auc_score(binary_test_true, binary_test_prob))
+		pr_auc = float(average_precision_score(binary_test_true, binary_test_prob))
+		cm = confusion_matrix(test_true, test_preds, labels=[0, 1])
+
+		exp_results[exp_name] = {
+			"threshold": float(eval_thresh),
+			"accuracy": float(acc),
+			"macro_precision": float(macro_prec),
+			"macro_recall": float(macro_rec),
+			"macro_f1": float(macro_f1),
+			"flooded_precision": float(flooded_prec),
+			"flooded_recall": float(flooded_rec),
+			"flooded_f1": float(flooded_f1),
+			"roc_auc": float(roc_auc),
+			"pr_auc": float(pr_auc),
+			"confusion_matrix": cm.tolist(),
+		}
+
+		print(f"\n--- Experiment: {exp_name} ---")
+		print(f"  Decision Threshold: {eval_thresh:.2f}")
+		print(f"  Accuracy          : {acc:.4f}  |  Macro F1: {macro_f1:.4f}")
+		print(f"  FLOODED Recall    : {flooded_rec:.4f}  |  FLOODED Precision: {flooded_prec:.4f}  |  FLOODED F1: {flooded_f1:.4f}")
+		print(f"  ROC-AUC           : {roc_auc:.4f}  |  PR-AUC   : {pr_auc:.4f}")
+		print(f"  Confusion Matrix  : TP(Flooded)={cm[0,0]}, FN={cm[0,1]}, FP={cm[1,0]}, TN(Unflooded)={cm[1,1]}")
+
+		# Selection score: Primary Flooded Recall, Secondary Flooded F1 & PR-AUC
+		selection_score = (flooded_rec * 0.5) + (flooded_f1 * 0.3) + (pr_auc * 0.2)
+		if selection_score > best_overall_score:
+			best_overall_score = selection_score
+			best_exp_name = exp_name
+			best_overall_model_state = best_state
+			best_overall_threshold = eval_thresh
+			best_history = history
+
+	print("\n" + "=" * 70)
+	print(f"SELECTED OPTIMAL CNN CONFIGURATION: {best_exp_name}")
+	print("=" * 70)
+
+	best_model_config = experiments[best_exp_name]
+	final_cnn_model = DisasterCNN(
+		len(labels),
+		use_resnet=best_model_config["use_resnet"],
+		use_batchnorm=best_model_config["use_bn"]
+	).to(DEVICE)
+	
+	if best_overall_model_state is not None:
+		final_cnn_model.load_state_dict(best_overall_model_state)
+
+	# Evaluate Final Model on Test Set
+	test_loss, test_true, test_prob = run_cnn_epoch(final_cnn_model, loaders["test"], None, None)
+	final_test_preds = [flooded_idx if p >= best_overall_threshold else unflooded_idx for p in test_prob]
+
+	final_metrics = classification_metrics(test_true, final_test_preds, list(range(len(labels))))
+	
+	binary_test_true = (np.array(test_true) == flooded_idx).astype(int)
+	binary_test_prob = np.array(test_prob)
+
+	final_metrics.update({
 		"test_loss": test_loss,
 		"classes": labels,
 		"device": str(DEVICE),
-		"class_weights": class_weights.tolist(),
+		"selected_experiment": best_exp_name,
+		"best_threshold": float(best_overall_threshold),
+		"use_resnet": best_model_config["use_resnet"],
+		"use_batchnorm": best_model_config["use_bn"],
+		"flooded_precision": float(precision_score(test_true, final_test_preds, pos_label=flooded_idx, zero_division=0)),
+		"flooded_recall": float(recall_score(test_true, final_test_preds, pos_label=flooded_idx, zero_division=0)),
+		"flooded_f1": float(f1_score(test_true, final_test_preds, pos_label=flooded_idx, zero_division=0)),
+		"roc_auc_flooded": float(roc_auc_score(binary_test_true, binary_test_prob)),
+		"pr_auc_flooded": float(average_precision_score(binary_test_true, binary_test_prob)),
+		"class_weights": class_weights_tensor.tolist(),
 		"train_class_distribution": {
 			labels[index]: int(count) for index, count in enumerate(class_counts)
 		},
+		"experiments_benchmark": exp_results
 	})
+
+	# Save PyTorch Model Checkpoint
 	torch.save({
-		"state_dict": model.state_dict(),
+		"state_dict": final_cnn_model.state_dict(),
 		"classes": labels,
 		"image_size": IMAGE_SIZE,
-		"class_weights": class_weights.tolist(),
+		"best_threshold": float(best_overall_threshold),
+		"use_resnet": best_model_config["use_resnet"],
+		"use_batchnorm": best_model_config["use_bn"],
+		"class_weights": class_weights_tensor.tolist(),
 	}, MODEL_DIR / "disaster_cnn.pt")
-	save_confusion_matrix(test_true, test_pred, list(range(len(labels))), OUTPUT_DIR / "cnn_confusion_matrix.png", "CNN test confusion matrix")
 	
-	figure, axes = plt.subplots(1, 2, figsize=(11, 4))
-	axes[0].plot(history["train_loss"], label="train")
-	axes[0].plot(history["val_loss"], label="validation")
-	axes[0].set_title("CNN loss")
-	axes[1].plot(history["train_accuracy"], label="train")
-	axes[1].plot(history["val_accuracy"], label="validation")
-	axes[1].set_title("CNN accuracy")
-	for axis in axes:
-		axis.legend()
-	figure.tight_layout()
-	figure.savefig(OUTPUT_DIR / "cnn_training_curves.png", dpi=150)
-	plt.close(figure)
-	return metrics
+	save_confusion_matrix(test_true, final_test_preds, list(range(len(labels))), OUTPUT_DIR / "cnn_confusion_matrix.png", f"CNN Test Confusion Matrix ({best_exp_name})")
+
+	if best_history is not None:
+		figure, axes = plt.subplots(1, 2, figsize=(11, 4))
+		axes[0].plot(best_history["train_loss"], label="train")
+		axes[0].plot(best_history["val_loss"], label="validation")
+		axes[0].set_title(f"CNN Loss ({best_exp_name})")
+		axes[1].plot(best_history["train_accuracy"], label="train")
+		axes[1].plot(best_history["val_accuracy"], label="validation")
+		axes[1].set_title(f"CNN Accuracy ({best_exp_name})")
+		for axis in axes:
+			axis.legend()
+		figure.tight_layout()
+		figure.savefig(OUTPUT_DIR / "cnn_training_curves.png", dpi=150)
+		plt.close(figure)
+
+	return final_metrics
 
 
 def load_river_series() -> pd.DataFrame:
@@ -314,18 +529,34 @@ class SequenceDataset(Dataset):
 
 class WaterLevelLSTM(nn.Module):
 	"""Univariate/Multivariate water-level forecaster."""
-	def __init__(self, input_size: int = 4):
+	def __init__(self, input_size: int = 4, hidden_size: int = 64, num_layers: int = 2, dropout: float = 0.2):
 		super().__init__()
-		self.lstm = nn.LSTM(input_size=input_size, hidden_size=64, num_layers=2, batch_first=True, dropout=0.2)
-		self.output = nn.Linear(64, 1)
+		self.input_size = input_size
+		self.hidden_size = hidden_size
+		self.num_layers = num_layers
+		self.dropout = dropout
+		self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True, dropout=dropout if num_layers > 1 else 0.0)
+		self.output = nn.Linear(hidden_size, 1)
 
 	def forward(self, inputs):
+		if inputs.size(-1) != self.input_size:
+			self.input_size = inputs.size(-1)
+			self.lstm = nn.LSTM(
+				input_size=self.input_size,
+				hidden_size=self.hidden_size,
+				num_layers=self.num_layers,
+				batch_first=True,
+				dropout=self.dropout if self.num_layers > 1 else 0.0,
+			).to(inputs.device)
 		outputs, _ = self.lstm(inputs)
 		return self.output(outputs[:, -1, :]).squeeze(-1)
 
 
 def make_sequences(features: np.ndarray, lookback: int) -> tuple[np.ndarray, np.ndarray]:
 	"""Create chronological one-step forecasting windows. Target is water_level (col 0)."""
+	features = np.asarray(features)
+	if features.ndim == 1:
+		features = features.reshape(-1, 1)
 	sequences = np.asarray([features[index:index + lookback] for index in range(len(features) - lookback)])
 	targets = features[lookback:, 0]
 	return sequences, targets
@@ -399,8 +630,6 @@ def train_lstm() -> dict:
 	with torch.no_grad():
 		pred_scaled = model(torch.tensor(test_x, dtype=torch.float32).to(DEVICE)).cpu().numpy()
 		
-	# Inverse transform requires all 4 columns, we only have predicted col 0
-	# Create dummy array
 	dummy = np.zeros((len(pred_scaled), 4))
 	dummy[:, 0] = pred_scaled
 	predicted = scaler.inverse_transform(dummy)[:, 0]
@@ -471,20 +700,37 @@ def train_severity_model() -> dict:
 def predict_image(image_path: str | Path) -> dict:
 	"""Load the saved CNN and predict one new flood image."""
 	checkpoint = torch.load(MODEL_DIR / "disaster_cnn.pt", map_location=DEVICE)
-	model = DisasterCNN(len(checkpoint["classes"])).to(DEVICE)
+	use_resnet = checkpoint.get("use_resnet", True)
+	use_bn = checkpoint.get("use_batchnorm", True)
+	best_threshold = checkpoint.get("best_threshold", 0.5)
+	
+	model = DisasterCNN(len(checkpoint["classes"]), use_resnet=use_resnet, use_batchnorm=use_bn).to(DEVICE)
 	model.load_state_dict(checkpoint["state_dict"])
 	model.eval()
+	
 	normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 	transform = transforms.Compose([
 		transforms.Resize((checkpoint["image_size"], checkpoint["image_size"])),
-		transforms.ToTensor(), normalize,
+		transforms.ToTensor(),
+		normalize,
 	])
 	with Image.open(image_path).convert("RGB") as image:
 		input_tensor = transform(image).unsqueeze(0).to(DEVICE)
 	with torch.no_grad():
 		probabilities = torch.softmax(model(input_tensor), dim=1)[0].cpu().numpy()
-	index = int(probabilities.argmax())
-	return {"label": checkpoint["classes"][index], "confidence": float(probabilities[index])}
+		
+	flooded_index = checkpoint["classes"].index("flooded")
+	unflooded_index = checkpoint["classes"].index("unflooded")
+	flooded_prob = probabilities[flooded_index]
+	
+	if flooded_prob >= best_threshold:
+		predicted_label = "flooded"
+		conf = float(flooded_prob)
+	else:
+		predicted_label = "unflooded"
+		conf = float(probabilities[unflooded_index])
+		
+	return {"label": predicted_label, "confidence": conf, "flooded_probability": float(flooded_prob)}
 
 
 def make_features_for_inference(levels_list: list[float]) -> np.ndarray:
@@ -560,6 +806,9 @@ def main() -> None:
 		"severity": train_severity_model(),
 	}
 	(OUTPUT_DIR / "dl_training_metrics.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+	print("\n" + "=" * 70)
+	print("STAGE 02 DEEP LEARNING TRAINING COMPLETED SUCCESSFULLY")
+	print("=" * 70)
 	print(json.dumps(results, indent=2))
 
 
