@@ -6,6 +6,7 @@ the flood images. Outputs are written below Stage02_DL/data/outputs.
 
 from pathlib import Path
 import json
+import hashlib
 import re
 
 import matplotlib.pyplot as plt
@@ -154,6 +155,157 @@ def image_summary(source_name: str, image_files: list[Path]) -> dict:
 		},
 		"pillow_available": Image is not None,
 	}
+
+
+def _image_features(image: "Image.Image") -> dict:
+	"""Extract explainable quality, color, edge, and water-proxy features."""
+	array = np.asarray(image.convert("RGB"), dtype=np.float32) / 255.0
+	gray = array.mean(axis=2)
+	red, green, blue = array.transpose(2, 0, 1)
+	brightness = float(gray.mean())
+	contrast = float(gray.std())
+	gradient_y, gradient_x = np.gradient(gray)
+	sharpness = float((gradient_x ** 2 + gradient_y ** 2).mean())
+	saturation = array.max(axis=2) - array.min(axis=2)
+	dark = gray < 0.20
+	low_saturation = saturation < 0.15
+	water_proxy = (blue > red * 1.05) & (blue >= green * 0.95) & (gray > 0.15)
+	return {
+		"width": int(array.shape[1]),
+		"height": int(array.shape[0]),
+		"aspect_ratio": round(float(array.shape[1] / max(array.shape[0], 1)), 4),
+		"brightness_mean": round(brightness, 6),
+		"contrast_std": round(contrast, 6),
+		"sharpness_gradient_energy": round(sharpness, 6),
+		"dark_pixel_ratio": round(float(dark.mean()), 6),
+		"shadow_proxy_ratio": round(float((dark & low_saturation).mean()), 6),
+		"wet_asphalt_proxy_ratio": round(float((dark & low_saturation & (blue >= red * 0.9)).mean()), 6),
+		"water_color_proxy_ratio": round(float(water_proxy.mean()), 6),
+		"edge_density": round(float(((np.abs(gradient_x) + np.abs(gradient_y)) > 0.12).mean()), 6),
+	}
+
+
+def analyze_images(image_files: list[Path]) -> dict:
+	"""Run image quality, duplicate, balance, and engineered-feature audits."""
+	if Image is None:
+		return {"status": "skipped", "reason": "Pillow is required"}
+	rows = []
+	hashes = {}
+	perceptual_hashes = {}
+	water_mask_dir = OUTPUT_DIR / "water_masks"
+	water_mask_dir.mkdir(parents=True, exist_ok=True)
+	for image_path in image_files:
+		try:
+			file_hash = hashlib.sha256(image_path.read_bytes()).hexdigest()
+			with Image.open(image_path) as image:
+				features = _image_features(image)
+				gray_small = np.asarray(image.convert("L").resize((16, 16)), dtype=np.float32)
+				average_hash = "".join((gray_small >= gray_small.mean()).astype(np.uint8).flatten().astype(str))
+				rgb = np.asarray(image.convert("RGB"), dtype=np.float32) / 255.0
+				red, green, blue = rgb.transpose(2, 0, 1)
+				water_mask = ((blue > red * 1.05) & (blue >= green * 0.95) & (rgb.mean(axis=2) > 0.15)).astype(np.uint8) * 255
+				Image.fromarray(water_mask).save(water_mask_dir / f"{safe_name(image_path)}_water_mask.png")
+			row = {
+				"file": str(image_path.relative_to(SCRIPT_DIR)).replace("\\", "/"),
+				"class": next((label for label in CNN_CLASSES if label in image_path.parts), "unknown"),
+				"capture_source": "cctv" if "cctv" in str(image_path).lower() else ("drone" if "drone" in str(image_path).lower() else "folder_image"),
+				"sha256": file_hash,
+				"average_hash": average_hash,
+				"file_size_bytes": image_path.stat().st_size,
+				**features,
+			}
+			rows.append(row)
+			hashes.setdefault(file_hash, []).append(row["file"])
+			perceptual_hashes.setdefault(average_hash, []).append(row["file"])
+		except (OSError, ValueError) as error:
+			rows.append({"file": str(image_path), "error": str(error)})
+	frame = pd.DataFrame(rows)
+	frame.to_csv(OUTPUT_DIR / "image_quality_features.csv", index=False)
+	if frame.empty:
+		return {"status": "generated", "images_analyzed": 0}
+	duplicates = [files for files in hashes.values() if len(files) > 1]
+	perceptual_duplicates = [files for files in perceptual_hashes.values() if len(files) > 1]
+	pd.DataFrame(
+		[{"duplicate_group": index, "file": file} for index, files in enumerate(duplicates, 1) for file in files]
+	).to_csv(OUTPUT_DIR / "image_duplicate_groups.csv", index=False)
+	pd.DataFrame(
+		[{"duplicate_group": index, "file": file} for index, files in enumerate(perceptual_duplicates, 1) for file in files]
+	).to_csv(OUTPUT_DIR / "image_perceptual_duplicate_groups.csv", index=False)
+	class_counts = frame["class"].value_counts().rename_axis("class").reset_index(name="count")
+	class_counts["percentage"] = (class_counts["count"] / max(len(frame), 1) * 100).round(3)
+	class_counts.to_csv(OUTPUT_DIR / "image_class_balance.csv", index=False)
+	quality = frame.dropna(subset=["brightness_mean"])
+	if not quality.empty:
+		quality.describe().round(6).to_csv(OUTPUT_DIR / "image_quality_summary.csv")
+	return {
+		"status": "generated",
+		"images_analyzed": int(len(frame)),
+		"duplicate_groups": len(duplicates),
+		"perceptual_duplicate_groups": len(perceptual_duplicates),
+		"class_balance": class_counts.to_dict("records"),
+		"outputs": [
+			"data/outputs/image_quality_features.csv",
+			"data/outputs/image_quality_summary.csv",
+			"data/outputs/image_class_balance.csv",
+			"data/outputs/image_duplicate_groups.csv",
+			"data/outputs/image_perceptual_duplicate_groups.csv",
+			"data/outputs/water_masks/",
+		],
+	}
+
+
+def analyze_temporal_tables(table_frames: dict[Path, pd.DataFrame]) -> dict:
+	"""Create trend and seasonality summaries for timestamped numeric tables."""
+	outputs = []
+	for path, frame in table_frames.items():
+		datetime_column = next(
+			(column for column in frame.columns if any(token in str(column).lower() for token in ("time", "date", "timestamp"))),
+			None,
+		)
+		if datetime_column is None:
+			continue
+		parsed = pd.to_datetime(frame[datetime_column], errors="coerce")
+		numeric = frame.select_dtypes(include="number").columns.tolist()
+		if parsed.notna().sum() < 3 or not numeric:
+			continue
+		working = frame.loc[parsed.notna(), numeric].copy()
+		working["_time"] = parsed[parsed.notna()].values
+		working = working.sort_values("_time")
+		name = safe_name(Path(path).with_suffix(""))
+		plot_columns = numeric[:4]
+		figure, axes = plt.subplots(len(plot_columns), 1, figsize=(12, max(3, 2.5 * len(plot_columns))), squeeze=False)
+		for axis, column in zip(axes[:, 0], plot_columns):
+			axis.plot(working["_time"], working[column], linewidth=0.7)
+			axis.set_title(f"Trend: {column}")
+			axis.set_ylabel(column)
+		figure.tight_layout()
+		figure.savefig(OUTPUT_DIR / f"{name}_temporal_trends.png", dpi=150)
+		plt.close(figure)
+		seasonal = working.assign(month=working["_time"].dt.month).groupby("month")[plot_columns].mean()
+		seasonal.to_csv(OUTPUT_DIR / f"{name}_seasonality.csv")
+		outputs.append({"file": str(path.relative_to(SCRIPT_DIR)).replace("\\", "/"), "datetime_column": str(datetime_column), "numeric_columns": plot_columns})
+	return {"status": "generated", "tables_analyzed": len(outputs), "tables": outputs}
+
+
+def analyze_satellite_masks() -> dict:
+	"""Summarize embedded satellite masks and image brightness when available."""
+	satellite_dir = RAW_DIR / SOURCE_DIRECTORIES["satellite"] / "dataset" / "train"
+	if not (satellite_dir / "state.json").exists():
+		return {"status": "skipped", "reason": "Satellite dataset not available"}
+	try:
+		from datasets import load_from_disk
+		dataset = load_from_disk(str(satellite_dir))
+		rows = []
+		for index in range(len(dataset)):
+			image = np.asarray(dataset[index]["image"].convert("RGB"), dtype=np.float32) / 255.0
+			mask = np.asarray(dataset[index]["mask"])
+			mask = mask[..., 0] if mask.ndim == 3 else mask
+			rows.append({"index": index, "file_name": str(dataset[index].get("file_name", index)), "mask_coverage": float((mask > 0).mean()), "image_brightness": float(image.mean())})
+		frame = pd.DataFrame(rows)
+		frame.to_csv(OUTPUT_DIR / "satellite_change_analysis.csv", index=False)
+		return {"status": "generated", "samples_analyzed": len(frame), "output": "data/outputs/satellite_change_analysis.csv", "note": "Mask coverage is a flood-area proxy; true temporal change requires dated repeat imagery."}
+	except Exception as error:
+		return {"status": "skipped", "reason": str(error)}
 
 
 def generate_saliency_audit(image_files: list[Path]) -> dict:
@@ -322,6 +474,7 @@ def main() -> None:
 		raise FileNotFoundError(f"No raw datasets found below: {RAW_DIR}")
 
 	summaries = []
+	table_frames = {}
 	satellite_dir = RAW_DIR / SOURCE_DIRECTORIES["satellite"] / "dataset" / "train"
 	if satellite_dir.exists() and (satellite_dir / "state.json").exists():
 		try:
@@ -340,6 +493,7 @@ def main() -> None:
 			if satellite_dir in tabular_file.parents:
 				continue
 			frame = read_raw_table(tabular_file)
+			table_frames[tabular_file] = frame
 			summary = dataset_summary(tabular_file, frame)
 			summary["source"] = source_name_for(tabular_file)
 			summaries.append(summary)
@@ -360,10 +514,17 @@ def main() -> None:
 	if image_files:
 		image_inventory.append(image_summary("flood_images", image_files))
 		print(f"Inventoried flood_images: {len(image_files)} images")
+		image_analysis = analyze_images(image_files)
+		print(f"Image analysis: {image_analysis['status']}")
 		saliency_audit = generate_saliency_audit(image_files)
 		print(f"Saliency audit: {saliency_audit['status']}")
 	else:
+		image_analysis = {"status": "skipped", "reason": "No flood images found"}
 		saliency_audit = {"status": "skipped", "reason": "No flood images found"}
+	temporal_analysis = analyze_temporal_tables(table_frames)
+	satellite_analysis = analyze_satellite_masks()
+	print(f"Temporal analysis: {temporal_analysis['status']}")
+	print(f"Satellite mask analysis: {satellite_analysis['status']}")
 
 	summary_path = OUTPUT_DIR / "raw_eda_summary.json"
 	summary_path.write_text(
@@ -371,6 +532,9 @@ def main() -> None:
 			{
 				"tabular_datasets": summaries,
 				"image_datasets": image_inventory,
+				"image_analysis": image_analysis,
+				"temporal_analysis": temporal_analysis,
+				"satellite_analysis": satellite_analysis,
 				"saliency_audit": saliency_audit,
 			},
 			indent=2,

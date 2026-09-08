@@ -67,8 +67,20 @@ class IntegrationEngine:
 			self.pipeline = pipeline
 			self.preprocessor = pipeline["preprocessor"]
 			self.model = pipeline["model"]
+			self._restore_column_transformer_compatibility(self.preprocessor)
 		except Exception as exc:
 			self.load_error = f"Unable to load model pipeline: {exc}"
+
+	@staticmethod
+	def _restore_column_transformer_compatibility(preprocessor: Any) -> None:
+		"""Repair pickled ColumnTransformer metadata required by newer scikit-learn."""
+		if preprocessor is None or not hasattr(preprocessor, "transformers_"):
+			return
+		if not hasattr(preprocessor, "_name_to_fitted_passthrough"):
+			preprocessor._name_to_fitted_passthrough = {}
+		for name, transformer, _ in preprocessor.transformers_:
+			if transformer is not None:
+				preprocessor._name_to_fitted_passthrough.setdefault(name, True)
 
 	@staticmethod
 	def _load_feature_importance() -> list[str]:
