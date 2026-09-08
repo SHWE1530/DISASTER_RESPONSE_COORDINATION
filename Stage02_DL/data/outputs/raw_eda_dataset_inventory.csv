@@ -1,5 +1,4 @@
 file,rows_analyzed,columns,duplicate_rows,missing_values
-data/raw/01_SATELLITE_FLOOD_DATASET/dataset/train/data-00000-of-00001.arrow,500,4,0,0
 data/raw/01_SATELLITE_FLOOD_DATASET/dataset/dataset_dict.json,1,1,0,0
 data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_ap_2021_2025.csv,31274,20,0,8369
 data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_ar_2021_2025.csv,18290,20,0,0

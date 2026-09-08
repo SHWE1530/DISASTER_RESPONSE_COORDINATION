@@ -1,21 +1,6 @@
 {
   "tabular_datasets": [
     {
-      "file": "data/raw/01_SATELLITE_FLOOD_DATASET/dataset/train/data-00000-of-00001.arrow",
-      "rows_analyzed": 500,
-      "columns": 4,
-      "column_names": [
-        "image",
-        "mask",
-        "file_name",
-        "mask_file_name"
-      ],
-      "missing_values": {},
-      "duplicate_rows": 0,
-      "numeric_summary": {},
-      "source": "satellite"
-    },
-    {
       "file": "data/raw/01_SATELLITE_FLOOD_DATASET/dataset/dataset_dict.json",
       "rows_analyzed": 1,
       "columns": 1,
@@ -1979,8 +1964,8 @@
   "image_datasets": [
     {
       "source": "flood_images",
-      "file_count": 500,
-      "total_size_mb": 27.767,
+      "file_count": 1,
+      "total_size_mb": 0.016,
       "dimensions": {
         "width_min": 700,
         "width_max": 700,
@@ -1990,14 +1975,229 @@
       "pillow_available": true
     }
   ],
-  "saliency_audit": {
+  "image_analysis": {
     "status": "generated",
-    "images_reviewed": 6,
-    "mean_dark_pixel_overlap": 0.010982306284319709,
-    "samples_above_dark_overlap_threshold": 0,
-    "maps_directory": "data/outputs/saliency_maps",
-    "audit_csv": "data/outputs/saliency_audit.csv",
-    "review_report": "data/outputs/saliency_review.md",
-    "interpretation": "Review overlays manually; dark-pixel overlap is a screening statistic, not a water/shadow label."
+    "images_analyzed": 1,
+    "duplicate_groups": 0,
+    "perceptual_duplicate_groups": 0,
+    "class_balance": [
+      {
+        "class": "unknown",
+        "count": 1,
+        "percentage": 100.0
+      }
+    ],
+    "outputs": [
+      "data/outputs/image_quality_features.csv",
+      "data/outputs/image_quality_summary.csv",
+      "data/outputs/image_class_balance.csv",
+      "data/outputs/image_duplicate_groups.csv",
+      "data/outputs/image_perceptual_duplicate_groups.csv",
+      "data/outputs/water_masks/"
+    ]
+  },
+  "temporal_analysis": {
+    "status": "generated",
+    "tables_analyzed": 19,
+    "tables": [
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_ap_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_ar_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_as_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_br_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_cg_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_dl_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_dn_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_gj_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_hp_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_hr_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_tn_1991_2020.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_tn_2021_2025.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/02_RAINFALL_DATASET/rainfall_tel_hr_cwc_tn_2026_2030.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_004_1991_2020.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_005_1991_2020.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_007_1991_2020.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_008_1991_2020.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/03_RIVER_WATER_LEVEL_DATASET/rwl_tele_hr_cwc_27_1991_2020.csv",
+        "datetime_column": "Data Acquisition Time",
+        "numeric_columns": [
+          "SlNo",
+          "State LGD Code",
+          "District LGD Code",
+          "Latitude"
+        ]
+      },
+      {
+        "file": "data/raw/04_MASTER_DATASET/Master_Dataset.csv",
+        "datetime_column": "timestamp",
+        "numeric_columns": [
+          "rainfall_mm",
+          "river_level_m",
+          "river_level_threshold_m",
+          "emergency_calls"
+        ]
+      }
+    ]
+  },
+  "satellite_analysis": {
+    "status": "skipped",
+    "reason": "[WinError 2] The system cannot find the file specified: 'D:\\\\EDA ENGINEER\\\\DISASTER_RESPONSE_COORDINATION\\\\Stage02_DL\\\\data\\\\raw\\\\01_SATELLITE_FLOOD_DATASET\\\\dataset\\\\train\\\\data-00000-of-00001.arrow'"
+  },
+  "saliency_audit": {
+    "status": "skipped",
+    "reason": "No class-folder images found"
   }
 }
