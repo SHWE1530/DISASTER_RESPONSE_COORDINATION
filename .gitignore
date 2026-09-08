@@ -6,7 +6,5 @@ frontend/dist/
 *.pyc
 .venv/
 __pycache__/
-
-# Prevent accidental commit of large raw datasets
-Stage02_DL/data/raw/*
-!Stage02_DL/data/raw/.gitkeep
+Stage02_DL/data/raw/dashboard_upload.jpg
+

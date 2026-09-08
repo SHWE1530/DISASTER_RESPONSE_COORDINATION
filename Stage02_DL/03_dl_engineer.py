@@ -159,7 +159,7 @@ def run_cnn_epoch(
 
 def train_cnn() -> dict:
 	"""Train, evaluate, and save the flooded/unflooded image classifier."""
-	image_dir = RAW_DIR / "Flood_Image_Dataset"
+	image_dir = BASE_DIR / "data" / "images"
 	if not image_dir.exists():
 		raise FileNotFoundError(f"CNN image directory not found: {image_dir}")
 	normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -352,7 +352,7 @@ def train_lstm() -> dict:
 	
 	model = WaterLevelLSTM(input_size=4).to(DEVICE)
 	optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-	scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+	scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
 	loss_function = nn.MSELoss()
 	
 	history = {"train_loss": [], "val_loss": []}

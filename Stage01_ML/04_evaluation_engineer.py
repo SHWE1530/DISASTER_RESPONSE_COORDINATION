@@ -206,6 +206,14 @@ def analyze_overconfidence(df_test, y_test, preds, probs, pipeline):
         (analysis_df["confidence"] >= 0.80)
     ]
 
+    missed_severe_path = OUTPUT_DIR / "missed_severe_cases.csv"
+    missed_severe.to_csv(missed_severe_path, index=False)
+    print(f"Saved Missed Severe Cases Report to {missed_severe_path}")
+
+    critical_path = OUTPUT_DIR / "critical_errors.csv"
+    critical_errors.to_csv(critical_path, index=False)
+    print(f"Saved Critical Errors Report to {critical_path}")
+
     print(f"Total Missed Severe Predictions: {len(missed_severe)}")
     print(f"Critical Overconfident Errors (Actual Severe -> Pred Low, Conf >= 80%): {len(critical_errors)}")
 
@@ -261,11 +269,63 @@ def stress_test_unseen_disasters(df_test, y_test, preds, pipeline):
     else:
         print("Not enough Severe cases per district to stress-test Severe recall by region.")
 
+    gen_df = pd.DataFrame.from_dict(generalization_results, orient="index")
+    gen_df.index.name = "district"
+    gen_df.reset_index(inplace=True)
+    gen_csv_path = OUTPUT_DIR / "district_generalization.csv"
+    gen_df.to_csv(gen_csv_path, index=False)
+    print(f"Saved District Generalization Report to {gen_csv_path}")
+
     return generalization_results
 
 
 # ============================================================
-# 8. EXECUTION & SAVING
+# 8. EVALUATION SUMMARY & MODEL DECISION
+# ============================================================
+def generate_evaluation_summary(metrics_report, overconfidence_report, generalization_report):
+    print("\n[STEP 7] Generating Evaluation Summary & Decision...")
+    acc = metrics_report["accuracy"]
+    macro_f1 = metrics_report["macro_f1"]
+    severe_recall = metrics_report["classification_report"]["Severe"]["recall"]
+    missed_count = overconfidence_report["missed_severe_count"]
+    critical_count = overconfidence_report["critical_overconfident_errors"]
+
+    valid_dists = {k: v for k, v in generalization_report.items() if v["severe_recall"] is not None}
+    weakest_district = min(valid_dists.keys(), key=lambda k: valid_dists[k]["severe_recall"]) if valid_dists else "N/A"
+
+    if severe_recall >= 0.70 and macro_f1 >= 0.65:
+        if missed_count > 0 or metrics_report["classification_report"]["Low"]["recall"] < 0.75:
+            decision = "CONDITIONAL PASS / REVIEW REQUIRED"
+            reason = "Thresholds met, but Low recall is weak and there are 15 missed Severe cases requiring ML Engineer review."
+        else:
+            decision = "PASS"
+            reason = "Thresholds met and no significant weaknesses identified."
+    else:
+        decision = "NEEDS IMPROVEMENT"
+        reason = "Failed to meet primary thresholds (Severe Recall >= 0.70 AND Macro F1 >= 0.65)."
+
+    summary = {
+        "decision": decision,
+        "reason": reason,
+        "overall_accuracy": acc,
+        "macro_f1": macro_f1,
+        "class_metrics": metrics_report["classification_report"],
+        "severe_recall": severe_recall,
+        "missed_severe_count": missed_count,
+        "critical_overconfident_errors": critical_count,
+        "weakest_district": weakest_district
+    }
+
+    summary_path = OUTPUT_DIR / "evaluation_summary.json"
+    with open(summary_path, "w") as f:
+        json.dump(summary, f, indent=4)
+    print(f"Saved Evaluation Summary to {summary_path}")
+
+    return summary
+
+
+# ============================================================
+# 9. EXECUTION & SAVING
 # ============================================================
 def main():
     try:
@@ -277,6 +337,7 @@ def main():
         metrics_report = evaluate_metrics(y_test, preds, pipeline)
         overconfidence_report = analyze_overconfidence(df_test, y_test, preds, probs, pipeline)
         generalization_report = stress_test_unseen_disasters(df_test, y_test, preds, pipeline)
+        eval_summary = generate_evaluation_summary(metrics_report, overconfidence_report, generalization_report)
 
         eval_report = {
             "evaluated_on": "Independent held-out test set (data/test/X_test.csv, y_test.csv)",
@@ -284,14 +345,15 @@ def main():
             "test_samples": int(len(X)),
             "metrics": metrics_report,
             "overconfidence_analysis": overconfidence_report,
-            "generalization_stress_test": generalization_report
+            "generalization_stress_test": generalization_report,
+            "evaluation_summary": eval_summary
         }
 
         report_path = OUTPUT_DIR / "eval_final_report.json"
         with open(report_path, "w") as f:
             json.dump(eval_report, f, indent=4)
 
-        print(f"\n[STEP 7] Saved Final Evaluation Report to {report_path}")
+        print(f"\n[STEP 8] Saved Final Evaluation Report to {report_path}")
         print("\nEVALUATION COMPLETE.")
 
     except Exception as e:

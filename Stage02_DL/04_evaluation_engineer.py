@@ -175,7 +175,7 @@ def generate_gradcam_visualizations(dl, model, dataset, test_indices, classes):
 
 def evaluate_cnn(dl) -> dict:
 	"""Evaluate the saved CNN on its deterministic, unseen test images."""
-	image_dir = RAW_DIR / "Flood_Image_Dataset"
+	image_dir = BASE_DIR / "data" / "images"
 	checkpoint = torch.load(MODEL_DIR / "disaster_cnn.pt", map_location=dl.DEVICE)
 	normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 	evaluation_transform = transforms.Compose([

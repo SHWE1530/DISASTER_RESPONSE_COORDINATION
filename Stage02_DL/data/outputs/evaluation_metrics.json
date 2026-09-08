@@ -1,70 +1,72 @@
 {
   "cnn": {
-    "accuracy": 0.6933333333333334,
-    "precision_macro": 0.6526162790697674,
-    "recall_macro": 0.7333333333333334,
-    "f1_macro": 0.643668663499277,
+    "accuracy": 0.8933333333333333,
+    "precision_macro": 0.8442928039702233,
+    "recall_macro": 0.8083333333333333,
+    "f1_macro": 0.8243559718969555,
     "class_distribution": {
       "1": 60,
       "0": 15
     },
     "classification_report": {
       "0": {
-        "precision": 0.375,
-        "recall": 0.8,
-        "f1-score": 0.5106382978723404,
+        "precision": 0.7692307692307693,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.7142857142857143,
         "support": 15.0
       },
       "1": {
-        "precision": 0.9302325581395349,
-        "recall": 0.6666666666666666,
-        "f1-score": 0.7766990291262136,
+        "precision": 0.9193548387096774,
+        "recall": 0.95,
+        "f1-score": 0.9344262295081968,
         "support": 60.0
       },
-      "accuracy": 0.6933333333333334,
+      "accuracy": 0.8933333333333333,
       "macro avg": {
-        "precision": 0.6526162790697674,
-        "recall": 0.7333333333333334,
-        "f1-score": 0.643668663499277,
+        "precision": 0.8442928039702233,
+        "recall": 0.8083333333333333,
+        "f1-score": 0.8243559718969555,
         "support": 75.0
       },
       "weighted avg": {
-        "precision": 0.8191860465116279,
-        "recall": 0.6933333333333334,
-        "f1-score": 0.7234868828754389,
+        "precision": 0.8893300248138957,
+        "recall": 0.8933333333333333,
+        "f1-score": 0.8903981264637002,
         "support": 75.0
       }
     },
-    "roc_auc_flooded": 0.8766666666666667,
-    "pr_auc_flooded": 0.7843078147740988,
+    "best_threshold": 0.7500000000000002,
+    "best_f1_macro": 0.8243559718969555,
+    "roc_auc_flooded": 0.8744444444444445,
+    "pr_auc_flooded": 0.7990159296041649,
     "classes": [
       "flooded",
       "unflooded"
     ],
     "test_samples": 75,
-    "inference_seconds": 0.26361779996659607,
-    "average_latency_ms": 3.514903999554614,
-    "throughput_samples_per_second": 284.502791577441,
+    "inference_seconds": 0.9770692000165582,
+    "average_latency_ms": 13.02758933355411,
+    "throughput_samples_per_second": 76.76017215436633,
     "model_size_mb": 0.3606,
     "training_history_available": false
   },
   "lstm": {
-    "mae": 0.2950364351272583,
-    "mse": 0.5540241003036499,
-    "rmse": 0.7443279521176468,
+    "mae": 0.2306401569730211,
+    "mse": 0.5026222906987584,
+    "rmse": 0.7089585958987721,
     "test_samples": 1314,
-    "inference_seconds": 0.13597659999504685,
-    "average_latency_ms": 0.10348295281206002,
-    "throughput_samples_per_second": 9663.427384181281,
-    "model_size_mb": 0.1967,
-    "lookback": 24,
+    "inference_seconds": 0.22387490002438426,
+    "average_latency_ms": 0.17037663624382363,
+    "throughput_samples_per_second": 5869.349354737312,
+    "model_size_mb": 0.1997,
+    "lookback": 72,
     "dataset": "data/Engineered_History_Trend_Dataset.csv",
     "series_rows": 8760,
     "training_history_available": false
   },
   "robustness": {
     "perturbation": "Gaussian noise, scaled-space standard deviation 0.05",
-    "mae": 0.29718226194381714,
-    "rmse": 0.7493470449061398
+    "mae": 0.23093961419880535,
+    "rmse": 0.7108557360411463
   }
 }
