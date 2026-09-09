@@ -1,0 +1,5 @@
+text,urgency_prediction,urgency_confidence,hazard_prediction,hazard_confidence,extracted_entities,reason_flagged,resolution
+Road blockage reported near highway junction. Send tow truck.,MEDIUM,0.4372,Road Blockage,0.9991,"{""location"": [""highway""], ""resource_needed"": [""tow truck""], ""headcount"": null}",LOW_URGENCY_CONFIDENCE,PENDING_REVIEW
+URGENT! 12 people trapped in landslide. Send ambulance and rescue team.,CRITICAL,0.7609,Rescue Emergency,0.3424,"{""location"": null, ""resource_needed"": [""rescue team""], ""headcount"": 12}",LOW_HAZARD_CONFIDENCE; MISSING_CRITICAL_LOCATION,PENDING_REVIEW
+Call 1 text,MEDIUM,0.2886,Flood,0.2734,"{""location"": null, ""resource_needed"": [], ""headcount"": 1}",LOW_URGENCY_CONFIDENCE; LOW_HAZARD_CONFIDENCE,PENDING_REVIEW
+Call 2 text,MEDIUM,0.2886,Flood,0.2734,"{""location"": null, ""resource_needed"": [], ""headcount"": 2}",LOW_URGENCY_CONFIDENCE; LOW_HAZARD_CONFIDENCE,PENDING_REVIEW
