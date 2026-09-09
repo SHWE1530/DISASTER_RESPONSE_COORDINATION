@@ -1,0 +1,62 @@
+{
+  "analysis": "urgent versus routine vocabulary and phrasing",
+  "top_n": 5,
+  "total_reports": 64855,
+  "sources": [
+    {
+      "dataset": "dispatcher",
+      "reports": 60000,
+      "urgent_reports": 32973,
+      "routine_reports": 27027,
+      "mean_tokens": 19.684,
+      "mean_unique_tokens": 19.1006,
+      "outputs": [
+        "dispatcher/dispatcher_urgent_vocabulary.csv",
+        "dispatcher/dispatcher_urgent_bigrams.csv",
+        "dispatcher/dispatcher_urgent_trigrams.csv",
+        "dispatcher/dispatcher_routine_vocabulary.csv",
+        "dispatcher/dispatcher_routine_bigrams.csv",
+        "dispatcher/dispatcher_routine_trigrams.csv",
+        "dispatcher/urgent_vs_routine_vocabulary.csv"
+      ]
+    },
+    {
+      "dataset": "safety_sop",
+      "reports": 1697,
+      "urgent_reports": 387,
+      "routine_reports": 1310,
+      "mean_tokens": 35.0966,
+      "mean_unique_tokens": 27.383,
+      "outputs": [
+        "safety_sop/safety_sop_urgent_vocabulary.csv",
+        "safety_sop/safety_sop_urgent_bigrams.csv",
+        "safety_sop/safety_sop_urgent_trigrams.csv",
+        "safety_sop/safety_sop_routine_vocabulary.csv",
+        "safety_sop/safety_sop_routine_bigrams.csv",
+        "safety_sop/safety_sop_routine_trigrams.csv",
+        "safety_sop/urgent_vs_routine_vocabulary.csv"
+      ]
+    },
+    {
+      "dataset": "social_feeds",
+      "reports": 3158,
+      "urgent_reports": 1789,
+      "routine_reports": 1369,
+      "mean_tokens": 6.9915,
+      "mean_unique_tokens": 6.8942,
+      "outputs": [
+        "social_feeds/social_feeds_urgent_vocabulary.csv",
+        "social_feeds/social_feeds_urgent_bigrams.csv",
+        "social_feeds/social_feeds_urgent_trigrams.csv",
+        "social_feeds/social_feeds_routine_vocabulary.csv",
+        "social_feeds/social_feeds_routine_bigrams.csv",
+        "social_feeds/social_feeds_routine_trigrams.csv",
+        "social_feeds/urgent_vs_routine_vocabulary.csv"
+      ]
+    }
+  ],
+  "plots": [
+    "report_length_by_urgency.png",
+    "vocabulary_size_by_urgency.png"
+  ]
+}

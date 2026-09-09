@@ -56,11 +56,30 @@ CALL_VERB = {
     "Medical Emergency": "Medical emergency reported",
 }
 
+REPORT_PREFIXES = [
+    "Incident reported",
+    "Emergency report received",
+    "Situation update",
+]
+DISPATCH_PHRASES = [
+    "Dispatch requested for",
+    "Please dispatch",
+    "Response team requested: ",
+]
+
 HEADCOUNT_RANGE = {
     "LOW": (1, 3),
     "MEDIUM": (3, 8),
     "HIGH": (8, 20),
     "CRITICAL": (15, 80),
+}
+
+CALL_TYPE_HAZARDS = {
+    "Flooding": "Flood",
+    "Road Blockage": "Road Blockage",
+    "Rescue": "Rescue Emergency",
+    "Waterlogging": "Flood",
+    "Medical Emergency": "Medical Emergency",
 }
 
 def people_phrase(severity: str, n: int) -> str:
@@ -109,9 +128,11 @@ def generate_dispatcher_processed(df: pd.DataFrame, seed: int = SEED) -> pd.Data
         n = random.randint(lo, hi)
         p_phrase = people_phrase(severity, n)
 
-        text = (f"{CALL_VERB[call_type]} {loc_phrase} in {district}, "
-                f"{state}. {p_phrase}. Dispatch requested for "
-                f"{resource_str}.")
+        report_prefix = random.choice(REPORT_PREFIXES)
+        dispatch_phrase = random.choice(DISPATCH_PHRASES)
+        text = (f"{CALL_VERB[call_type]} ({report_prefix}) {loc_phrase} in "
+            f"{district}, {state}. {p_phrase}. {dispatch_phrase} "
+            f"{resource_str}.")
 
         rows_text.append(text)
         rows_loc_entity.append(loc_entity)
@@ -121,6 +142,10 @@ def generate_dispatcher_processed(df: pd.DataFrame, seed: int = SEED) -> pd.Data
         rows_loc_ind.append(loc_phrase)
 
     out = df.copy()
+    if out["hazard_type"].nunique(dropna=False) <= 1:
+        out["hazard_type"] = out["call_type"].map(CALL_TYPE_HAZARDS).fillna(
+            out["hazard_type"]
+        )
     out["text"] = rows_text
     out["location_entity"] = rows_loc_entity
     out["resource_entity"] = rows_res_entity

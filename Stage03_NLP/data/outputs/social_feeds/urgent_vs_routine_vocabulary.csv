@@ -1,0 +1,6 @@
+term,urgent_count,routine_count,urgent_per_1000_tokens,routine_per_1000_tokens,rate_difference,log_rate_ratio
+trapped,165,104,13.2594,10.794,2.4654,0.204
+heavy,177,115,14.2237,11.9357,2.2881,0.174
+support,244,167,19.6078,17.3326,2.2752,0.1227
+requesting,219,148,17.5988,15.3607,2.2382,0.1352
+emergency,473,351,38.0103,36.4297,1.5806,0.0424
