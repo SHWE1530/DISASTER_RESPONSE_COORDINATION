@@ -1,0 +1,3 @@
+id,text,type,true_urgency,pred_urgency,confidence,error_category
+edge_03,pls hlp!!! flood water everywhere near main rd,Noisy communication,HIGH,MEDIUM,0.353,Severity Underestimation
+edge_06,Road is blocked but vehicles are passing through.,Contradicting information,LOW,CRITICAL,0.2704,False Positive (Overreaction)

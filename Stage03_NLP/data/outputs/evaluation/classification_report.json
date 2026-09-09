@@ -1,0 +1,128 @@
+{
+  "urgency": {
+    "CRITICAL": {
+      "precision": 0.893968253968254,
+      "recall": 0.969029593943565,
+      "f1-score": 0.9299867899603699,
+      "support": 1453.0
+    },
+    "HIGH": {
+      "precision": 0.9898435355476256,
+      "recall": 0.9585326953748007,
+      "f1-score": 0.9739365293720459,
+      "support": 3762.0
+    },
+    "LOW": {
+      "precision": 0.9444058373870744,
+      "recall": 0.9624645892351275,
+      "f1-score": 0.9533497018589968,
+      "support": 1412.0
+    },
+    "MEDIUM": {
+      "precision": 0.9755058572949947,
+      "recall": 0.9652265542676501,
+      "f1-score": 0.9703389830508474,
+      "support": 2847.0
+    },
+    "accuracy": 0.962740130884526,
+    "macro avg": {
+      "precision": 0.9509308710494871,
+      "recall": 0.9638133582052859,
+      "f1-score": 0.956903001060565,
+      "support": 9474.0
+    },
+    "weighted avg": {
+      "precision": 0.9640588422899978,
+      "recall": 0.962740130884526,
+      "f1-score": 0.9630467482669116,
+      "support": 9474.0
+    }
+  },
+  "hazard": {
+    "Cyclone": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 70.0
+    },
+    "Drought": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 39.0
+    },
+    "Earthquake": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 56.0
+    },
+    "Flood": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 4902.0
+    },
+    "Heavy Rainfall": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 62.0
+    },
+    "Landslide": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 48.0
+    },
+    "Lightning": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 53.0
+    },
+    "Medical Emergency": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 903.0
+    },
+    "Rescue Emergency": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2204.0
+    },
+    "Road Blockage": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1067.0
+    },
+    "Tsunami": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 25.0
+    },
+    "Wildfire": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 45.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 9474.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 9474.0
+    }
+  }
+}

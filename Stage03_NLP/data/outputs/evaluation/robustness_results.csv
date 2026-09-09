@@ -1,0 +1,9 @@
+id,type,passed
+edge_01,Normal emergency,True
+edge_02,High-priority rescue,True
+edge_03,Noisy communication,False
+edge_04,Spelling errors,True
+edge_05,Irrelevant message,True
+edge_06,Contradicting information,False
+edge_07,Hypothetical,True
+edge_08,Rumour/Ambiguous,True
