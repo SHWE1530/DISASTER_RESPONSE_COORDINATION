@@ -436,6 +436,60 @@ def generate_social_feed_dataset(n_records: int, output_dir: str, seed: int = SE
 
 INVALID_CHAR_PATTERN = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]")
 
+NER_TOKEN_PATTERN = re.compile(r"\b[\w'-]+\b")
+
+
+def annotate_bio(text: str, entities: dict[str, object]) -> dict[str, list[str]]:
+    """Create token-level BIO tags from known entity values in one text."""
+    matches = []
+    for entity_type, value in entities.items():
+        if value is None or pd.isna(value):
+            continue
+        values = str(value).replace(",", "|").split("|")
+        for entity in values:
+            entity = entity.strip()
+            if not entity:
+                continue
+            pattern = re.compile(r"(?<!\w)" + re.escape(entity) + r"(?!\w)", re.IGNORECASE)
+            matches.extend((match.start(), match.end(), entity_type) for match in pattern.finditer(text))
+
+    matches.sort(key=lambda item: (item[0], -(item[1] - item[0])))
+    tokens, tags = [], []
+    for token_match in NER_TOKEN_PATTERN.finditer(text):
+        token_tag = "O"
+        overlapping = [
+            match for match in matches
+            if match[0] < token_match.end() and match[1] > token_match.start()
+        ]
+        if overlapping:
+            start, _, entity_type = max(overlapping, key=lambda item: item[1] - item[0])
+            token_tag = ("B-" if start == token_match.start() else "I-") + entity_type
+        tokens.append(token_match.group(0))
+        tags.append(token_tag)
+    return {"tokens": tokens, "ner_tags": tags}
+
+
+def write_ner_annotations(frame: pd.DataFrame, dataset: str, text_column: str,
+                          entity_columns: dict[str, str], output_dir: str) -> str:
+    """Write one JSON-lines record per text with tokens and BIO NER labels."""
+    records = []
+    for _, row in frame.iterrows():
+        entities = {
+            entity_type: row[column]
+            for entity_type, column in entity_columns.items()
+            if column in frame.columns
+        }
+        annotation = annotate_bio(str(row.get(text_column, "")), entities)
+        records.append({
+            "record_id": row.get("incident_id", row.get("post_id", row.get("record_id", ""))),
+            "dataset": dataset,
+            "text": str(row.get(text_column, "")),
+            **annotation,
+        })
+    path = os.path.join(output_dir, f"{dataset}_ner_bio.jsonl")
+    pd.DataFrame(records).to_json(path, orient="records", lines=True, force_ascii=False)
+    return path
+
 def run_data_quality_audit(df: pd.DataFrame, name: str = "dataset") -> dict:
     print("=" * 60)
     print(f"DATA QUALITY AUDIT: {name}")
@@ -625,9 +679,38 @@ def main():
         raw_disp, processed_disp = build_dispatcher_dataset(args.dispatcher_source, args.output_dir)
         if processed_disp is not None:
             audit_reports.append(run_data_quality_audit(processed_disp, "Dispatcher Log (NLP-filled)"))
+            write_ner_annotations(
+                processed_disp,
+                "dispatcher",
+                "text",
+                {"LOCATION": "location_entity", "RESOURCE": "resource_entity",
+                 "HEADCOUNT": "headcount_entity"},
+                args.output_dir,
+            )
 
     raw_social, processed_social = generate_social_feed_dataset(args.social_records, args.output_dir)
     audit_reports.append(run_data_quality_audit(processed_social, "Social Feeds (India, processed)"))
+    write_ner_annotations(
+        processed_social,
+        "social_feeds",
+        "text",
+        {"LOCATION": "location_mentioned", "HAZARD": "hazard_type",
+         "RESOURCE": "resource_needed", "HEADCOUNT": "people_affected"},
+        args.output_dir,
+    )
+
+    sop_path = os.path.join(os.path.dirname(__file__), "data", "processed",
+                            "Safety_SOP_NLP_Dataset_PROCESSED.csv")
+    if os.path.exists(sop_path):
+        sop_df = pd.read_csv(sop_path, low_memory=False)
+        write_ner_annotations(
+            sop_df,
+            "safety_sop",
+            "text_clean",
+            {"HAZARD": "hazard_type", "AGENCY": "responsible_agency",
+             "ACTION": "action_type"},
+            args.output_dir,
+        )
 
     print("\n" + "#" * 60)
     print("PIPELINE COMPLETE - SUMMARY")
