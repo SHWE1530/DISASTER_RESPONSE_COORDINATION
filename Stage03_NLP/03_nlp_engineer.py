@@ -587,14 +587,44 @@ def extract_entities(text: str) -> dict[str, Any]:
 			expanded_locations.append(loc)
 	unique_locations = expanded_locations
 
-	# Apply Controlled Fallback Layer if slots are empty
+	# Filter out generic hazard words mistakenly tagged as locations (e.g., 'flood').
+	generic_location_terms = {
+		"flood", "flooding", "cyclone", "rain", "rainfall", "storm", "landslide",
+		"earthquake", "tsunami", "fire", "wildfire", "drowning", "waterlogging",
+		"disaster", "heavy rain", "flash flood", "wind", "damage"
+	}
+	connectors = {"to", "the", "and", "of", "for", "after", "due", "with", "in", "near", "around", "at", "from", "on"}
+	unique_locations = [
+		loc for loc in unique_locations
+		if str(loc).strip().lower() not in generic_location_terms
+	]
+
+	# Apply Controlled Fallback Layer if slots are empty or only generic hazard words remain.
+	loc_match = re.search(
+		r"\b(?:in|near|around|at|close to|from)\s+([A-Za-z0-9]+(?:\s+[A-Za-z0-9]+){0,3})",
+		raw_text,
+		re.IGNORECASE,
+	)
+	if loc_match:
+		candidate = loc_match.group(1).strip()
+		candidate_tokens = re.findall(r"[A-Za-z0-9]+", candidate)
+		filtered_tokens = []
+		for tok in candidate_tokens:
+			lower_tok = tok.lower()
+			if lower_tok in connectors or lower_tok in generic_location_terms:
+				break
+			filtered_tokens.append(tok)
+		if filtered_tokens:
+			location = " ".join(filtered_tokens).title()
+			if location.lower() not in generic_location_terms:
+				unique_locations = [location] + [loc for loc in unique_locations if str(loc).lower() != location.lower()]
 	if not unique_locations:
-		loc_match = re.search(
-			r"\b(?:in|near|around|at|close to|from)\s+([A-Z][a-z0-9]+(?:\s+[A-Z][a-z0-9]+)*)",
-			raw_text,
-		)
 		if loc_match:
-			unique_locations.append(loc_match.group(1))
+			candidate = loc_match.group(1).strip()
+			cleaned = re.sub(r"\s+(?:to|the|and|of|for|after|due|with|on)\b.*$", "", candidate, flags=re.IGNORECASE)
+			cleaned = re.sub(r"\s+", " ", cleaned).strip()
+			if cleaned:
+				unique_locations.append(cleaned.title())
 
 	if not unique_resources:
 		res_keywords = [

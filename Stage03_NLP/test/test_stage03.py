@@ -120,6 +120,23 @@ def test_headcount_extraction():
     assert res["headcount"] == 26
 
 
+def test_lowercase_location_extraction():
+    # Regression: social text often uses lowercase city names like 'mumbai'.
+    text = "there was a flood and 1000 people were affected and it happened in mumbai"
+    res = nlp.extract_entities(text)
+    assert res["location"] is not None
+    assert any(str(loc).lower() == "mumbai" for loc in (res["location"] if isinstance(res["location"], list) else [res["location"]]))
+
+
+def test_social_text_prefers_real_place_over_hazard_words():
+    # Fix: do not treat generic hazard words like 'flood' as the location slot.
+    text = "there was a flood and 1000 people were affected in mumbai to the flood"
+    res = nlp.extract_entities(text)
+    locations = res["location"] if isinstance(res["location"], list) else [res["location"]]
+    assert any(str(loc).lower() == "mumbai" for loc in locations)
+    assert not any(str(loc).lower() == "flood" for loc in locations)
+
+
 def test_bio_alignment_validation():
     # Test 12: BIO token/tag alignment validation
     tokens, tags, stats = nlp.load_bio_ner_datasets()
@@ -127,3 +144,22 @@ def test_bio_alignment_validation():
     assert len(tokens) == len(tags)
     for seq_toks, seq_tags in zip(tokens[:100], tags[:100]):
         assert len(seq_toks) == len(seq_tags)
+
+
+def test_stage03_integration_adapter():
+    # Regression test for the app-level adapter contract expected by the existing Flask app.
+    import importlib.util
+    base_dir = Path(__file__).resolve().parent.parent
+    adapter_path = base_dir / "05_integration_engineer.py"
+    assert adapter_path.exists(), "Stage03 integration adapter file should exist"
+
+    spec = importlib.util.spec_from_file_location("stage03_integration_engineer", adapter_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    engine = module.NLPIntegrationEngine()
+    result = engine.analyze("Three people are trapped in a flooded building near the railway bridge and need immediate rescue.")
+
+    assert result["urgency"] in ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    assert result["hazard_type"]
+    assert result["location"] or result["entities"]["location"]

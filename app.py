@@ -32,6 +32,15 @@ except Exception as e:
     stage02_status = "Offline"
     print(f"Failed to load DL API: {e}")
 
+try:
+    stage03_api = load_module("stage03_api", BASE_DIR / "Stage03_NLP" / "05_integration_engineer.py")
+    stage03_engine = stage03_api.nlp_integration_engine
+    stage03_status = "Online"
+except Exception as e:
+    stage03_engine = None
+    stage03_status = "Offline"
+    print(f"Failed to load NLP API: {e}")
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = BASE_DIR / "Stage02_DL" / "data" / "raw"
 
@@ -102,6 +111,8 @@ HTML_TEMPLATE = """
         .badge-Low { background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid #10B981; }
 
         .grid-half { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        textarea { width: 100%; min-height: 120px; resize: vertical; border-radius: 8px; border: 1px solid #334155; background: #1E293B; color: white; padding: 12px; }
+        .nlp-output { margin-top: 15px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
     </style>
 </head>
 <body>
@@ -115,6 +126,7 @@ HTML_TEMPLATE = """
         <a class="nav-item active" data-target="view-dashboard"><div class="nav-icon">🏠</div> Dashboard</a>
         <a class="nav-item" data-target="view-ml"><div class="nav-icon" style="color: var(--accent-green)">⚙️</div> ML (Stage 01)</a>
         <a class="nav-item" data-target="view-dl"><div class="nav-icon" style="color: var(--accent-blue)">⚡</div> DL (Stage 02)</a>
+        <a class="nav-item" data-target="view-nlp"><div class="nav-icon" style="color: var(--accent-purple)">💬</div> NLP (Stage 03)</a>
     </div>
 
     <!-- Main Content -->
@@ -140,7 +152,40 @@ HTML_TEMPLATE = """
                 <h3>System Status</h3>
                 <p><strong>Stage 01 API (ML):</strong> {{ stage01 }}</p>
                 <p><strong>Stage 02 API (DL):</strong> {{ stage02 }}</p>
-                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms and the DL image/forecasting tools.</p>
+                <p><strong>Stage 03 API (NLP):</strong> {{ stage03 }}</p>
+                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, and the NLP emergency text analysis.</p>
+            </div>
+        </div>
+
+        <!-- VIEW: NLP (STAGE 03) -->
+        <div id="view-nlp" class="view-section">
+            <div class="page-header">
+                <h2>NLP Emergency Analysis (Stage 03)</h2>
+                <p>Classify emergency text, detect hazard type, and extract entities.</p>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header"><h3>Emergency Message Input</h3></div>
+                <form id="nlpForm">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>Emergency report / message</label>
+                        <textarea id="nlp-text" placeholder="Example: Three people are trapped in a flooded building near the railway bridge and need immediate rescue."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-green">Analyze Message</button>
+                </form>
+
+                <div class="nlp-output" id="nlp-result" style="display: none;">
+                    <strong>NLP Result</strong>
+                    <div style="margin-top: 10px; line-height: 1.8;">
+                        <div><span style="color: var(--text-muted);">Urgency:</span> <strong id="nlp-urgency"></strong></div>
+                        <div><span style="color: var(--text-muted);">Hazard:</span> <strong id="nlp-hazard"></strong></div>
+                        <div><span style="color: var(--text-muted);">Confidence:</span> <span id="nlp-confidence"></span></div>
+                        <div><span style="color: var(--text-muted);">Location:</span> <span id="nlp-location"></span></div>
+                        <div><span style="color: var(--text-muted);">Resource:</span> <span id="nlp-resource"></span></div>
+                        <div><span style="color: var(--text-muted);">Headcount:</span> <span id="nlp-headcount"></span></div>
+                        <small id="nlp-meta" style="color: var(--text-muted); display: block; margin-top: 10px;"></small>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -307,6 +352,45 @@ HTML_TEMPLATE = """
             btn.innerText = "Analyze Image";
         });
 
+        // NLP Form Submission
+        document.getElementById('nlpForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = document.getElementById('nlp-text').value.trim();
+            if (!text) {
+                alert('Please enter an emergency message.');
+                return;
+            }
+
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Analyzing...';
+
+            try {
+                const res = await fetch('/api/predict/nlp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ text })
+                });
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || 'NLP analysis failed');
+                }
+
+                const resultBox = document.getElementById('nlp-result');
+                resultBox.style.display = 'block';
+                document.getElementById('nlp-urgency').innerText = data.urgency || 'N/A';
+                document.getElementById('nlp-hazard').innerText = data.hazard_type || 'N/A';
+                document.getElementById('nlp-confidence').innerText = (data.confidence * 100).toFixed(2) + '%';
+                document.getElementById('nlp-location').innerText = Array.isArray(data.location) ? data.location.join(', ') : (data.location || 'N/A');
+                document.getElementById('nlp-resource').innerText = Array.isArray(data.resource_needed) ? data.resource_needed.join(', ') : (data.resource_needed || 'N/A');
+                document.getElementById('nlp-headcount').innerText = data.headcount ?? 'N/A';
+                document.getElementById('nlp-meta').innerText = 'Hazard confidence: ' + ((data.hazard_confidence || 0) * 100).toFixed(2) + '%';
+            } catch (err) {
+                alert('NLP analysis error: ' + err.message);
+            }
+            btn.innerText = 'Analyze Message';
+        });
+
         // LSTM Chart Setup
         Chart.defaults.color = '#94A3B8';
         Chart.defaults.font.family = 'Inter';
@@ -371,7 +455,34 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def dashboard():
-    return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status)
+    return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status, stage03=stage03_status)
+
+@app.route('/api/predict/nlp', methods=['POST'])
+def predict_nlp():
+    if not stage03_engine:
+        return jsonify({"error": "Stage 03 NLP API offline"}), 500
+    try:
+        data = request.get_json(silent=True) or {}
+        text = data.get("text")
+        if text is None:
+            return jsonify({"error": "Please enter an emergency message."}), 400
+        if not str(text).strip():
+            return jsonify({"error": "Please enter an emergency message."}), 400
+        result = stage03_engine.analyze(str(text))
+        if result.get("status") == "error":
+            return jsonify({"error": result.get("message", "Invalid NLP input")}), 400
+        return jsonify({
+            "urgency": result.get("urgency"),
+            "hazard_type": result.get("hazard_type"),
+            "confidence": result.get("confidence", 0.0),
+            "hazard_confidence": result.get("hazard_confidence", 0.0),
+            "location": result.get("location"),
+            "resource_needed": result.get("resource_needed", []),
+            "headcount": result.get("headcount"),
+            "entities": result.get("entities", {})
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/api/predict/ml', methods=['POST'])
 def predict_ml():
