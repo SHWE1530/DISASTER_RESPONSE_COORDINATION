@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "strategy": "chronological 70/15/15, no shuffling",
+  "lookback": 72,
+  "series_rows": 8760,
+  "train_rows": 6132,
+  "val_rows": 1314,
+  "test_rows": 1314,
+  "train_end_index": 6132,
+  "val_end_index": 7446,
+  "first_timestamp": "2025-01-01 00:00:00",
+  "train_end_timestamp": "2025-09-13 11:00:00",
+  "val_end_timestamp": "2025-11-07 05:00:00",
+  "last_timestamp": "2025-12-31 23:00:00"
+}

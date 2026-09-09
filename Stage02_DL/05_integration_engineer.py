@@ -45,19 +45,45 @@ class DLIntegrationEngine:
 
 	@property
 	def models_ready(self) -> bool:
+		# severity_model.joblib is no longer required: that model duplicated the
+		# Stage 01 zone-risk task, was never served, and has been removed.
 		return all((MODEL_DIR / filename).exists() for filename in (
 			"disaster_cnn.pt",
 			"water_level_lstm.pt",
 			"water_level_scaler.joblib",
-			"severity_model.joblib",
 		))
 
 	def health_check(self) -> dict[str, Any]:
+		"""Report readiness by running a real forecast, not just by listing files.
+
+		Checking that model files exist says nothing about whether they can be
+		loaded and executed under the installed library versions.
+		"""
+		if not (self.module and self.models_ready):
+			return {
+				"status": "unavailable",
+				"models_ready": self.models_ready,
+				"inference_ok": False,
+				"evaluation_available": bool(self.metrics),
+				"error": self.load_error or "Stage02 models or training module unavailable",
+			}
+
+		inference_ok = True
+		inference_error: str | None = None
+		try:
+			lookback = int(self.metrics.get("lstm", {}).get("lookback", 72))
+			mean_level = float(self.module._load_lstm_bundle()["scaler"].mean_[0])
+			self.module.forecast_water_levels([mean_level] * lookback, 1)
+		except Exception as exc:
+			inference_ok = False
+			inference_error = f"{type(exc).__name__}: {exc}"
+
 		return {
-			"status": "healthy" if self.module and self.models_ready else "unavailable",
-			"models_ready": self.models_ready,
+			"status": "healthy" if inference_ok else "degraded",
+			"models_ready": True,
+			"inference_ok": inference_ok,
 			"evaluation_available": bool(self.metrics),
-			"error": self.load_error,
+			"error": self.load_error or inference_error,
 		}
 
 	def summary(self) -> dict[str, Any]:
@@ -69,7 +95,6 @@ class DLIntegrationEngine:
 			"models": {
 				"cnn": (MODEL_DIR / "disaster_cnn.pt").exists(),
 				"lstm": (MODEL_DIR / "water_level_lstm.pt").exists(),
-				"severity": (MODEL_DIR / "severity_model.joblib").exists(),
 			},
 			"cnn": {
 				"accuracy": cnn.get("accuracy"),
@@ -122,12 +147,39 @@ class DLIntegrationEngine:
 		except (TypeError, ValueError) as error:
 			raise ValueError("horizon must be an integer") from error
 		forecasts = self.module.forecast_water_levels(values, steps)
-		return {
+
+		# Surface whether the request sits inside the range the LSTM was trained
+		# on. Out-of-range inputs previously produced confident, physically
+		# impossible forecasts with nothing in the response to indicate it.
+		distribution = self.module.water_level_distribution_check(values)
+
+		# Recursive multi-step error is measured by the training script, so read it
+		# from the training manifest and fall back to the evaluation manifest.
+		recursive = (
+			self.training_metrics.get("lstm", {}).get("recursive_forecast")
+			or self.metrics.get("lstm", {}).get("recursive_forecast")
+			or {}
+		)
+		expected_error = recursive.get(f"step_{steps}", {}).get("mae")
+
+		response = {
 			"forecast_water_level": forecasts[0],
 			"forecast_water_levels": forecasts,
 			"horizon": steps,
-			"lookback": self.metrics.get("lstm", {}).get("lookback", 24),
+			"lookback": self.metrics.get("lstm", {}).get("lookback", 72),
+			"in_distribution": distribution["in_distribution"],
+			"distribution_check": distribution,
+			"expected_mae_at_horizon": expected_error,
 		}
+		if not distribution["in_distribution"]:
+			response["warning"] = (
+				f"Input water levels reach {distribution['max_sigma_from_training_mean']} "
+				f"standard deviations from the training mean "
+				f"({distribution['training_mean_m']} m +/- {distribution['training_std_m']} m). "
+				"This forecast is extrapolation beyond the model's training range and "
+				"should not be relied on."
+			)
+		return response
 
 
 dl_integration_engine = DLIntegrationEngine()

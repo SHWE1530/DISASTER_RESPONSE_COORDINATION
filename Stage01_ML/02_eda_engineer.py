@@ -32,12 +32,27 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 # Master dataset
-# Prefer the cleaned output of 01_data_engineer.py (Master_Processed_Dataset.csv);
-# fall back to the raw Master_Dataset.csv if 01 has not been run yet.
+#
+# INPUT IS PINNED, NOT AUTO-SELECTED.
+#
+# This previously preferred Master_Processed_Dataset.csv and silently fell back
+# to Master_Dataset.csv. That made the pipeline non-deterministic across runs:
+# the committed eda_checked_dataset.csv (and therefore the shipped model) was
+# built from the source labels, but a later re-run would have picked up a
+# different file with regenerated, leakage-prone labels -- producing different
+# results from the same code.
+#
+# 01_data_engineer.py no longer rewrites the target, so the two files now carry
+# identical labels. The input is pinned anyway so this class of silent drift
+# cannot come back.
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
 file_path = PROCESSED_DIR / "Master_Processed_Dataset.csv"
 if not file_path.exists():
-    file_path = PROCESSED_DIR / "Master_Dataset.csv"
+    raise FileNotFoundError(
+        f"Expected cleaned dataset not found: {file_path}\n"
+        "Run 01_data_engineer.py first to produce Master_Processed_Dataset.csv "
+        "from data/processed/Master_Dataset.csv."
+    )
 
 # EDA output folder
 OUTPUT_DIR = BASE_DIR / "data" / "outputs" / "images"

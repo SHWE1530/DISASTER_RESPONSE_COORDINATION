@@ -1,6 +1,7 @@
+import logging
 import os
 import sys
-import datetime
+import uuid
 import importlib.util
 from pathlib import Path
 from flask import Flask, render_template_string, jsonify, request
@@ -8,41 +9,76 @@ from flask import Flask, render_template_string, jsonify, request
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logger = logging.getLogger("disaster_response.app")
+
+# Uploads are bounded so a single request cannot exhaust memory or disk.
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+
+
 def load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
-try:
-    stage01_api = load_module("stage01_api", BASE_DIR / "Stage01_ML" / "05_integration_engineer.py")
-    stage01_engine = stage01_api.integration_engine
-    stage01_status = "Online"
-except Exception as e:
-    stage01_engine = None
-    stage01_status = "Offline"
-    print(f"Failed to load ML API: {e}")
 
-try:
-    stage02_api = load_module("stage02_api", BASE_DIR / "Stage02_DL" / "05_integration_engineer.py")
-    stage02_engine = stage02_api.dl_integration_engine
-    stage02_status = "Online"
-except Exception as e:
-    stage02_engine = None
-    stage02_status = "Offline"
-    print(f"Failed to load DL API: {e}")
+def load_stage(label, engine_path, attribute):
+    """Load one stage adapter and record its REAL readiness.
 
-try:
-    stage03_api = load_module("stage03_api", BASE_DIR / "Stage03_NLP" / "05_integration_engineer.py")
-    stage03_engine = stage03_api.nlp_integration_engine
-    stage03_status = "Online"
-except Exception as e:
-    stage03_engine = None
-    stage03_status = "Offline"
-    print(f"Failed to load NLP API: {e}")
+    The status shown on the dashboard now comes from the stage's health_check(),
+    which scores a reference record. Previously any stage whose module merely
+    imported was labelled "Online" -- which is how the NLP tab advertised itself
+    as online while failing every request.
+    """
+    try:
+        module = load_module(f"{label.lower()}_api", engine_path)
+        engine = getattr(module, attribute)
+    except Exception as exc:
+        logger.exception("Failed to load %s adapter", label)
+        return None, "Offline", str(exc)
+
+    try:
+        health = engine.health_check()
+    except Exception as exc:
+        logger.exception("%s health check raised", label)
+        return engine, "Degraded", str(exc)
+
+    status_map = {"healthy": "Online", "degraded": "Degraded", "unavailable": "Offline"}
+    status = status_map.get(health.get("status"), "Degraded")
+    if status != "Online":
+        logger.warning("%s reported %s: %s", label, status, health.get("error"))
+    return engine, status, health.get("error")
+
+
+stage01_engine, stage01_status, stage01_error = load_stage(
+    "Stage01", BASE_DIR / "Stage01_ML" / "05_integration_engineer.py", "integration_engine"
+)
+stage02_engine, stage02_status, stage02_error = load_stage(
+    "Stage02", BASE_DIR / "Stage02_DL" / "05_integration_engineer.py", "dl_integration_engine"
+)
+stage03_engine, stage03_status, stage03_error = load_stage(
+    "Stage03", BASE_DIR / "Stage03_NLP" / "05_integration_engineer.py", "nlp_integration_engine"
+)
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = BASE_DIR / "Stage02_DL" / "data" / "raw"
+app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_BYTES
+
+
+def fail(message, status_code=400, exc=None):
+    """Return a safe client-facing error and log the detail server-side.
+
+    Handlers used to return str(exc) straight to the browser, leaking absolute
+    filesystem paths, internal class names and library internals to any caller.
+    """
+    if exc is not None:
+        logger.exception("Request failed: %s", message)
+    return jsonify({"error": message}), status_code
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -213,8 +249,13 @@ HTML_TEMPLATE = """
                 <div class="result-box" id="ml-result" style="display: none;">
                     <strong>Prediction Result:</strong><br>
                     Risk Category: <span id="ml-badge" class="badge"></span><br>
-                    Confidence: <span id="ml-conf"></span>%<br>
+                    Model confidence: <span id="ml-conf"></span>%<br>
                     <small id="ml-json" style="color: var(--text-muted); display: block; margin-top: 10px;"></small>
+                    <small style="color: var(--text-muted); display: block; margin-top: 8px; line-height: 1.5;">
+                        Confidence is the model's uncalibrated score, not a probability of being
+                        correct (see <code>data/outputs/calibration_report.json</code>).
+                        This is decision support for a human responder, not a verified assessment.
+                    </small>
                 </div>
             </div>
         </div>
@@ -254,6 +295,7 @@ HTML_TEMPLATE = """
                     </div>
                     <div class="result-box" id="lstm-result" style="display: none; margin-top: 10px;">
                         Target +6hr Forecast: <strong id="lstm-val" style="color: var(--accent-amber);"></strong> m
+                        <small id="lstm-note" style="color: var(--text-muted); display: block; margin-top: 8px; line-height: 1.5;"></small>
                     </div>
                 </div>
             </div>
@@ -306,18 +348,23 @@ HTML_TEMPLATE = """
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || 'ML prediction failed');
+                }
+
                 const resBox = document.getElementById('ml-result');
                 const badge = document.getElementById('ml-badge');
-                
+
                 resBox.style.display = 'block';
                 badge.innerText = data.risk_category || "Error";
                 badge.className = "badge badge-" + data.risk_category;
-                
+
                 document.getElementById('ml-conf').innerText = data.confidence ? (data.confidence * 100).toFixed(2) : "N/A";
-                document.getElementById('ml-json').innerText = JSON.stringify(data.top_factors || []);
+                document.getElementById('ml-json').innerText =
+                    'Top drivers for this input: ' + (data.top_factors || []).join(', ')
+                    + '  |  Dataset-wide drivers: ' + (data.global_top_factors || []).join(', ');
             } catch (err) {
-                alert("Error calling ML API");
+                alert("Error calling ML API: " + err.message);
             }
             btn.innerText = "Run Inference";
         });
@@ -400,11 +447,20 @@ HTML_TEMPLATE = """
             const btn = e.target;
             btn.innerText = "Simulating...";
 
-            // Send dummy sequence (72 hours of water levels)
-            // Start around 8.0, slowly rising, then the last 24 match the old array roughly.
-            const inputSeq = Array.from({length: 48}, (_, i) => 8.0 + (i * 1.5 / 48)).concat([
-                9.5, 9.6, 9.7, 9.9, 10.2, 10.4, 10.8, 11.1, 11.3, 11.5, 11.7, 12.0, 
-                12.4, 12.8, 13.0, 13.2, 13.5, 13.8, 14.0, 14.2, 14.4, 14.5, 14.7, 15.0
+            // 72 hours of water levels, IN the model's training range.
+            //
+            // The previous demo sequence ran 8.0 -> 15.0 m. The LSTM was trained
+            // on a series with mean 3.12 m and std 1.56 m, so 15 m is roughly
+            // +7.6 sigma - far outside anything the model ever saw. It responded
+            // with a physically impossible forecast (an instant 4 m drop, then
+            // oscillation), which is what the demo chart plotted.
+            //
+            // This is a realistic rising-river scenario within the trained range:
+            // a slow baseline around 2.9 m climbing to ~5.4 m.
+            const inputSeq = Array.from({length: 48}, (_, i) => 2.9 + (i * 0.9 / 48)).concat([
+                3.85, 3.92, 4.00, 4.05, 4.12, 4.20, 4.28, 4.35,
+                4.44, 4.51, 4.58, 4.66, 4.73, 4.80, 4.88, 4.95,
+                5.02, 5.09, 5.16, 5.22, 5.28, 5.33, 5.37, 5.40
             ]);
 
             try {
@@ -420,6 +476,24 @@ HTML_TEMPLATE = """
                 const forecasts = data.forecast_water_levels;
                 document.getElementById('lstm-result').style.display = 'block';
                 document.getElementById('lstm-val').innerText = forecasts[forecasts.length - 1].toFixed(2);
+
+                // Show measured multi-step error and any out-of-distribution warning,
+                // so the forecast is never presented as unqualified ground truth.
+                const notes = [];
+                if (data.expected_mae_at_horizon != null) {
+                    notes.push('Measured MAE at +6h on the test partition: ±'
+                        + data.expected_mae_at_horizon.toFixed(3) + ' m');
+                }
+                if (data.warning) {
+                    notes.push('⚠ ' + data.warning);
+                } else if (data.distribution_check) {
+                    notes.push('Input is within the trained range ('
+                        + data.distribution_check.max_sigma_from_training_mean
+                        + 'σ from training mean).');
+                }
+                const noteEl = document.getElementById('lstm-note');
+                noteEl.innerText = notes.join('  •  ');
+                noteEl.style.color = data.warning ? '#F59E0B' : 'var(--text-muted)';
 
                 const labels = Array.from({length: 78}, (_, i) => `T-${72-i}`);
                 const histData = [...inputSeq, ...Array(6).fill(null)];
@@ -457,77 +531,144 @@ HTML_TEMPLATE = """
 def dashboard():
     return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status, stage03=stage03_status)
 
+@app.route('/health')
+def health():
+    """Per-stage readiness, each verified by an actual prediction."""
+    report = {}
+    for name, engine in (
+        ("stage01_ml", stage01_engine),
+        ("stage02_dl", stage02_engine),
+        ("stage03_nlp", stage03_engine),
+    ):
+        if engine is None:
+            report[name] = {"status": "unavailable", "error": "adapter failed to load"}
+            continue
+        try:
+            report[name] = engine.health_check()
+        except Exception as exc:
+            logger.exception("%s health check raised", name)
+            report[name] = {"status": "degraded", "error": type(exc).__name__}
+    overall = "healthy" if all(
+        entry.get("status") == "healthy" for entry in report.values()
+    ) else "degraded"
+    return jsonify({"status": overall, "stages": report})
+
+
 @app.route('/api/predict/nlp', methods=['POST'])
 def predict_nlp():
     if not stage03_engine:
-        return jsonify({"error": "Stage 03 NLP API offline"}), 500
+        return fail("Stage 03 NLP API is offline", 503)
+    data = request.get_json(silent=True) or {}
+    text = data.get("text")
+    if text is None or not str(text).strip():
+        return fail("Please enter an emergency message.", 400)
     try:
-        data = request.get_json(silent=True) or {}
-        text = data.get("text")
-        if text is None:
-            return jsonify({"error": "Please enter an emergency message."}), 400
-        if not str(text).strip():
-            return jsonify({"error": "Please enter an emergency message."}), 400
         result = stage03_engine.analyze(str(text))
-        if result.get("status") == "error":
-            return jsonify({"error": result.get("message", "Invalid NLP input")}), 400
-        return jsonify({
-            "urgency": result.get("urgency"),
-            "hazard_type": result.get("hazard_type"),
-            "confidence": result.get("confidence", 0.0),
-            "hazard_confidence": result.get("hazard_confidence", 0.0),
-            "location": result.get("location"),
-            "resource_needed": result.get("resource_needed", []),
-            "headcount": result.get("headcount"),
-            "entities": result.get("entities", {})
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    except Exception as exc:
+        return fail("NLP analysis failed. See server logs for details.", 500, exc)
+
+    if result.get("status") == "error":
+        return fail(result.get("message", "Invalid NLP input"), 400)
+    return jsonify({
+        "urgency": result.get("urgency"),
+        "hazard_type": result.get("hazard_type"),
+        "confidence": result.get("confidence", 0.0),
+        "hazard_confidence": result.get("hazard_confidence", 0.0),
+        "location": result.get("location"),
+        "resource_needed": result.get("resource_needed", []),
+        "headcount": result.get("headcount"),
+        "entities": result.get("entities", {})
+    })
+
 
 @app.route('/api/predict/ml', methods=['POST'])
 def predict_ml():
     if not stage01_engine:
-        return jsonify({"error": "Stage 01 API offline"}), 500
+        return fail("Stage 01 ML API is offline", 503)
+    data = request.get_json(silent=True)
+    if data is None:
+        return fail("Request body must be JSON", 400)
     try:
-        data = request.json
-        result = stage01_engine.predict(data)
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify(stage01_engine.predict(data))
+    except ValueError as exc:
+        # Input-validation messages are written for the caller and safe to show.
+        return fail(str(exc), 400)
+    except Exception as exc:
+        return fail("Prediction failed. See server logs for details.", 500, exc)
+
 
 @app.route('/api/predict/dl/image', methods=['POST'])
 def predict_dl_image():
     if not stage02_engine:
-        return jsonify({"error": "Stage 02 API offline"}), 500
+        return fail("Stage 02 DL API is offline", 503)
+    if 'file' not in request.files:
+        return fail("No file uploaded", 400)
+    file = request.files['file']
+    if not file.filename:
+        return fail("No file selected", 400)
+
+    extension = Path(file.filename).suffix.lower()
+    if extension not in ALLOWED_IMAGE_EXTENSIONS:
+        return fail(
+            f"Unsupported image type '{extension}'. Allowed: "
+            f"{', '.join(sorted(ALLOWED_IMAGE_EXTENSIONS))}",
+            400,
+        )
+
+    # Unique per-request filename. Every upload previously overwrote the same
+    # dashboard_upload.jpg, so two concurrent users raced each other and could
+    # be shown a prediction for someone else's image.
+    upload_dir = Path(app.config['UPLOAD_FOLDER'])
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    filepath = upload_dir / f"upload_{uuid.uuid4().hex}{extension}"
     try:
-        if 'file' not in request.files:
-            return jsonify({"error": "No file uploaded"}), 400
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({"error": "No file selected"}), 400
-        
-        # Save securely into expected local path for Stage02
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], "dashboard_upload.jpg")
         file.save(filepath)
-        
-        # Run inference
-        result = stage02_engine.predict_image(filepath)
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify(stage02_engine.predict_image(str(filepath)))
+    except ValueError as exc:
+        return fail(str(exc), 400)
+    except Exception as exc:
+        return fail("Image analysis failed. See server logs for details.", 500, exc)
+    finally:
+        # Uploads are transient; do not accumulate user images on disk.
+        try:
+            filepath.unlink(missing_ok=True)
+        except OSError:
+            logger.warning("Could not remove temporary upload %s", filepath)
+
 
 @app.route('/api/predict/dl/lstm', methods=['POST'])
 def predict_dl_lstm():
     if not stage02_engine:
-        return jsonify({"error": "Stage 02 API offline"}), 500
+        return fail("Stage 02 DL API is offline", 503)
+    data = request.get_json(silent=True)
+    if data is None:
+        return fail("Request body must be JSON", 400)
+    sequence = data.get("sequence", [])
     try:
-        data = request.json
-        sequence = data.get("sequence", [])
-        result = stage02_engine.forecast_water_levels(sequence, horizon=6)
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify(stage02_engine.forecast_water_levels(sequence, horizon=6))
+    except ValueError as exc:
+        return fail(str(exc), 400)
+    except Exception as exc:
+        return fail("Forecast failed. See server logs for details.", 500, exc)
+
+
+@app.errorhandler(413)
+def upload_too_large(_error):
+    return fail(
+        f"Uploaded file exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit", 413
+    )
+
 
 if __name__ == '__main__':
-    print("Starting Interactive AI Dashboard on http://127.0.0.1:5000")
-    app.run(debug=True, port=5000)
+    # debug=True enables the Werkzeug interactive debugger, which is a remote
+    # code execution console. It is opt-in via the environment now instead of
+    # being hardcoded on.
+    debug_enabled = os.environ.get("FLASK_DEBUG", "0").lower() in {"1", "true", "yes"}
+    port = int(os.environ.get("PORT", "5000"))
+    print(f"Starting Interactive AI Dashboard on http://127.0.0.1:{port}")
+    print(f"  Stage 01 ML : {stage01_status}")
+    print(f"  Stage 02 DL : {stage02_status}")
+    print(f"  Stage 03 NLP: {stage03_status}")
+    if debug_enabled:
+        print("  WARNING: debug mode is ON (interactive debugger enabled).")
+    app.run(debug=debug_enabled, port=port)

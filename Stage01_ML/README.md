@@ -25,10 +25,25 @@ Our model turns continuous sensor data (river levels, rainfall), weather pattern
 
 #### 🔴 SEVERE RISK (HIGH PRIORITY)
 - **Definition:** Imminent or ongoing critical disaster event. High probability of widespread flooding, bridge/road closures, and significant population impact.
-- **Numerical Definition of Severe:** The system classifies a zone as SEVERE when:
-  - **River Level:** Exceeds the designated danger threshold for the district.
-  - **Emergency Calls & Rainfall:** A sustained surge in calls (>= 35) combined with heavy rainfall (>= 40mm).
+- **Typical Indicators:** River level at or above the district danger threshold, sustained high call volume, heavy rainfall.
 - **Action:** Immediate full-scale deployment. Execute evacuation protocols for affected populations. Coordinate with central command for bridge/road closures.
+
+> **How the label is defined — important.** `zone_risk` is the **observed label
+> carried through from the source dataset**. It is *not* computed from a
+> threshold rule.
+>
+> An earlier revision of `01_data_engineer.py` overwrote `zone_risk` with a
+> hand-written rule (`river_level_m > river_level_threshold_m`, `emergency_calls
+> >= 35 and rainfall_mm >= 40`, ...). Those inputs are model features, and the
+> engineered feature `river_level_margin_m` is literally that rule's decision
+> variable — so training on those labels is target leakage by construction, and
+> the reported accuracy would approach 100% while measuring nothing.
+>
+> The rule is retained in the script as `reference_risk_rule()` and reported
+> only as an **agreement rate** (currently **0.7932** against the observed
+> labels). That 21% gap is the part of real-world risk assessment a fixed
+> threshold does not capture, and it is the reason a learned model is worth
+> having at all.
 
 ---
 
@@ -47,8 +62,9 @@ When assessing a zone, the intelligence system prioritizes these signals in orde
 ### How to use the Dashboard
 
 1. **Live Assessment:** Enter the latest readings from the field (Rainfall, River Level, Call Volumes) into the "Live risk assessment" panel to get an instant classification.
-2. **Confidence Score:** Pay attention to the Confidence Score percentage. A high confidence (e.g., >95%) means the current conditions strongly match past disasters.
-3. **Monitor Trends:** Use the "Risk Trend" and "Risk by Region" panels to see which districts have the highest frequency of Severe events.
+2. **Confidence Score:** The confidence percentage is the model's **uncalibrated** score — it is a ranking signal, not a probability of being correct. Calibration is measured and published in `data/outputs/calibration_report.json` and `calibration_reliability_curve.png`: mean Brier score **0.0197**, expected calibration error **0.0174**. The model is well calibrated in its top bin (confidence 0.995 vs observed accuracy 0.988) but **overconfident in the middle bins** — in the 0.6–0.7 band it is right only about 43% of the time. Treat mid-range confidence with suspicion and escalate to a human.
+3. **Human oversight:** Every output is decision support for a responder, not a verified assessment. The Low class in particular is weak (recall ~0.71 on 31 held-out samples), so a "Moderate" result on visibly calm conditions is a known failure mode.
+4. **Monitor Trends:** Use the "Risk Trend" and "Risk by Region" panels to see which districts have the highest frequency of Severe events.
 
 ---
 

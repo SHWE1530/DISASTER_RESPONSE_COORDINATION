@@ -176,22 +176,47 @@ def generate_gradcam_visualizations(dl, model, dataset, test_indices, classes):
 def evaluate_cnn(dl) -> dict:
 	"""Evaluate the saved CNN on its deterministic, unseen test images."""
 	image_dir = BASE_DIR / "data" / "images"
-	checkpoint = torch.load(MODEL_DIR / "disaster_cnn.pt", map_location=dl.DEVICE)
+	checkpoint = torch.load(MODEL_DIR / "disaster_cnn.pt", map_location=dl.DEVICE, weights_only=True)
 	normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 	evaluation_transform = transforms.Compose([
 		transforms.Resize((checkpoint["image_size"], checkpoint["image_size"])),
 		transforms.ToTensor(), normalize,
 	])
 	dataset = vision_datasets.ImageFolder(image_dir, transform=evaluation_transform)
-	indices = np.arange(len(dataset))
-	train_indices, remainder = train_test_split(
-		indices, test_size=0.30, random_state=RANDOM_STATE,
-		stratify=dataset.targets,
-	)
-	_, test_indices = train_test_split(
-		remainder, test_size=0.50, random_state=RANDOM_STATE,
-		stratify=np.asarray(dataset.targets)[remainder],
-	)
+
+	# Prefer the split manifest written at training time.
+	#
+	# Re-deriving the split from a seed depends on ImageFolder returning files in
+	# exactly the same order, which is a filesystem property, not a guarantee. On
+	# a different machine that silently produces a DIFFERENT "held-out" set -- one
+	# that may overlap the training partition. The manifest records the split by
+	# file path, so replay is exact.
+	manifest_path = OUTPUT_DIR / "cnn_split_manifest.json"
+	if manifest_path.exists():
+		manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+		path_to_index = {
+			str(Path(sample_path).relative_to(BASE_DIR)).replace("\\", "/"): index
+			for index, (sample_path, _) in enumerate(dataset.samples)
+		}
+		missing = [p for p in manifest["splits"]["test"] if p not in path_to_index]
+		if missing:
+			raise FileNotFoundError(
+				f"{len(missing)} image(s) from the test split manifest are missing, "
+				f"e.g. {missing[:3]}. Retrain to regenerate the manifest."
+			)
+		test_indices = np.array([path_to_index[p] for p in manifest["splits"]["test"]])
+		print(f"[*] Replayed test split from manifest ({len(test_indices)} images)")
+	else:
+		print("[!] No split manifest found; re-deriving the split from the seed.")
+		indices = np.arange(len(dataset))
+		_, remainder = train_test_split(
+			indices, test_size=0.30, random_state=RANDOM_STATE,
+			stratify=dataset.targets,
+		)
+		_, test_indices = train_test_split(
+			remainder, test_size=0.50, random_state=RANDOM_STATE,
+			stratify=np.asarray(dataset.targets)[remainder],
+		)
 	loader = DataLoader(Subset(dataset, test_indices), BATCH_SIZE, shuffle=False)
 	model = dl.DisasterCNN(len(checkpoint["classes"])).to(dl.DEVICE)
 	model.load_state_dict(checkpoint["state_dict"])
@@ -212,19 +237,19 @@ def evaluate_cnn(dl) -> dict:
 			all_true.extend(labels.tolist())
 			all_confidence.extend(confidence)
 			
-	# Threshold search to maximize F1-macro on test set
-	best_threshold = 0.5
-	best_f1 = -1.0
-	for t in np.arange(0.1, 0.95, 0.05):
-		other_index = 1 - flooded_index
-		t_preds = np.where(np.array(positive_scores) >= t, flooded_index, other_index)
-		f1 = f1_score(all_true, t_preds, average="macro", zero_division=0)
-		if f1 > best_f1:
-			best_f1 = f1
-			best_threshold = float(t)
-			
-	# Assign predictions based on best_threshold
-	all_pred = np.where(np.array(positive_scores) >= best_threshold, flooded_index, 1 - flooded_index).tolist()
+	# Use the decision threshold selected during TRAINING on the validation set.
+	#
+	# This block previously grid-searched the threshold to maximise macro F1 on
+	# the TEST set and reported the maximised score. Tuning a decision parameter
+	# on the held-out set and then reporting that set's score is not an
+	# independent estimate, whatever the size of the effect. The threshold is a
+	# property of the trained model, so it is read from the checkpoint.
+	best_threshold = float(checkpoint.get("best_threshold", 0.5))
+	other_index = 1 - flooded_index
+	all_pred = np.where(
+		np.array(positive_scores) >= best_threshold, flooded_index, other_index
+	).tolist()
+	best_f1 = float(f1_score(all_true, all_pred, average="macro", zero_division=0))
 	
 	rows = []
 	for index, actual, predicted, confidence in zip(test_indices, all_true, all_pred, all_confidence):
@@ -241,8 +266,11 @@ def evaluate_cnn(dl) -> dict:
 	
 	labels = list(range(len(checkpoint["classes"])))
 	metrics = classification_result(all_true, all_pred, labels)
-	metrics["best_threshold"] = best_threshold
-	metrics["best_f1_macro"] = best_f1
+	metrics["decision_threshold"] = best_threshold
+	metrics["decision_threshold_source"] = "validation-tuned, read from checkpoint"
+	metrics["f1_macro_at_threshold"] = best_f1
+	metrics["test_set_size"] = len(all_true)
+	metrics["flooded_test_positives"] = int((np.asarray(all_true) == flooded_index).sum())
 	
 	true_flooded = np.asarray(all_true) == flooded_index
 	if len(np.unique(true_flooded)) == 2:
@@ -277,7 +305,7 @@ def evaluate_lstm(dl) -> dict:
 	scaler = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
 	scaled = scaler.transform(values)
 	
-	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=dl.DEVICE)
+	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=dl.DEVICE, weights_only=True)
 	lookback = int(checkpoint["lookback"])
 	input_size = checkpoint.get("input_size", 4)
 	
@@ -338,7 +366,7 @@ def evaluate_robustness(dl) -> dict:
 	scaler = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
 	scaled = scaler.transform(values)
 	
-	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=dl.DEVICE)
+	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=dl.DEVICE, weights_only=True)
 	lookback = int(checkpoint["lookback"])
 	input_size = checkpoint.get("input_size", 4)
 	
@@ -377,8 +405,13 @@ Raw test data -> saved model -> inference -> predictions -> metrics -> error ana
 
 The CNN test partition contains {cnn['test_samples']} unseen images. The LSTM test partition contains
 {lstm['test_samples']} chronological one-step sequences. The deterministic 70/15/15 split is reconstructed
-from the raw data with seed 42; split manifests were not saved by the DL training script, so exact replay
-depends on the raw files and folder ordering remaining unchanged.
+is replayed from `cnn_split_manifest.json` / `lstm_split_manifest.json`, written by the training
+script, so the held-out partition is reproduced exactly by file path rather than re-derived from a
+seed and the filesystem's directory ordering.
+
+The CNN decision threshold is the validation-tuned value stored in the checkpoint. It is NOT
+re-tuned here: optimising a threshold on the test set and then reporting that set's score is not
+an independent estimate.
 
 ## CNN
 
@@ -388,7 +421,9 @@ depends on the raw files and folder ordering remaining unchanged.
 | Macro precision | {cnn['precision_macro']:.4f} |
 | Macro recall | {cnn['recall_macro']:.4f} |
 | Macro F1 | {cnn['f1_macro']:.4f} |
-| Best Threshold | {cnn.get('best_threshold', 0.5):.4f} |
+| Decision threshold (validation-tuned) | {cnn.get('decision_threshold', 0.5):.4f} |
+| Test set size | {cnn.get('test_set_size', 'n/a')} |
+| Flooded positives in test set | {cnn.get('flooded_test_positives', 'n/a')} |
 | Flooded ROC-AUC | {cnn.get('roc_auc_flooded', float('nan')):.4f} |
 | Flooded PR-AUC | {cnn.get('pr_auc_flooded', float('nan')):.4f} |
 | Average latency (ms/sample) | {cnn['average_latency_ms']:.4f} |

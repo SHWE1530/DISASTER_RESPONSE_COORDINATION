@@ -102,26 +102,58 @@ for col in target_outlier_cols:
     # Cap outliers
     df[col] = np.clip(df[col], lower_bound, upper_bound)
 
-# 4.5. TARGET LABEL (zone_risk) DEFINITION
-# Mathematically define the risk category based on raw indicators to ensure
-# 'Severe' is clearly defined and implemented consistently.
-print("\nEnforcing mathematical definition of 'zone_risk'...")
-def calculate_risk(row):
-    # Rule 1: River level breaching the danger threshold is an automatic Severe.
-    if row.get("river_level_m", 0) > row.get("river_level_threshold_m", 999):
-        return "Severe"
-    # Rule 2: High emergency volume combined with heavy rain indicates Severe.
-    elif row.get("emergency_calls", 0) >= 35 and row.get("rainfall_mm", 0) >= 40:
-        return "Severe"
-    # Rule 3: Elevated indicators point to Moderate.
-    elif row.get("rainfall_mm", 0) >= 20 or row.get("emergency_calls", 0) >= 25:
-        return "Moderate"
-    # Default is Low risk.
-    else:
-        return "Low"
+# 4.5. TARGET LABEL (zone_risk) VALIDATION -- DO NOT REGENERATE
+#
+# An earlier revision of this script OVERWROTE zone_risk with a hand-written
+# rule over river_level_m / river_level_threshold_m / emergency_calls /
+# rainfall_mm. That rule is a deterministic function of columns that are
+# themselves model inputs -- and the engineered feature river_level_margin_m
+# (river_level_m - river_level_threshold_m) is literally the rule's own
+# decision variable. Training on those labels is target leakage by
+# construction: the model would be approximating an if/else using the if/else's
+# own inputs, and reported accuracy would approach 100% while measuring
+# nothing.
+#
+# The rule is retained below ONLY as a documented sanity reference. It is never
+# written back to the dataset. zone_risk is carried through unchanged from the
+# source dataset, which is what the shipped model was trained on.
+print("\nValidating 'zone_risk' target label (labels are preserved, not regenerated)...")
 
-df["zone_risk"] = df.apply(calculate_risk, axis=1)
-print("Target label 'zone_risk' successfully generated based on numerical rules.")
+if "zone_risk" not in df.columns:
+  raise ValueError(
+      "Source dataset is missing the 'zone_risk' target column. This pipeline "
+      "consumes ground-truth labels; it does not synthesise them."
+  )
+
+if df["zone_risk"].isnull().any():
+  raise ValueError(
+      f"Source dataset has {int(df['zone_risk'].isnull().sum())} rows with a "
+      "missing zone_risk label. Fix the source data; do not impute the target."
+  )
+
+
+def reference_risk_rule(row):
+  """Documented threshold heuristic. Diagnostic only - NEVER used as the target.
+
+  Reported as an agreement rate so the gap between the operational threshold
+  heuristic and the observed labels is visible and auditable.
+  """
+  if row.get("river_level_m", 0) > row.get("river_level_threshold_m", 999):
+    return "Severe"
+  if row.get("emergency_calls", 0) >= 35 and row.get("rainfall_mm", 0) >= 40:
+    return "Severe"
+  if row.get("rainfall_mm", 0) >= 20 or row.get("emergency_calls", 0) >= 25:
+    return "Moderate"
+  return "Low"
+
+
+rule_agreement = float((df.apply(reference_risk_rule, axis=1) == df["zone_risk"]).mean())
+print(f"Label distribution: {df['zone_risk'].value_counts().to_dict()}")
+print(f"Threshold-heuristic agreement with observed labels: {rule_agreement:.4f}")
+print(
+    "NOTE: labels are preserved from the source dataset. The heuristic above is "
+    "a diagnostic reference only and is deliberately NOT used as the target."
+)
 
 # 5. CONVERT & SAVE MASTER PROCESSED DATASET
 # Restore timestamp to the original "%d-%m-%Y %H:%M" string format so that the
