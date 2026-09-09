@@ -1,0 +1,72 @@
+{
+  "classification": {
+    "total_samples": 63158,
+    "urgency_train_samples": 44210,
+    "urgency_val_samples": 9474,
+    "urgency_test_samples": 9474,
+    "hazard_train_samples": 44210,
+    "hazard_val_samples": 9474,
+    "hazard_test_samples": 9474,
+    "urgency_accuracy_val": 0.9640067553303778,
+    "urgency_accuracy_test": 0.962740130884526,
+    "hazard_accuracy_val": 1.0,
+    "hazard_accuracy_test": 1.0,
+    "urgency_classes": [
+      "CRITICAL",
+      "HIGH",
+      "LOW",
+      "MEDIUM"
+    ],
+    "hazard_classes": [
+      "Cyclone",
+      "Drought",
+      "Earthquake",
+      "Flood",
+      "Heavy Rainfall",
+      "Landslide",
+      "Lightning",
+      "Medical Emergency",
+      "Rescue Emergency",
+      "Road Blockage",
+      "Tsunami",
+      "Wildfire"
+    ]
+  },
+  "ner": {
+    "max_dispatcher_ner_records": 10000,
+    "total_sequences": 13158,
+    "train_sequences": 9210,
+    "val_sequences": 1974,
+    "test_sequences": 1974,
+    "token_accuracy_test": 0.9957643944407677,
+    "bio_tags": [
+      "B-HAZARD",
+      "B-HEADCOUNT",
+      "B-LOCATION",
+      "B-RESOURCE",
+      "I-HAZARD",
+      "I-LOCATION",
+      "I-RESOURCE",
+      "O"
+    ],
+    "bio_dataset_stats": {
+      "total_records": 64855,
+      "malformed_records": 0,
+      "used_records": 13158,
+      "sources": {
+        "dispatcher": {
+          "total": 60000,
+          "used": 10000
+        },
+        "social_feeds": {
+          "total": 3158,
+          "used": 3158
+        },
+        "safety_sop": {
+          "total": 1697,
+          "used": 0
+        }
+      }
+    }
+  }
+}
