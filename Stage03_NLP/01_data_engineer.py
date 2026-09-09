@@ -67,11 +67,56 @@ DISPATCH_PHRASES = [
     "Response team requested: ",
 ]
 
+# Headcount ranges deliberately OVERLAP across severities.
+#
+# More people affected genuinely does correlate with higher severity, so this is
+# legitimate predictive signal rather than leakage - but the previous ranges
+# ((1,3)/(3,8)/(8,20)/(15,80)) were so nearly disjoint that the number alone
+# almost determined the label. Wide overlap keeps the correlation real and the
+# task learnable without making it trivial.
 HEADCOUNT_RANGE = {
-    "LOW": (1, 3),
-    "MEDIUM": (3, 8),
-    "HIGH": (8, 20),
-    "CRITICAL": (15, 80),
+    "LOW": (1, 6),
+    "MEDIUM": (2, 15),
+    "HIGH": (5, 40),
+    "CRITICAL": (10, 120),
+}
+
+# ---------------------------------------------------------------------------
+# IMPACT CLAUSES - shared vocabulary, severity-weighted sampling
+# ---------------------------------------------------------------------------
+# The previous people_phrase() returned a DIFFERENT FIXED STRING per severity:
+#   LOW      -> "no major injuries reported"
+#   MEDIUM   -> "minor injuries reported"
+#   HIGH     -> "some injuries reported"
+#   CRITICAL -> "urgent evacuation needed"
+# Each marker appeared in 100.00% of that severity's rows and 0% of every other
+# severity's rows, so the label was written verbatim into the text. A TF-IDF
+# trigram model recovers the label by string match; the reported 96% urgency
+# accuracy measured lookup, not language understanding.
+#
+# Every clause below can appear at EVERY severity. Severity only shifts the
+# sampling weights, which is how impact language actually behaves in dispatch
+# logs: severe incidents are more likely - not certain - to mention casualties.
+IMPACT_CLAUSES = [
+    "no injuries reported",
+    "minor injuries reported",
+    "some injuries reported",
+    "multiple injuries reported",
+    "casualties reported",
+    "situation being monitored",
+    "residents moved to safer ground",
+    "evacuation assistance requested",
+    "medical assistance requested",
+    "no further details available",
+]
+
+# Rows are clause weights in IMPACT_CLAUSES order. Every entry is non-zero, so
+# no clause is diagnostic of a single class.
+IMPACT_CLAUSE_WEIGHTS = {
+    "LOW":      [30, 22, 10,  3,  1, 20, 5,  3,  3, 12],
+    "MEDIUM":   [18, 26, 18,  7,  2, 16, 8,  6,  8, 10],
+    "HIGH":     [ 8, 16, 24, 18,  8,  9, 14, 14, 14,  8],
+    "CRITICAL": [ 4,  8, 18, 26, 20,  5, 18, 22, 18,  6],
 }
 
 CALL_TYPE_HAZARDS = {
@@ -82,16 +127,25 @@ CALL_TYPE_HAZARDS = {
     "Medical Emergency": "Medical Emergency",
 }
 
+PEOPLE_NOUNS = ["people", "residents", "persons", "individuals"]
+
+
 def people_phrase(severity: str, n: int) -> str:
-    if severity == "LOW":
-        return f"{n} person(s) affected, no major injuries reported"
-    if severity == "MEDIUM":
-        return f"{n} people affected, minor injuries reported"
-    if severity == "HIGH":
-        return (f"{n} people affected including elderly and children, "
-                 "some injuries reported")
-    return (f"{n} people trapped/affected, multiple injuries reported, "
-             "urgent evacuation needed")
+    """Build the impact clause by SAMPLING, not by switching on severity.
+
+    See IMPACT_CLAUSES for why: the previous implementation returned a unique
+    fixed string per severity, which put the label directly into the text.
+    """
+    if severity not in IMPACT_CLAUSE_WEIGHTS:
+        raise ValueError(
+            f"Unrecognised severity '{severity}'. Expected one of "
+            f"{list(IMPACT_CLAUSE_WEIGHTS.keys())}"
+        )
+    noun = random.choice(PEOPLE_NOUNS)
+    clause = random.choices(
+        IMPACT_CLAUSES, weights=IMPACT_CLAUSE_WEIGHTS[severity], k=1
+    )[0]
+    return f"{n} {noun} affected, {clause}"
 
 def generate_dispatcher_processed(df: pd.DataFrame, seed: int = SEED) -> pd.DataFrame:
     random.seed(seed)
@@ -177,8 +231,12 @@ def build_dispatcher_dataset(source_csv: str, output_dir: str):
     raw_df = make_dispatcher_raw(processed_df)
 
     os.makedirs(output_dir, exist_ok=True)
-    processed_path = os.path.join(output_dir, "Dispatcher_Log_Master_NLP_FILLED.csv")
-    raw_path = os.path.join(output_dir, "Dispatcher_Log_Master_RAW.csv")
+    # Filename must match what 03_nlp_engineer.load_classification_datasets()
+    # reads. It previously wrote "Dispatcher_Log_Master_NLP_FILLED.csv", so the
+    # committed "..._60000_Processed.csv" could only have been produced by
+    # renaming the file by hand - a silent break in the reproduction chain.
+    processed_path = os.path.join(output_dir, "Dispatcher_Log_Master_60000_Processed.csv")
+    raw_path = os.path.join(output_dir, "Dispatcher_Log_Master_60000_Reduced.csv")
 
     processed_df.to_csv(processed_path, index=False)
     raw_df.to_csv(raw_path, index=False)
@@ -299,6 +357,19 @@ def clean_text(text: str) -> str:
     return text
 
 def detect_hazard(text: str) -> str:
+    """Keyword hazard lookup. DIAGNOSTIC ONLY - never used to label training data.
+
+    This used to generate the hazard_type column for the social-feed corpus.
+    Because the text was rendered from a hazard-specific template and the label
+    was then re-derived from that same text by keyword, the classifier was
+    trained to reproduce this function - which is why hazard precision, recall
+    and F1 were all exactly 1.0000 across all twelve classes. A circular label.
+
+    Hazard is now taken from the generative parameter that produced the text
+    (see generate_social_feed_dataset), which is genuine ground truth. This
+    function is kept so the gap between the keyword baseline and the model can
+    be reported honestly.
+    """
     text = text.lower()
     if "flood" in text:
         return "Flood"
@@ -318,6 +389,77 @@ def detect_hazard(text: str) -> str:
         return "Tsunami"
     return "Unknown"
 
+
+# Per-template urgency priors for the social-feed corpus.
+#
+# Urgency was previously assigned with random.choice() gated on four trigger
+# words: rows containing any of them got random.choice(["Critical","High"]),
+# everything else got random.choice(["Medium","Low","High"]). That makes a large
+# share of the label pure coin-flip noise, uncorrelated with anything in the
+# text - irreducible error no model can ever learn.
+#
+# Instead the urgency prior is attached to the SEMANTIC CONTENT of the template
+# that generated the post (trapped people and rescue requests skew critical;
+# advisories skew low), then sampled. The label still has noise, but the noise
+# is now around a signal that genuinely exists in the sentence.
+TEMPLATE_URGENCY_PRIORS = {
+    "trapped": {"CRITICAL": 0.50, "HIGH": 0.33, "MEDIUM": 0.13, "LOW": 0.04},
+    "rescue": {"CRITICAL": 0.32, "HIGH": 0.40, "MEDIUM": 0.21, "LOW": 0.07},
+    "assistance": {"CRITICAL": 0.15, "HIGH": 0.34, "MEDIUM": 0.36, "LOW": 0.15},
+    "supplies": {"CRITICAL": 0.09, "HIGH": 0.27, "MEDIUM": 0.42, "LOW": 0.22},
+    "advisory": {"CRITICAL": 0.03, "HIGH": 0.12, "MEDIUM": 0.35, "LOW": 0.50},
+}
+
+# Which prior each template family draws from, keyed by a distinctive fragment.
+TEMPLATE_URGENCY_PROFILE = [
+    ("people are trapped", "trapped"),
+    ("need immediate rescue", "trapped"),
+    ("rescue teams", "rescue"),
+    ("rescue support", "rescue"),
+    ("emergency teams", "rescue"),
+    ("emergency rescue", "rescue"),
+    ("fire and rescue", "rescue"),
+    ("evacuation", "rescue"),
+    ("emergency assistance", "assistance"),
+    ("emergency support", "assistance"),
+    ("emergency shelter", "assistance"),
+    ("immediate assistance", "assistance"),
+    ("medical assistance", "assistance"),
+    ("emergency response", "assistance"),
+    ("drinking water and food", "supplies"),
+    ("food, water and shelter", "supplies"),
+    ("need food", "supplies"),
+    ("stay indoors", "advisory"),
+    ("avoid travelling", "advisory"),
+    ("avoid open areas", "advisory"),
+    ("advised to stay", "advisory"),
+    ("move to safer areas", "advisory"),
+    ("difficult to use", "advisory"),
+    ("are affected by", "advisory"),
+    ("road access is blocked", "assistance"),
+    ("blocking the road", "assistance"),
+    ("under water", "assistance"),
+    ("waterlogging", "assistance"),
+    ("damage", "assistance"),
+]
+
+
+def template_urgency_profile(text: str) -> str:
+    """Map a rendered social post to its urgency prior family."""
+    lowered = text.lower()
+    for fragment, profile in TEMPLATE_URGENCY_PROFILE:
+        if fragment in lowered:
+            return profile
+    return "assistance"
+
+
+def sample_urgency_for_text(text: str) -> str:
+    """Sample an urgency label from the prior implied by the post's content."""
+    priors = TEMPLATE_URGENCY_PRIORS[template_urgency_profile(text)]
+    labels = list(priors.keys())
+    weights = [priors[label] for label in labels]
+    return random.choices(labels, weights=weights, k=1)[0].capitalize()
+
 def generate_social_feed_dataset(n_records: int, output_dir: str, seed: int = SEED):
     random.seed(seed)
     np.random.seed(seed)
@@ -335,6 +477,9 @@ def generate_social_feed_dataset(n_records: int, output_dir: str, seed: int = SE
 
         template = random.choice(TEXT_TEMPLATES[hazard])
         text = template.format(location=location)
+        # Ground-truth hazard is the generative parameter, recorded at creation
+        # time -- not re-derived from the rendered text by keyword lookup.
+        true_hazard = hazard
 
         timestamp = start_time + timedelta(minutes=random.randint(0, 60 * 24 * 180))
         source_event_id = f"IND_EVENT_{random.randint(1000, 9999)}"
@@ -344,6 +489,7 @@ def generate_social_feed_dataset(n_records: int, output_dir: str, seed: int = SE
             "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "platform": platform,
             "text": text,
+            "true_hazard": true_hazard,
             "author_type": author_type,
             "post_type": post_type,
             "state": state,
@@ -360,17 +506,22 @@ def generate_social_feed_dataset(n_records: int, output_dir: str, seed: int = SE
     raw_df = pd.DataFrame(records)
 
     processed_df = raw_df.copy()
+    # true_hazard is a label, so it belongs in the processed (labelled) file only.
+    raw_df = raw_df.drop(columns=["true_hazard"])
     processed_df["clean_text"] = processed_df["text"].apply(clean_text)
-    processed_df["hazard_type"] = processed_df["text"].apply(detect_hazard)
+    # Hazard label = the generative parameter (ground truth), NOT detect_hazard().
+    processed_df["hazard_type"] = processed_df["true_hazard"]
+    # Keyword baseline retained alongside it so the evaluation can quantify how
+    # much the trained model actually adds over a plain lookup table.
+    processed_df["hazard_keyword_baseline"] = processed_df["text"].apply(detect_hazard)
 
     urgency_values, resource_values, people_values = [], [], []
     for _, row in processed_df.iterrows():
         text = row["text"].lower()
 
-        if any(word in text for word in URGENCY_TRIGGER_WORDS):
-            urgency = random.choice(["Critical", "High"])
-        else:
-            urgency = random.choice(["Medium", "Low", "High"])
+        # Sampled from the prior implied by the post's semantic content
+        # (see TEMPLATE_URGENCY_PRIORS) instead of a coin flip on trigger words.
+        urgency = sample_urgency_for_text(row["text"])
         urgency_values.append(urgency)
 
         if "rescue" in text:
@@ -410,8 +561,8 @@ def generate_social_feed_dataset(n_records: int, output_dir: str, seed: int = SE
     processed_df = processed_df[[
         "post_id", "timestamp", "platform", "text", "clean_text",
         "author_type", "post_type", "country", "state", "district",
-        "location_mentioned", "hazard_type", "urgency_level",
-        "resource_needed", "people_affected", "language",
+        "location_mentioned", "hazard_type", "hazard_keyword_baseline",
+        "urgency_level", "resource_needed", "people_affected", "language",
         "source_type", "source_portal", "source_url", "source_event_id",
     ]]
 
@@ -661,11 +812,26 @@ Duplicate IDs                : {duplicate_ids if duplicate_ids is not None else 
         "overall_status": "PASS" if overall_pass else "REVIEW",
     }
 
+STAGE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DISPATCHER_SOURCE = os.path.join(
+    STAGE_DIR, "data", "raw", "Dispatcher_Log_Master_60000_RAW.csv"
+)
+DEFAULT_PROCESSED_DIR = os.path.join(STAGE_DIR, "data", "processed")
+DEFAULT_OUTPUT_DIR = os.path.join(STAGE_DIR, "data", "outputs")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Unified data engineering pipeline")
-    parser.add_argument("--dispatcher-source", default=None,
-                         help="Path to Dispatcher_Log_Master_*.csv (source with empty NLP columns)")
-    parser.add_argument("--output-dir", default="./output", help="Directory to write all output CSVs")
+    # Defaults now point at the real repository layout. They previously defaulted
+    # to --output-dir ./output with no dispatcher source, so a plain
+    # `python 01_data_engineer.py` regenerated nothing the training script reads
+    # and the committed processed CSVs could only be produced by hand.
+    parser.add_argument("--dispatcher-source", default=DEFAULT_DISPATCHER_SOURCE,
+                         help="Path to Dispatcher_Log_Master_*_RAW.csv")
+    parser.add_argument("--processed-dir", default=DEFAULT_PROCESSED_DIR,
+                         help="Directory for processed CSVs consumed by 03_nlp_engineer.py")
+    parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR,
+                         help="Directory for BIO NER JSONL annotations")
     parser.add_argument("--social-records", type=int, default=5000,
                          help="Number of simulated social-feed records to generate")
     parser.add_argument("--skip-dispatcher", action="store_true",
@@ -673,10 +839,11 @@ def main():
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
+    os.makedirs(args.processed_dir, exist_ok=True)
     audit_reports = []
 
     if not args.skip_dispatcher:
-        raw_disp, processed_disp = build_dispatcher_dataset(args.dispatcher_source, args.output_dir)
+        raw_disp, processed_disp = build_dispatcher_dataset(args.dispatcher_source, args.processed_dir)
         if processed_disp is not None:
             audit_reports.append(run_data_quality_audit(processed_disp, "Dispatcher Log (NLP-filled)"))
             write_ner_annotations(
@@ -688,7 +855,7 @@ def main():
                 args.output_dir,
             )
 
-    raw_social, processed_social = generate_social_feed_dataset(args.social_records, args.output_dir)
+    raw_social, processed_social = generate_social_feed_dataset(args.social_records, args.processed_dir)
     audit_reports.append(run_data_quality_audit(processed_social, "Social Feeds (India, processed)"))
     write_ner_annotations(
         processed_social,
@@ -699,8 +866,7 @@ def main():
         args.output_dir,
     )
 
-    sop_path = os.path.join(os.path.dirname(__file__), "data", "processed",
-                            "Safety_SOP_NLP_Dataset_PROCESSED.csv")
+    sop_path = os.path.join(args.processed_dir, "Safety_SOP_NLP_Dataset_PROCESSED.csv")
     if os.path.exists(sop_path):
         sop_df = pd.read_csv(sop_path, low_memory=False)
         write_ner_annotations(

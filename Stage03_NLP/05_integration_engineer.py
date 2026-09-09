@@ -39,11 +39,45 @@ class NLPIntegrationEngine:
         return self.module is not None and self.load_error is None
 
     def health_check(self) -> dict[str, Any]:
+        """Report readiness by running a real analysis, not just by importing.
+
+        This used to return "healthy" whenever the module imported. That is why
+        the dashboard advertised "Stage 03 API (NLP): Online" while every single
+        prediction failed: importing the module says nothing about whether the
+        model artifacts load and score under the installed library versions.
+        """
+        if not self.ready:
+            return {
+                "status": "unavailable",
+                "model_loaded": False,
+                "inference_ok": False,
+                "model_path": str(self.module_path),
+                "error": self.load_error,
+            }
+
+        inference_ok = True
+        inference_error: str | None = None
+        backend = None
+        try:
+            probe = self.module.analyze_text(
+                "Flooding reported near the main bridge. 5 people affected."
+            )
+            backend = probe.get("urgency_backend")
+            if probe.get("urgency_level") not in self.module.URGENCY_CLASSES:
+                raise RuntimeError(
+                    f"Urgency probe returned an unexpected label: {probe.get('urgency_level')!r}"
+                )
+        except Exception as exc:
+            inference_ok = False
+            inference_error = f"{type(exc).__name__}: {exc}"
+
         return {
-            "status": "healthy" if self.ready else "unavailable",
-            "model_loaded": self.ready,
+            "status": "healthy" if inference_ok else "degraded",
+            "model_loaded": True,
+            "inference_ok": inference_ok,
+            "urgency_backend": backend,
             "model_path": str(self.module_path),
-            "error": self.load_error,
+            "error": self.load_error or inference_error,
         }
 
     def analyze(self, text: str) -> dict[str, Any]:

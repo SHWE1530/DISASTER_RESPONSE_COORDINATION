@@ -1,44 +1,141 @@
 {
   "classification": {
-    "total_samples": 63158,
-    "urgency_train_samples": 44210,
-    "urgency_val_samples": 9474,
-    "urgency_test_samples": 9474,
-    "hazard_train_samples": 44210,
-    "hazard_val_samples": 9474,
-    "hazard_test_samples": 9474,
-    "urgency_accuracy_val": 0.9640067553303778,
-    "urgency_accuracy_test": 0.962740130884526,
+    "total_samples": 65000,
+    "urgency_train_samples": 45500,
+    "urgency_val_samples": 9750,
+    "urgency_test_samples": 9750,
+    "hazard_train_samples": 45500,
+    "hazard_val_samples": 9750,
+    "hazard_test_samples": 9750,
+    "urgency_selected_model": "distilbert",
+    "urgency_selection_metric": "validation macro F1",
+    "urgency_accuracy_val": 0.726,
+    "urgency_accuracy_test": 0.7177435897435898,
+    "urgency_macro_f1_val": 0.733330882574377,
+    "urgency_macro_f1_test": 0.7224007937084145,
+    "urgency_test_report": {
+      "CRITICAL": {
+        "precision": 0.988988988988989,
+        "recall": 0.6626425217974514,
+        "f1-score": 0.793574297188755,
+        "support": 1491.0
+      },
+      "HIGH": {
+        "precision": 0.7816769354406643,
+        "recall": 0.7636744307772835,
+        "f1-score": 0.7725708234048186,
+        "support": 3821.0
+      },
+      "LOW": {
+        "precision": 0.5944919278252612,
+        "recall": 0.8346666666666667,
+        "f1-score": 0.6943982251802552,
+        "support": 1500.0
+      },
+      "MEDIUM": {
+        "precision": 0.6318681318681318,
+        "recall": 0.6262763784887678,
+        "f1-score": 0.629059829059829,
+        "support": 2938.0
+      },
+      "accuracy": 0.7177435897435898,
+      "macro avg": {
+        "precision": 0.7492564960307616,
+        "recall": 0.7218149994325423,
+        "f1-score": 0.7224007937084145,
+        "support": 9750.0
+      },
+      "weighted avg": {
+        "precision": 0.7394396529300332,
+        "recall": 0.7177435897435898,
+        "f1-score": 0.7205115393729649,
+        "support": 9750.0
+      }
+    },
+    "urgency_candidates": {
+      "tfidf_logreg": {
+        "name": "tfidf_logreg",
+        "val_macro_f1": 0.6646648303817475,
+        "val_accuracy": 0.6607179487179488,
+        "test_macro_f1": 0.6616168157596506,
+        "test_accuracy": 0.6575384615384615
+      },
+      "distilbert": {
+        "name": "distilbert",
+        "train_samples_used": 8000,
+        "epochs": 2,
+        "val_macro_f1": 0.733330882574377,
+        "val_accuracy": 0.726,
+        "test_macro_f1": 0.7224007937084145,
+        "test_accuracy": 0.7177435897435898
+      }
+    },
     "hazard_accuracy_val": 1.0,
     "hazard_accuracy_test": 1.0,
+    "hazard_macro_f1_test": 1.0,
+    "hazard_keyword_baseline_accuracy": 0.9866666666666667,
     "urgency_classes": [
-      "CRITICAL",
-      "HIGH",
       "LOW",
-      "MEDIUM"
+      "MEDIUM",
+      "HIGH",
+      "CRITICAL"
     ],
     "hazard_classes": [
       "Cyclone",
-      "Drought",
       "Earthquake",
       "Flood",
+      "Forest Fire",
       "Heavy Rainfall",
       "Landslide",
       "Lightning",
       "Medical Emergency",
       "Rescue Emergency",
       "Road Blockage",
-      "Tsunami",
-      "Wildfire"
+      "Tsunami"
     ]
   },
   "ner": {
     "max_dispatcher_ner_records": 10000,
-    "total_sequences": 13158,
-    "train_sequences": 9210,
-    "val_sequences": 1974,
-    "test_sequences": 1974,
-    "token_accuracy_test": 0.9957643944407677,
+    "total_sequences": 15000,
+    "train_sequences": 10500,
+    "val_sequences": 2250,
+    "test_sequences": 2250,
+    "token_accuracy_test": 0.9989,
+    "entity_level": {
+      "by_type": {
+        "HAZARD": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 391
+        },
+        "HEADCOUNT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1514
+        },
+        "LOCATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2250
+        },
+        "RESOURCE": {
+          "precision": 0.9767,
+          "recall": 1.0,
+          "f1": 0.9882,
+          "support": 2175
+        }
+      },
+      "micro": {
+        "precision": 0.9919,
+        "recall": 1.0,
+        "f1": 0.9959,
+        "support": 6330
+      },
+      "macro_f1": 0.997
+    },
     "bio_tags": [
       "B-HAZARD",
       "B-HEADCOUNT",
@@ -50,23 +147,25 @@
       "O"
     ],
     "bio_dataset_stats": {
-      "total_records": 64855,
+      "total_records": 66697,
       "malformed_records": 0,
-      "used_records": 13158,
+      "used_records": 15000,
       "sources": {
         "dispatcher": {
           "total": 60000,
           "used": 10000
         },
         "social_feeds": {
-          "total": 3158,
-          "used": 3158
+          "total": 5000,
+          "used": 5000
         },
         "safety_sop": {
           "total": 1697,
           "used": 0
         }
       }
-    }
-  }
+    },
+    "metric_note": "Entity-level scores require an exact type and span match. Token accuracy is reported alongside them but is inflated by the dominant 'O' tag and should not be quoted as the headline NER metric."
+  },
+  "primary_metric": "Macro F1. The urgency classes are imbalanced (CRITICAL is the smallest and the most operationally costly to miss), so accuracy overstates performance and is reported only as a secondary figure."
 }

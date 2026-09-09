@@ -25,9 +25,8 @@ Model artifacts stored under Stage03_NLP/data/models/
 from __future__ import annotations
 
 import json
-import logging
+import os
 import re
-import warnings
 from pathlib import Path
 from typing import Any
 
@@ -37,7 +36,7 @@ import pandas as pd
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 from sklearn.model_selection import train_test_split
 
 try:
@@ -100,6 +99,39 @@ def ensure_directories() -> None:
 	"""Ensure essential output and model directories exist."""
 	OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 	MODEL_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def atomic_joblib_dump(obj: Any, path: Path) -> None:
+	"""Write a joblib artifact atomically: serialise to a temp file, then rename.
+
+	joblib.dump() truncates the destination before serialising. When a dump
+	failed part-way (e.g. an unpicklable object), it left the previously working
+	model as a 2-byte stub -- so a failed retrain destroyed the deployed model.
+	os.replace() is atomic on the same filesystem, so the destination either
+	holds the old artifact or the complete new one, never a partial write.
+	"""
+	path = Path(path)
+	path.parent.mkdir(parents=True, exist_ok=True)
+	temp_path = path.with_suffix(path.suffix + ".tmp")
+	try:
+		joblib.dump(obj, temp_path)
+		os.replace(temp_path, path)
+	finally:
+		if temp_path.exists():
+			temp_path.unlink(missing_ok=True)
+
+
+def atomic_write_text(text: str, path: Path) -> None:
+	"""Write a text artifact atomically (same rationale as atomic_joblib_dump)."""
+	path = Path(path)
+	path.parent.mkdir(parents=True, exist_ok=True)
+	temp_path = path.with_suffix(path.suffix + ".tmp")
+	try:
+		temp_path.write_text(text, encoding="utf-8")
+		os.replace(temp_path, path)
+	finally:
+		if temp_path.exists():
+			temp_path.unlink(missing_ok=True)
 
 
 def clean_text_basic(text: Any) -> str:
@@ -175,6 +207,40 @@ class TokenLevelNERModel:
 		X_vec = self.vectorizer.transform(feats)
 		return list(self.classifier.predict(X_vec))
 
+	def to_components(self) -> dict[str, Any]:
+		"""Serialize as plain sklearn objects rather than as an instance of this class.
+
+		Pickling the instance itself embedded a reference to whatever module name
+		this file happened to be loaded under. Because the file is loaded through
+		importlib with a synthetic name ("stage03_nlp_engineer", "__main__", or a
+		pytest-assigned name depending on the caller), unpickling failed with
+		"Can't pickle <class 'stage03_nlp_engineer.TokenLevelNERModel'>" and the
+		module worked around it by mutating sys.modules at load time.
+		Round-tripping the fitted components avoids the problem entirely.
+		"""
+		return {
+			"format": "token_level_ner_components_v1",
+			"vectorizer": self.vectorizer,
+			"classifier": self.classifier,
+			"classes": list(self.classes_),
+		}
+
+	@classmethod
+	def from_components(cls, payload: dict[str, Any]) -> TokenLevelNERModel:
+		"""Rebuild from to_components() output, tolerating legacy whole-object pickles."""
+		if isinstance(payload, cls):
+			return payload
+		if not isinstance(payload, dict) or "vectorizer" not in payload:
+			raise ValueError(
+				"Unrecognised NER artifact format. Retrain Stage 03 with "
+				"`python Stage03_NLP/03_nlp_engineer.py`."
+			)
+		model = cls()
+		model.vectorizer = payload["vectorizer"]
+		model.classifier = payload["classifier"]
+		model.classes_ = list(payload.get("classes", []))
+		return model
+
 
 def load_classification_datasets() -> pd.DataFrame:
 	"""Load and harmonize Dispatcher Log and Social Feeds datasets for classification."""
@@ -196,6 +262,9 @@ def load_classification_datasets() -> pd.DataFrame:
 					"text_clean": clean_text_for_classification(raw_text),
 					"urgency": urgency,
 					"hazard": hazard,
+					# Dispatcher hazard comes from the structured call_type field of
+					# the dispatch record, so the keyword lookup is the same value.
+					"hazard_baseline": hazard,
 				})
 
 	if social_path.exists():
@@ -212,6 +281,11 @@ def load_classification_datasets() -> pd.DataFrame:
 					"text_clean": clean_text_for_classification(raw_text),
 					"urgency": urgency,
 					"hazard": hazard,
+					# Keyword-lookup prediction, carried so the evaluation can
+					# report what the trained model adds over a plain lookup.
+					"hazard_baseline": str(
+						row.get("hazard_keyword_baseline") or hazard
+					).strip(),
 				})
 
 	combined = pd.DataFrame(records)
@@ -275,8 +349,214 @@ def load_bio_ner_datasets() -> tuple[list[list[str]], list[list[str]], dict[str,
 	return all_tokens, all_tags, stats
 
 
-def train_models() -> dict[str, Any]:
-	"""Train Urgency Classifier, Hazard Classifier, and Token-Level BIO NER model."""
+def evaluate_ner_entities(
+	model: TokenLevelNERModel,
+	sequences_tokens: list[list[str]],
+	sequences_tags: list[list[str]],
+) -> dict[str, Any]:
+	"""Entity-level precision / recall / F1 in addition to token accuracy.
+
+	Token accuracy is a misleading headline for NER: the tag distribution is
+	dominated by "O", so a model that predicts "O" everywhere already scores
+	very highly. An entity is counted correct only when its type and its full
+	span both match exactly.
+	"""
+
+	def spans(tags: list[str]) -> set[tuple[str, int, int]]:
+		found: set[tuple[str, int, int]] = set()
+		current_type: str | None = None
+		start = 0
+		for index, tag in enumerate(list(tags) + ["O"]):
+			if tag.startswith("B-") or tag == "O" or (
+				tag.startswith("I-") and current_type != tag[2:]
+			):
+				if current_type is not None:
+					found.add((current_type, start, index))
+					current_type = None
+			if tag.startswith("B-"):
+				current_type = tag[2:]
+				start = index
+			elif tag.startswith("I-") and current_type is None:
+				# Treat a stray I- as the start of an entity rather than dropping it.
+				current_type = tag[2:]
+				start = index
+		return found
+
+	per_type: dict[str, dict[str, int]] = {}
+	correct_tokens = total_tokens = 0
+
+	for tokens, true_tags in zip(sequences_tokens, sequences_tags):
+		predicted_tags = model.predict_sequence(tokens)
+		for predicted, truth in zip(predicted_tags, true_tags):
+			correct_tokens += int(predicted == truth)
+			total_tokens += 1
+
+		true_spans = spans(list(true_tags))
+		predicted_spans = spans(list(predicted_tags))
+		for entity_type in {span[0] for span in true_spans | predicted_spans}:
+			bucket = per_type.setdefault(
+				entity_type, {"tp": 0, "fp": 0, "fn": 0}
+			)
+			truth_of_type = {s for s in true_spans if s[0] == entity_type}
+			predicted_of_type = {s for s in predicted_spans if s[0] == entity_type}
+			bucket["tp"] += len(truth_of_type & predicted_of_type)
+			bucket["fp"] += len(predicted_of_type - truth_of_type)
+			bucket["fn"] += len(truth_of_type - predicted_of_type)
+
+	def prf(tp: int, fp: int, fn: int) -> dict[str, float]:
+		precision = tp / (tp + fp) if (tp + fp) else 0.0
+		recall = tp / (tp + fn) if (tp + fn) else 0.0
+		f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
+		return {
+			"precision": round(precision, 4),
+			"recall": round(recall, 4),
+			"f1": round(f1, 4),
+			"support": tp + fn,
+		}
+
+	by_type = {name: prf(**counts) for name, counts in sorted(per_type.items())}
+	total_tp = sum(counts["tp"] for counts in per_type.values())
+	total_fp = sum(counts["fp"] for counts in per_type.values())
+	total_fn = sum(counts["fn"] for counts in per_type.values())
+
+	macro_f1 = (
+		round(float(np.mean([entry["f1"] for entry in by_type.values()])), 4)
+		if by_type else 0.0
+	)
+
+	return {
+		"token_accuracy": round(correct_tokens / max(total_tokens, 1), 4),
+		"tokens_evaluated": total_tokens,
+		"entity_level": {
+			"by_type": by_type,
+			"micro": prf(total_tp, total_fp, total_fn),
+			"macro_f1": macro_f1,
+		},
+		"note": (
+			"Entity-level scores require an exact type and span match. Token "
+			"accuracy is reported alongside them but is inflated by the dominant "
+			"'O' tag and should not be quoted as the headline NER metric."
+		),
+	}
+
+
+def train_urgency_tfidf(train_df, val_df, test_df) -> dict[str, Any]:
+	"""Candidate A: TF-IDF + multinomial Logistic Regression."""
+	vectorizer = TfidfVectorizer(sublinear_tf=True, ngram_range=(1, 2), max_features=50000)
+	x_train = vectorizer.fit_transform(train_df["text_clean"])
+	x_val = vectorizer.transform(val_df["text_clean"])
+	x_test = vectorizer.transform(test_df["text_clean"])
+
+	model = LogisticRegression(max_iter=1000, class_weight="balanced", random_state=SEED)
+	model.fit(x_train, train_df["urgency"])
+
+	val_pred = model.predict(x_val)
+	test_pred = model.predict(x_test)
+	return {
+		"name": "tfidf_logreg",
+		"model": model,
+		"vectorizer": vectorizer,
+		"val_macro_f1": float(f1_score(val_df["urgency"], val_pred, average="macro", zero_division=0)),
+		"val_accuracy": float(accuracy_score(val_df["urgency"], val_pred)),
+		"test_macro_f1": float(f1_score(test_df["urgency"], test_pred, average="macro", zero_division=0)),
+		"test_accuracy": float(accuracy_score(test_df["urgency"], test_pred)),
+		"test_report": classification_report(
+			test_df["urgency"], test_pred, output_dict=True, zero_division=0
+		),
+	}
+
+
+def train_urgency_transformer(train_df, val_df, test_df, train_cap: int, epochs: int) -> dict[str, Any] | None:
+	"""Candidate B: fine-tuned DistilBERT.
+
+	The previous implementation fine-tuned on 100 rows for 1 epoch, never
+	evaluated the result, hardcoded 0.98 as its accuracy, and then never loaded
+	the model at inference (the branch that would have used it tested for a
+	tokenizer key that _get_artifacts never set). This trains on a real budget,
+	measures real validation and test scores, and returns them for selection.
+	"""
+	if not TRANSFORMERS_AVAILABLE:
+		return None
+
+	label_map = {label: index for index, label in enumerate(URGENCY_CLASSES)}
+	inverse_label_map = {index: label for label, index in label_map.items()}
+
+	sample = train_df.sample(n=min(len(train_df), train_cap), random_state=SEED)
+	val_sample = val_df.sample(n=min(len(val_df), 2000), random_state=SEED)
+	test_sample = test_df
+
+	tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+	model = AutoModelForSequenceClassification.from_pretrained(
+		"distilbert-base-uncased", num_labels=len(URGENCY_CLASSES)
+	)
+
+	train_dataset = TextDataset(
+		sample["text_clean"].tolist(),
+		[label_map[label] for label in sample["urgency"]],
+		tokenizer,
+	)
+
+	arguments = TrainingArguments(
+		output_dir=str(MODEL_DIR / "transformer_urgency"),
+		num_train_epochs=epochs,
+		per_device_train_batch_size=16,
+		learning_rate=5e-5,
+		use_cpu=not (TRANSFORMERS_AVAILABLE and torch.cuda.is_available()),
+		save_strategy="no",
+		report_to="none",
+		logging_steps=100,
+		seed=SEED,
+	)
+	trainer = Trainer(model=model, args=arguments, train_dataset=train_dataset)
+	trainer.train()
+	model.eval()
+
+	def predict(texts: list[str]) -> list[str]:
+		predictions: list[str] = []
+		batch_size = 64
+		for start in range(0, len(texts), batch_size):
+			batch = texts[start:start + batch_size]
+			encoded = tokenizer(
+				batch, return_tensors="pt", truncation=True, padding=True, max_length=128
+			)
+			with torch.no_grad():
+				logits = model(**encoded).logits
+			predictions.extend(
+				inverse_label_map[int(index)] for index in torch.argmax(logits, dim=-1)
+			)
+		return predictions
+
+	val_pred = predict(val_sample["text_clean"].tolist())
+	test_pred = predict(test_sample["text_clean"].tolist())
+
+	return {
+		"name": "distilbert",
+		"model": model,
+		"tokenizer": tokenizer,
+		"train_samples_used": int(len(sample)),
+		"epochs": epochs,
+		"val_macro_f1": float(f1_score(val_sample["urgency"], val_pred, average="macro", zero_division=0)),
+		"val_accuracy": float(accuracy_score(val_sample["urgency"], val_pred)),
+		"test_macro_f1": float(f1_score(test_sample["urgency"], test_pred, average="macro", zero_division=0)),
+		"test_accuracy": float(accuracy_score(test_sample["urgency"], test_pred)),
+		"test_report": classification_report(
+			test_sample["urgency"], test_pred, output_dict=True, zero_division=0
+		),
+	}
+
+
+def train_models(
+	transformer_train_cap: int = 8000,
+	transformer_epochs: int = 2,
+	skip_transformer: bool = False,
+) -> dict[str, Any]:
+	"""Train the urgency, hazard and NER models and write a real metrics manifest.
+
+	Urgency is a benchmark between TF-IDF+LogReg and fine-tuned DistilBERT,
+	selected on VALIDATION macro F1. Whichever wins is the artifact that
+	inference loads -- recorded in urgency_model_meta.json so the serving path
+	cannot silently diverge from the trained model.
+	"""
 	seed_everything()
 	ensure_directories()
 
@@ -284,70 +564,130 @@ def train_models() -> dict[str, Any]:
 	print("STAGE 03 NLP MODEL TRAINING & EVALUATION")
 	print("=" * 70)
 
-	# 1. Load Classification Data
 	df_class = load_classification_datasets()
-	print(f"\n[CLASSIFICATION DATASET]")
+	print("\n[CLASSIFICATION DATASET]")
 	print(f"  Total records: {len(df_class):,}")
 	print(f"  Urgency counts:\n{df_class['urgency'].value_counts().to_string()}")
 	print(f"  Hazard counts:\n{df_class['hazard'].value_counts().to_string()}")
 
 	# Stratified 70/15/15 train/val/test split
-	train_df, rem_df = train_test_split(df_class, test_size=0.30, random_state=SEED, stratify=df_class["urgency"])
-	val_df, test_df = train_test_split(rem_df, test_size=0.50, random_state=SEED, stratify=rem_df["urgency"])
+	train_df, rem_df = train_test_split(
+		df_class, test_size=0.30, random_state=SEED, stratify=df_class["urgency"]
+	)
+	val_df, test_df = train_test_split(
+		rem_df, test_size=0.50, random_state=SEED, stratify=rem_df["urgency"]
+	)
+	print(f"\n  Split -> train {len(train_df):,} | val {len(val_df):,} | test {len(test_df):,}")
 
-	# 2. Train Urgency Classifier
-	print("\\n[TRAINING URGENCY CLASSIFIER (TRANSFORMER)]")
-	if TRANSFORMERS_AVAILABLE:
-		tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-		model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=len(URGENCY_CLASSES))
-		
-		train_df_sub = train_df.sample(n=min(len(train_df), 100), random_state=SEED) # Ultra-fast demo
-		
-		label_map = {label: i for i, label in enumerate(URGENCY_CLASSES)}
-		train_labels = [label_map[label] for label in train_df_sub["urgency"]]
-		
-		train_dataset = TextDataset(train_df_sub["text_clean"].tolist(), train_labels, tokenizer)
-		
-		training_args = TrainingArguments(
-			output_dir=str(MODEL_DIR / "transformer_urgency"),
-			num_train_epochs=1,
-			per_device_train_batch_size=8,
-			use_cpu=True,
-			report_to="none"
+	# ------------------------------------------------------------------
+	# URGENCY: benchmark two candidates, select on VALIDATION macro F1
+	# ------------------------------------------------------------------
+	print("\n[URGENCY CLASSIFIER BENCHMARK]")
+	candidates: list[dict[str, Any]] = []
+
+	print("  Training candidate A: TF-IDF + Logistic Regression ...")
+	tfidf_candidate = train_urgency_tfidf(train_df, val_df, test_df)
+	candidates.append(tfidf_candidate)
+	print(
+		f"    val macro F1 = {tfidf_candidate['val_macro_f1']:.4f} | "
+		f"val acc = {tfidf_candidate['val_accuracy']:.4f}"
+	)
+
+	transformer_candidate = None
+	if TRANSFORMERS_AVAILABLE and not skip_transformer:
+		print(
+			f"  Training candidate B: DistilBERT fine-tune "
+			f"(cap {transformer_train_cap:,} rows, {transformer_epochs} epochs) ..."
 		)
-		
-		trainer = Trainer(model=model, args=training_args, train_dataset=train_dataset)
-		trainer.train()
-		model.save_pretrained(MODEL_DIR / "transformer_urgency")
-		tokenizer.save_pretrained(MODEL_DIR / "transformer_urgency")
-		
-		val_urg_acc = 0.98
-		test_urg_acc = 0.98
+		transformer_candidate = train_urgency_transformer(
+			train_df, val_df, test_df, transformer_train_cap, transformer_epochs
+		)
+		if transformer_candidate is not None:
+			candidates.append(transformer_candidate)
+			print(
+				f"    val macro F1 = {transformer_candidate['val_macro_f1']:.4f} | "
+				f"val acc = {transformer_candidate['val_accuracy']:.4f}"
+			)
+	elif skip_transformer:
+		print("  Candidate B skipped (skip_transformer=True).")
 	else:
-		print("TRANSFORMERS NOT AVAILABLE - FALLING BACK TO TF-IDF")
+		print("  Candidate B unavailable (transformers not installed).")
 
+	# SELECTION ON VALIDATION ONLY. Test scores are reported, never selected on.
+	best = max(candidates, key=lambda entry: entry["val_macro_f1"])
+	print(f"\n  SELECTED URGENCY MODEL: {best['name']} (val macro F1 {best['val_macro_f1']:.4f})")
 
-	# 3. Train Hazard Classifier
+	urgency_meta: dict[str, Any] = {
+		"selected_backend": "transformer" if best["name"] == "distilbert" else "tfidf",
+		"selected_model": best["name"],
+		"selected_on": "validation macro F1",
+		"classes": URGENCY_CLASSES,
+		"candidates": {
+			candidate["name"]: {
+				key: value
+				for key, value in candidate.items()
+				if key not in {"model", "vectorizer", "tokenizer", "test_report"}
+			}
+			for candidate in candidates
+		},
+	}
+
+	if best["name"] == "distilbert":
+		best["model"].save_pretrained(MODEL_DIR / "transformer_urgency")
+		best["tokenizer"].save_pretrained(MODEL_DIR / "transformer_urgency")
+	# The TF-IDF pair is always persisted so a fallback backend exists even when
+	# the transformer wins, and so the app still runs without torch installed.
+	atomic_joblib_dump(tfidf_candidate["model"], MODEL_DIR / "urgency_classifier.joblib")
+	atomic_joblib_dump(tfidf_candidate["vectorizer"], MODEL_DIR / "urgency_tfidf.joblib")
+
+	# ------------------------------------------------------------------
+	# HAZARD
+	# ------------------------------------------------------------------
 	print("\n[TRAINING HAZARD CLASSIFIER]")
 	haz_vectorizer = TfidfVectorizer(sublinear_tf=True, ngram_range=(1, 3), max_features=10000)
-	X_train_haz = haz_vectorizer.fit_transform(train_df["text_clean"])
-	X_val_haz = haz_vectorizer.transform(val_df["text_clean"])
-	X_test_haz = haz_vectorizer.transform(test_df["text_clean"])
+	x_train_haz = haz_vectorizer.fit_transform(train_df["text_clean"])
+	x_val_haz = haz_vectorizer.transform(val_df["text_clean"])
+	x_test_haz = haz_vectorizer.transform(test_df["text_clean"])
 
 	haz_model = LogisticRegression(max_iter=1000, class_weight="balanced", random_state=SEED)
-	haz_model.fit(X_train_haz, train_df["hazard"])
+	haz_model.fit(x_train_haz, train_df["hazard"])
 
-	val_haz_acc = float(haz_model.score(X_val_haz, val_df["hazard"]))
-	test_haz_acc = float(haz_model.score(X_test_haz, test_df["hazard"]))
-	print(f"  Hazard Val Accuracy : {val_haz_acc:.4f}")
-	print(f"  Hazard Test Accuracy: {test_haz_acc:.4f}")
+	val_haz_pred = haz_model.predict(x_val_haz)
+	test_haz_pred = haz_model.predict(x_test_haz)
+	val_haz_acc = float(accuracy_score(val_df["hazard"], val_haz_pred))
+	test_haz_acc = float(accuracy_score(test_df["hazard"], test_haz_pred))
+	test_haz_macro_f1 = float(
+		f1_score(test_df["hazard"], test_haz_pred, average="macro", zero_division=0)
+	)
 
-	# 4. Train Token-Level BIO NER Model
+	# Keyword-lookup baseline. The hazard label used to BE this lookup applied to
+	# the same text, which is why every class scored exactly 1.0000. Reporting
+	# the baseline alongside the model shows what the model actually adds.
+	baseline_available = "hazard_baseline" in test_df.columns
+	baseline_accuracy = (
+		float(accuracy_score(test_df["hazard"], test_df["hazard_baseline"]))
+		if baseline_available else None
+	)
+
+	print(f"  Hazard Val Accuracy      : {val_haz_acc:.4f}")
+	print(f"  Hazard Test Accuracy     : {test_haz_acc:.4f}")
+	print(f"  Hazard Test Macro F1     : {test_haz_macro_f1:.4f}")
+	if baseline_accuracy is not None:
+		print(f"  Keyword baseline accuracy: {baseline_accuracy:.4f}")
+
+	atomic_joblib_dump(haz_model, MODEL_DIR / "hazard_classifier.joblib")
+	atomic_joblib_dump(haz_vectorizer, MODEL_DIR / "hazard_tfidf.joblib")
+
+	# ------------------------------------------------------------------
+	# NER
+	# ------------------------------------------------------------------
 	print("\n[TRAINING TOKEN-LEVEL BIO NER MODEL]")
 	bio_tokens, bio_tags, bio_stats = load_bio_ner_datasets()
-	print(f"  BIO Datasets loaded: {bio_stats['used_records']:,} sequences used (Malformed/Skipped: {bio_stats['malformed_records']})")
+	print(
+		f"  BIO Datasets loaded: {bio_stats['used_records']:,} sequences used "
+		f"(Malformed/Skipped: {bio_stats['malformed_records']})"
+	)
 
-	# Sequence-level 70/15/15 split
 	indices = np.arange(len(bio_tokens))
 	train_idx, rem_idx = train_test_split(indices, test_size=0.30, random_state=SEED)
 	val_idx, test_idx = train_test_split(rem_idx, test_size=0.50, random_state=SEED)
@@ -360,29 +700,24 @@ def train_models() -> dict[str, Any]:
 	ner_model = TokenLevelNERModel()
 	ner_model.fit(train_tokens, train_tags)
 
-	# Evaluate Token-level Accuracy
-	correct_tokens, total_tokens = 0, 0
-	for seq_toks, seq_true_tags in zip(test_tokens, test_tags):
-		pred_tags = ner_model.predict_sequence(seq_toks)
-		for p_tag, t_tag in zip(pred_tags, seq_true_tags):
-			if p_tag == t_tag:
-				correct_tokens += 1
-			total_tokens += 1
+	ner_metrics = evaluate_ner_entities(ner_model, test_tokens, test_tags)
+	print(f"  NER Token Test Accuracy : {ner_metrics['token_accuracy']:.4f}")
+	print(f"  NER Entity Micro F1     : {ner_metrics['entity_level']['micro']['f1']:.4f}")
+	print(f"  NER Entity Macro F1     : {ner_metrics['entity_level']['macro_f1']:.4f}")
+	for entity_type, scores in ner_metrics["entity_level"]["by_type"].items():
+		print(
+			f"    {entity_type:<10} P={scores['precision']:.4f} "
+			f"R={scores['recall']:.4f} F1={scores['f1']:.4f} (n={scores['support']})"
+		)
 
-	tok_acc = correct_tokens / max(total_tokens, 1)
-	print(f"  NER Token Test Accuracy: {tok_acc:.4f} ({correct_tokens:,}/{total_tokens:,} tokens)")
+	atomic_joblib_dump(ner_model.to_components(), MODEL_DIR / "ner_model.joblib")
 
-	# Save Artifacts
-	if not TRANSFORMERS_AVAILABLE:
-		joblib.dump(urg_model, MODEL_DIR / "urgency_classifier.joblib")
-		joblib.dump(urg_vectorizer, MODEL_DIR / "urgency_tfidf.joblib")
-	joblib.dump(haz_model, MODEL_DIR / "hazard_classifier.joblib")
-	joblib.dump(haz_vectorizer, MODEL_DIR / "hazard_tfidf.joblib")
-	if not TRANSFORMERS_AVAILABLE:
-		joblib.dump(urg_vectorizer, MODEL_DIR / "tfidf_vectorizer.joblib") # Primary vectorizer alias
-	joblib.dump(ner_model, MODEL_DIR / "ner_model.joblib")
+	urgency_meta["ner_artifact_format"] = "token_level_ner_components_v1"
+	atomic_write_text(json.dumps(urgency_meta, indent=2), MODEL_DIR / "urgency_model_meta.json")
 
-	# Generate Training & Evaluation Manifest
+	# ------------------------------------------------------------------
+	# MANIFEST -- every number below is measured, none are hardcoded
+	# ------------------------------------------------------------------
 	metrics = {
 		"classification": {
 			"total_samples": len(df_class),
@@ -392,11 +727,19 @@ def train_models() -> dict[str, Any]:
 			"hazard_train_samples": len(train_df),
 			"hazard_val_samples": len(val_df),
 			"hazard_test_samples": len(test_df),
-			"urgency_accuracy_val": val_urg_acc,
-			"urgency_accuracy_test": test_urg_acc,
+			"urgency_selected_model": best["name"],
+			"urgency_selection_metric": "validation macro F1",
+			"urgency_accuracy_val": best["val_accuracy"],
+			"urgency_accuracy_test": best["test_accuracy"],
+			"urgency_macro_f1_val": best["val_macro_f1"],
+			"urgency_macro_f1_test": best["test_macro_f1"],
+			"urgency_test_report": best["test_report"],
+			"urgency_candidates": urgency_meta["candidates"],
 			"hazard_accuracy_val": val_haz_acc,
 			"hazard_accuracy_test": test_haz_acc,
-			"urgency_classes": list(urg_model.classes_),
+			"hazard_macro_f1_test": test_haz_macro_f1,
+			"hazard_keyword_baseline_accuracy": baseline_accuracy,
+			"urgency_classes": list(URGENCY_CLASSES),
 			"hazard_classes": list(haz_model.classes_),
 		},
 		"ner": {
@@ -405,13 +748,22 @@ def train_models() -> dict[str, Any]:
 			"train_sequences": len(train_tokens),
 			"val_sequences": len(val_idx),
 			"test_sequences": len(test_tokens),
-			"token_accuracy_test": tok_acc,
+			"token_accuracy_test": ner_metrics["token_accuracy"],
+			"entity_level": ner_metrics["entity_level"],
 			"bio_tags": ner_model.classes_,
 			"bio_dataset_stats": bio_stats,
+			"metric_note": ner_metrics["note"],
 		},
+		"primary_metric": (
+			"Macro F1. The urgency classes are imbalanced (CRITICAL is the "
+			"smallest and the most operationally costly to miss), so accuracy "
+			"overstates performance and is reported only as a secondary figure."
+		),
 	}
 
-	(OUTPUT_DIR / "nlp_evaluation_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+	atomic_write_text(
+		json.dumps(metrics, indent=2), OUTPUT_DIR / "nlp_evaluation_metrics.json"
+	)
 	print("\n[ARTIFACTS SAVED SUCCESSFULLY]")
 	return metrics
 
@@ -421,35 +773,124 @@ def seed_everything(seed: int = SEED) -> None:
 	np.random.seed(seed)
 
 
+TRAIN_COMMAND_HINT = (
+	"Run `python Stage03_NLP/03_nlp_engineer.py` to train Stage 03 before serving. "
+	"Training is never triggered automatically from an inference call."
+)
+
+
+def _load_urgency_backend(meta: dict[str, Any], artifacts: dict[str, Any]) -> None:
+	"""Load whichever urgency backend training actually selected.
+
+	The transformer branch in analyze_text() used to be dead code: it required
+	an "urgency_tokenizer" key that nothing ever set, so a fine-tuned DistilBERT
+	could be trained and saved and still never serve a single prediction. The
+	backend is now read from urgency_model_meta.json, written by train_models().
+	"""
+	backend = meta.get("selected_backend", "tfidf")
+	transformer_dir = MODEL_DIR / "transformer_urgency"
+
+	if backend == "transformer":
+		# The fine-tuned transformer is ~1 GB and is deliberately gitignored, so a
+		# fresh clone has the metadata but not the weights. Degrade to the TF-IDF
+		# pair (always persisted by train_models) with a loud warning rather than
+		# taking the whole stage offline.
+		unavailable_reason: str | None = None
+		if not TRANSFORMERS_AVAILABLE:
+			unavailable_reason = "`transformers`/`torch` are not installed"
+		elif not (transformer_dir / "config.json").exists():
+			unavailable_reason = f"no model weights found in {transformer_dir}"
+
+		if unavailable_reason is None:
+			model = AutoModelForSequenceClassification.from_pretrained(transformer_dir)
+			model.eval()
+			artifacts["urgency_backend"] = "transformer"
+			artifacts["urgency_model"] = model
+			artifacts["urgency_tokenizer"] = AutoTokenizer.from_pretrained(transformer_dir)
+			return
+
+		fallback_available = (
+			(MODEL_DIR / "urgency_classifier.joblib").exists()
+			and (MODEL_DIR / "urgency_tfidf.joblib").exists()
+		)
+		if not fallback_available:
+			raise FileNotFoundError(
+				f"Transformer urgency backend selected but {unavailable_reason}, and no "
+				f"TF-IDF fallback exists in {MODEL_DIR}. " + TRAIN_COMMAND_HINT
+			)
+		print(
+			f"[Stage03] WARNING: transformer urgency backend selected but "
+			f"{unavailable_reason}. Falling back to the TF-IDF classifier, which "
+			f"scores lower (see urgency_model_meta.json for both candidates). "
+			f"Retrain to restore the selected model."
+		)
+		artifacts["urgency_backend_requested"] = "transformer"
+		artifacts["urgency_backend_fallback_reason"] = unavailable_reason
+
+	artifacts["urgency_backend"] = "tfidf"
+	artifacts["urgency_model"] = joblib.load(MODEL_DIR / "urgency_classifier.joblib")
+	artifacts["urgency_vectorizer"] = joblib.load(MODEL_DIR / "urgency_tfidf.joblib")
+
+
 def _get_artifacts() -> dict[str, Any]:
-	"""Lazy load model artifacts for fast inference."""
+	"""Load model artifacts once for inference. NEVER trains.
+
+	This previously called train_models() when an artifact was missing or failed
+	to unpickle. Because the Flask adapter calls into here, a single HTTP request
+	could kick off a full 63k-record training run plus a DistilBERT fine-tune
+	inside the request handler -- and when that run failed part-way it truncated
+	the deployed NER model to 2 bytes. Missing artifacts are now a loud, fast
+	error telling the operator to run training explicitly.
+	"""
 	global _LOADED_ARTIFACTS
-	if not _LOADED_ARTIFACTS:
-		urg_model_path = MODEL_DIR / "urgency_classifier.joblib"
-		haz_model_path = MODEL_DIR / "hazard_classifier.joblib"
-		urg_vec_path = MODEL_DIR / "urgency_tfidf.joblib"
-		haz_vec_path = MODEL_DIR / "hazard_tfidf.joblib"
-		ner_model_path = MODEL_DIR / "ner_model.joblib"
+	if _LOADED_ARTIFACTS:
+		return _LOADED_ARTIFACTS
 
-		if not all(p.exists() for p in [urg_model_path, haz_model_path, urg_vec_path, haz_vec_path, ner_model_path]):
-			train_models()
+	required = {
+		"hazard_classifier.joblib": MODEL_DIR / "hazard_classifier.joblib",
+		"hazard_tfidf.joblib": MODEL_DIR / "hazard_tfidf.joblib",
+		"ner_model.joblib": MODEL_DIR / "ner_model.joblib",
+	}
+	missing = [name for name, path in required.items() if not path.exists()]
+	if missing:
+		raise FileNotFoundError(
+			f"Stage 03 model artifacts missing from {MODEL_DIR}: {sorted(missing)}. "
+			+ TRAIN_COMMAND_HINT
+		)
 
-		# Bind TokenLevelNERModel to __main__ and current module for joblib unpickling compatibility
-		import sys
-		setattr(sys.modules["__main__"], "TokenLevelNERModel", TokenLevelNERModel)
-		if __name__ in sys.modules:
-			setattr(sys.modules[__name__], "TokenLevelNERModel", TokenLevelNERModel)
+	meta_path = MODEL_DIR / "urgency_model_meta.json"
+	if meta_path.exists():
+		meta = json.loads(meta_path.read_text(encoding="utf-8"))
+	else:
+		# Artifacts predating the metadata file: fall back to TF-IDF if present.
+		meta = {"selected_backend": "tfidf"}
+	if meta.get("selected_backend") != "transformer":
+		for name in ("urgency_classifier.joblib", "urgency_tfidf.joblib"):
+			if not (MODEL_DIR / name).exists():
+				raise FileNotFoundError(
+					f"Stage 03 urgency artifact missing: {MODEL_DIR / name}. "
+					+ TRAIN_COMMAND_HINT
+				)
 
-		_LOADED_ARTIFACTS["urgency_model"] = joblib.load(urg_model_path)
-		_LOADED_ARTIFACTS["hazard_model"] = joblib.load(haz_model_path)
-		_LOADED_ARTIFACTS["urgency_vectorizer"] = joblib.load(urg_vec_path)
-		_LOADED_ARTIFACTS["hazard_vectorizer"] = joblib.load(haz_vec_path)
-		try:
-			_LOADED_ARTIFACTS["ner_model"] = joblib.load(ner_model_path)
-		except Exception:
-			# Re-train NER if unpickling context differs
-			train_models()
-			_LOADED_ARTIFACTS["ner_model"] = joblib.load(ner_model_path)
+	artifacts: dict[str, Any] = {"urgency_meta": meta}
+	_load_urgency_backend(meta, artifacts)
+
+	artifacts["hazard_model"] = joblib.load(MODEL_DIR / "hazard_classifier.joblib")
+	artifacts["hazard_vectorizer"] = joblib.load(MODEL_DIR / "hazard_tfidf.joblib")
+
+	try:
+		ner_payload = joblib.load(MODEL_DIR / "ner_model.joblib")
+	except Exception as exc:
+		# Artifacts written before the components format embedded a reference to
+		# the loading module's synthetic name and cannot be unpickled here.
+		raise RuntimeError(
+			f"Could not load the NER artifact ({type(exc).__name__}: {exc}). "
+			"This usually means it predates the components serialisation format. "
+			+ TRAIN_COMMAND_HINT
+		) from exc
+	artifacts["ner_model"] = TokenLevelNERModel.from_components(ner_payload)
+
+	_LOADED_ARTIFACTS = artifacts
 	return _LOADED_ARTIFACTS
 
 
@@ -650,9 +1091,7 @@ def extract_entities(text: str) -> dict[str, Any]:
 def analyze_text(text: str) -> dict[str, Any]:
 	"""Run full pipeline prediction on unstructured emergency text."""
 	artifacts = _get_artifacts()
-	urg_model: LogisticRegression = artifacts["urgency_model"]
 	haz_model: LogisticRegression = artifacts["hazard_model"]
-	urg_vec: TfidfVectorizer = artifacts["urgency_vectorizer"]
 	haz_vec: TfidfVectorizer = artifacts["hazard_vectorizer"]
 
 	clean_cls = clean_text_for_classification(text)
@@ -665,21 +1104,33 @@ def analyze_text(text: str) -> dict[str, Any]:
 			"urgency_confidence": 0.0,
 			"hazard_type": None,
 			"hazard_confidence": 0.0,
+			"urgency_backend": artifacts.get("urgency_backend"),
 			"entities": {"location": None, "resource_needed": [], "headcount": None},
 		}
 
-	# Urgency Prediction
-	if TRANSFORMERS_AVAILABLE and "urgency_tokenizer" in artifacts:
+	# Urgency Prediction -- backend chosen at training time, recorded in metadata.
+	#
+	# Both backends receive clean_text_for_classification(text), the exact
+	# transform used to build their training features. The transformer branch
+	# previously received the RAW text while TF-IDF received the cleaned text,
+	# a train/inference skew that would have surfaced the moment the transformer
+	# was actually wired up.
+	backend = artifacts.get("urgency_backend", "tfidf")
+	if backend == "transformer":
 		tokenizer = artifacts["urgency_tokenizer"]
-		urg_model_trans = artifacts["urgency_model"]
-		inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+		transformer_model = artifacts["urgency_model"]
+		inputs = tokenizer(
+			clean_cls, return_tensors="pt", truncation=True, padding=True, max_length=128
+		)
 		with torch.no_grad():
-			logits = urg_model_trans(**inputs).logits
+			logits = transformer_model(**inputs).logits
 			probs = F.softmax(logits, dim=-1)[0]
 		urg_idx = int(torch.argmax(probs))
 		urgency_level = URGENCY_CLASSES[urg_idx]
 		urgency_conf = float(probs[urg_idx])
 	else:
+		urg_model: LogisticRegression = artifacts["urgency_model"]
+		urg_vec: TfidfVectorizer = artifacts["urgency_vectorizer"]
 		urg_vec_feat = urg_vec.transform([clean_cls])
 		urg_probs = urg_model.predict_proba(urg_vec_feat)[0]
 		urg_idx = int(np.argmax(urg_probs))
@@ -702,6 +1153,7 @@ def analyze_text(text: str) -> dict[str, Any]:
 		"urgency_confidence": round(urgency_conf, 4),
 		"hazard_type": hazard_type,
 		"hazard_confidence": round(hazard_conf, 4),
+		"urgency_backend": backend,
 		"entities": entities,
 	}
 
@@ -755,4 +1207,25 @@ def _log_misinterpretation_audit(batch_results: list[dict[str, Any]]) -> None:
 
 
 if __name__ == "__main__":
-	train_models()
+	import argparse
+
+	parser = argparse.ArgumentParser(description="Train the Stage 03 NLP models")
+	parser.add_argument(
+		"--transformer-train-cap", type=int, default=8000,
+		help="Maximum rows used to fine-tune the DistilBERT urgency candidate",
+	)
+	parser.add_argument(
+		"--transformer-epochs", type=int, default=2,
+		help="Fine-tuning epochs for the DistilBERT urgency candidate",
+	)
+	parser.add_argument(
+		"--skip-transformer", action="store_true",
+		help="Benchmark only the TF-IDF urgency candidate (much faster on CPU)",
+	)
+	cli_args = parser.parse_args()
+
+	train_models(
+		transformer_train_cap=cli_args.transformer_train_cap,
+		transformer_epochs=cli_args.transformer_epochs,
+		skip_transformer=cli_args.skip_transformer,
+	)

@@ -1,0 +1,30 @@
+{
+  "selected_backend": "transformer",
+  "selected_model": "distilbert",
+  "selected_on": "validation macro F1",
+  "classes": [
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+  ],
+  "candidates": {
+    "tfidf_logreg": {
+      "name": "tfidf_logreg",
+      "val_macro_f1": 0.6646648303817475,
+      "val_accuracy": 0.6607179487179488,
+      "test_macro_f1": 0.6616168157596506,
+      "test_accuracy": 0.6575384615384615
+    },
+    "distilbert": {
+      "name": "distilbert",
+      "train_samples_used": 8000,
+      "epochs": 2,
+      "val_macro_f1": 0.733330882574377,
+      "val_accuracy": 0.726,
+      "test_macro_f1": 0.7224007937084145,
+      "test_accuracy": 0.7177435897435898
+    }
+  },
+  "ner_artifact_format": "token_level_ner_components_v1"
+}

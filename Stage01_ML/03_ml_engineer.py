@@ -553,6 +553,113 @@ print(f"Saved Validation Confusion Matrix Plot: {cm_plot_path}")
 
 
 # ============================================================
+# 8.5. PROBABILITY CALIBRATION AUDIT
+# ============================================================
+"""
+WHAT THIS DOES:
+  Measures whether the reported confidence is a trustworthy probability:
+    - Brier score (one-vs-rest) per class and averaged.
+    - A 10-bin reliability curve comparing predicted confidence against observed accuracy.
+
+WHY WE NEED IT:
+  The dashboard shows the model's confidence to an emergency responder. Gradient-boosted
+  softmax outputs are routinely overconfident - this model returns values like 0.9999999.
+  An uncalibrated 99.99% is not a 99.99% chance of being right, and presenting it as one
+  misleads the operator.
+
+WHAT HAPPENS WITHOUT IT:
+  Confidence is reported with no evidence it means anything.
+
+HOW TO EXPLAIN IT IN A TEAM DISCUSSION:
+  "We report Brier scores and a reliability curve so the confidence number is auditable,
+  and we flag that the model is overconfident in its top bin."
+"""
+
+print("\n[STEP 7b] Auditing Probability Calibration (Brier score + reliability curve)...")
+
+brier_per_class = {}
+for class_index, class_name in enumerate(expected_labels):
+    binary_truth = (y_val.to_numpy() == class_index).astype(int)
+    brier_per_class[class_name] = float(brier_score_loss(binary_truth, val_probs[:, class_index]))
+
+mean_brier = float(np.mean(list(brier_per_class.values())))
+print("Brier score (one-vs-rest, lower is better):")
+for class_name, score in brier_per_class.items():
+    print(f"  {class_name:9}: {score:.4f}")
+print(f"  {'MEAN':9}: {mean_brier:.4f}")
+
+# Reliability curve on the model's own confidence (max predicted probability)
+val_confidence = np.max(val_probs, axis=1)
+val_correct = (val_preds == y_val.to_numpy()).astype(int)
+
+bin_edges = np.linspace(0.0, 1.0, 11)
+bin_indices = np.digitize(val_confidence, bin_edges[1:-1], right=False)
+
+reliability_bins = []
+calibration_gap_total = 0.0
+for bin_index in range(10):
+    mask = bin_indices == bin_index
+    count = int(mask.sum())
+    if count == 0:
+        continue
+    mean_conf = float(val_confidence[mask].mean())
+    observed_acc = float(val_correct[mask].mean())
+    calibration_gap_total += abs(mean_conf - observed_acc) * count
+    reliability_bins.append({
+        "bin_lower": float(bin_edges[bin_index]),
+        "bin_upper": float(bin_edges[bin_index + 1]),
+        "samples": count,
+        "mean_confidence": mean_conf,
+        "observed_accuracy": observed_acc,
+        "gap": float(mean_conf - observed_acc),
+    })
+
+expected_calibration_error = float(calibration_gap_total / max(len(val_confidence), 1))
+print(f"\nExpected Calibration Error (ECE): {expected_calibration_error:.4f}")
+print("Reliability curve (confidence bin -> observed accuracy):")
+for entry in reliability_bins:
+    print(
+        f"  [{entry['bin_lower']:.1f}-{entry['bin_upper']:.1f}) "
+        f"n={entry['samples']:5d}  conf={entry['mean_confidence']:.4f}  "
+        f"acc={entry['observed_accuracy']:.4f}  gap={entry['gap']:+.4f}"
+    )
+
+calibration_report = {
+    "brier_per_class": brier_per_class,
+    "brier_mean": mean_brier,
+    "expected_calibration_error": expected_calibration_error,
+    "reliability_bins": reliability_bins,
+    "note": (
+        "Confidence is the max softmax probability of the selected model and is NOT "
+        "calibrated. Positive gap means the model is overconfident in that bin. Treat "
+        "the displayed confidence as a ranking signal, not as a probability of being correct."
+    ),
+}
+
+calibration_path = OUTPUT_DIR / "calibration_report.json"
+with open(calibration_path, "w") as f:
+    json.dump(calibration_report, f, indent=4)
+print(f"Saved Calibration Report: {calibration_path}")
+
+figure, axis = plt.subplots(figsize=(6, 5))
+if reliability_bins:
+    axis.plot(
+        [entry["mean_confidence"] for entry in reliability_bins],
+        [entry["observed_accuracy"] for entry in reliability_bins],
+        marker="o", label="model",
+    )
+axis.plot([0, 1], [0, 1], linestyle="--", color="grey", label="perfectly calibrated")
+axis.set_xlabel("Mean predicted confidence")
+axis.set_ylabel("Observed accuracy")
+axis.set_title(f"Reliability Curve - {best_model_name} (ECE={expected_calibration_error:.4f})")
+axis.legend()
+figure.tight_layout()
+figure.savefig(OUTPUT_DIR / "calibration_reliability_curve.png", dpi=150, bbox_inches="tight")
+plt.close(figure)
+print(f"Saved Reliability Curve Plot: {OUTPUT_DIR / 'calibration_reliability_curve.png'}")
+
+
+# ============================================================
 # 9. DEFENSIBLE FEATURE IMPORTANCE LEADERBOARD
 # ============================================================
 """
@@ -727,8 +834,11 @@ metrics_summary = {
         "severe_recall": float(val_class_report["Severe"]["recall"]),
         "severe_precision": float(val_class_report["Severe"]["precision"]),
         "severe_f1": float(val_class_report["Severe"]["f1-score"]),
-        "log_loss": float(log_loss(y_val, val_probs))
+        "log_loss": float(log_loss(y_val, val_probs)),
+        "brier_mean": mean_brier,
+        "expected_calibration_error": expected_calibration_error
     },
+    "calibration": calibration_report,
     "candidate_benchmarks": {
         k: {
             "accuracy": v["accuracy"],

@@ -1,6 +1,6 @@
 {
     "model_selected": "XGBoost",
-    "dataset_used": "C:\\Users\\asus\\DISASTER_RESPONSE_COORDINATION\\DISASTER_RESPONSE_COORDINATION\\Stage01_ML\\data\\outputs\\pattern\\eda_checked_dataset.csv",
+    "dataset_used": "C:\\Users\\asus\\DISASTER_RESPONSE_COORDINATION\\Stage01_ML\\data\\outputs\\pattern\\eda_checked_dataset.csv",
     "split_strategy": "Chronological 70/15/15 Train/Validation/Held-out Test Split",
     "train_samples": 7000,
     "validation_samples": 1500,
@@ -16,7 +16,61 @@
         "severe_recall": 0.9840425531914894,
         "severe_precision": 0.9728308501314636,
         "severe_f1": 0.9784045835169678,
-        "log_loss": 0.09982645511627197
+        "log_loss": 0.09982645361379369,
+        "brier_mean": 0.01973021028782237,
+        "expected_calibration_error": 0.01740079514185588
+    },
+    "calibration": {
+        "brier_per_class": {
+            "Low": 0.008282938268079583,
+            "Moderate": 0.02962803064664311,
+            "Severe": 0.02127966194874442
+        },
+        "brier_mean": 0.01973021028782237,
+        "expected_calibration_error": 0.01740079514185588,
+        "reliability_bins": [
+            {
+                "bin_lower": 0.5,
+                "bin_upper": 0.6000000000000001,
+                "samples": 25,
+                "mean_confidence": 0.556162416934967,
+                "observed_accuracy": 0.4,
+                "gap": 0.15616241693496702
+            },
+            {
+                "bin_lower": 0.6000000000000001,
+                "bin_upper": 0.7000000000000001,
+                "samples": 23,
+                "mean_confidence": 0.6597557663917542,
+                "observed_accuracy": 0.43478260869565216,
+                "gap": 0.224973157696102
+            },
+            {
+                "bin_lower": 0.7000000000000001,
+                "bin_upper": 0.8,
+                "samples": 25,
+                "mean_confidence": 0.752726674079895,
+                "observed_accuracy": 0.72,
+                "gap": 0.032726674079895046
+            },
+            {
+                "bin_lower": 0.8,
+                "bin_upper": 0.9,
+                "samples": 47,
+                "mean_confidence": 0.8478530645370483,
+                "observed_accuracy": 0.7021276595744681,
+                "gap": 0.14572540496258024
+            },
+            {
+                "bin_lower": 0.9,
+                "bin_upper": 1.0,
+                "samples": 1380,
+                "mean_confidence": 0.995185136795044,
+                "observed_accuracy": 0.9884057971014493,
+                "gap": 0.006779339693594677
+            }
+        ],
+        "note": "Confidence is the max softmax probability of the selected model and is NOT calibrated. Positive gap means the model is overconfident in that bin. Treat the displayed confidence as a ranking signal, not as a probability of being correct."
     },
     "candidate_benchmarks": {
         "Logistic_Regression": {
@@ -24,21 +78,21 @@
             "macro_f1": 0.9113883070478107,
             "severe_recall": 0.9787234042553191,
             "severe_precision": 0.9936993699369937,
-            "log_loss": 0.07762818827464874
+            "log_loss": 0.0776281882749238
         },
         "Random_Forest": {
-            "accuracy": 0.9146666666666666,
-            "macro_f1": 0.7068233572852879,
-            "severe_recall": 0.924645390070922,
-            "severe_precision": 0.9821092278719398,
-            "log_loss": 0.20455829950509935
+            "accuracy": 0.9353333333333333,
+            "macro_f1": 0.6730859173138715,
+            "severe_recall": 0.9698581560283688,
+            "severe_precision": 0.9672855879752431,
+            "log_loss": 0.1882517904863523
         },
         "XGBoost": {
             "accuracy": 0.9566666666666667,
             "macro_f1": 0.8452293285371804,
             "severe_recall": 0.9840425531914894,
             "severe_precision": 0.9728308501314636,
-            "log_loss": 0.09982645511627197
+            "log_loss": 0.09982645361379369
         },
         "LightGBM": {
             "accuracy": 0.962,
@@ -48,11 +102,11 @@
             "log_loss": 0.08980236712354414
         },
         "Stacking_Ensemble": {
-            "accuracy": 0.9526666666666667,
-            "macro_f1": 0.8395737133538045,
-            "severe_recall": 0.9707446808510638,
-            "severe_precision": 0.9909502262443439,
-            "log_loss": 0.13536294273574342
+            "accuracy": 0.956,
+            "macro_f1": 0.8564989172394313,
+            "severe_recall": 0.9725177304964538,
+            "severe_precision": 0.990072202166065,
+            "log_loss": 0.13525439038121187
         }
     }
 }

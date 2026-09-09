@@ -1,3 +1,5 @@
 id,text,type,true_urgency,pred_urgency,confidence,error_category
-edge_03,pls hlp!!! flood water everywhere near main rd,Noisy communication,HIGH,MEDIUM,0.353,Severity Underestimation
-edge_06,Road is blocked but vehicles are passing through.,Contradicting information,LOW,CRITICAL,0.2704,False Positive (Overreaction)
+edge_03,pls hlp!!! flood water everywhere near main rd,Noisy communication,HIGH,MEDIUM,0.4138,Severity Underestimation
+edge_04,2 ppl trapped in flud water,Spelling errors,CRITICAL,MEDIUM,0.4726,Severity Underestimation
+edge_07,"If flooding happens, people may need rescue near the river bank.",Hypothetical,LOW,HIGH,0.3759,False Positive (Overreaction)
+edge_08,Someone said 5 people are trapped near the old temple.,Rumour/Ambiguous,HIGH,MEDIUM,0.4225,Severity Underestimation

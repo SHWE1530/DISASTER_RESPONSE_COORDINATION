@@ -1,0 +1,52 @@
+{
+    "brier_per_class": {
+        "Low": 0.008282938268079583,
+        "Moderate": 0.02962803064664311,
+        "Severe": 0.02127966194874442
+    },
+    "brier_mean": 0.01973021028782237,
+    "expected_calibration_error": 0.01740079514185588,
+    "reliability_bins": [
+        {
+            "bin_lower": 0.5,
+            "bin_upper": 0.6000000000000001,
+            "samples": 25,
+            "mean_confidence": 0.556162416934967,
+            "observed_accuracy": 0.4,
+            "gap": 0.15616241693496702
+        },
+        {
+            "bin_lower": 0.6000000000000001,
+            "bin_upper": 0.7000000000000001,
+            "samples": 23,
+            "mean_confidence": 0.6597557663917542,
+            "observed_accuracy": 0.43478260869565216,
+            "gap": 0.224973157696102
+        },
+        {
+            "bin_lower": 0.7000000000000001,
+            "bin_upper": 0.8,
+            "samples": 25,
+            "mean_confidence": 0.752726674079895,
+            "observed_accuracy": 0.72,
+            "gap": 0.032726674079895046
+        },
+        {
+            "bin_lower": 0.8,
+            "bin_upper": 0.9,
+            "samples": 47,
+            "mean_confidence": 0.8478530645370483,
+            "observed_accuracy": 0.7021276595744681,
+            "gap": 0.14572540496258024
+        },
+        {
+            "bin_lower": 0.9,
+            "bin_upper": 1.0,
+            "samples": 1380,
+            "mean_confidence": 0.995185136795044,
+            "observed_accuracy": 0.9884057971014493,
+            "gap": 0.006779339693594677
+        }
+    ],
+    "note": "Confidence is the max softmax probability of the selected model and is NOT calibrated. Positive gap means the model is overconfident in that bin. Treat the displayed confidence as a ranking signal, not as a probability of being correct."
+}

@@ -1,63 +1,66 @@
 {
   "cnn": {
-    "accuracy": 0.8933333333333333,
-    "precision_macro": 0.8442928039702233,
-    "recall_macro": 0.8083333333333333,
-    "f1_macro": 0.8243559718969555,
+    "accuracy": 0.96,
+    "precision_macro": 0.9290254237288136,
+    "recall_macro": 0.95,
+    "f1_macro": 0.9390078612089997,
     "class_distribution": {
       "1": 60,
       "0": 15
     },
     "classification_report": {
       "0": {
-        "precision": 0.7692307692307693,
-        "recall": 0.6666666666666666,
-        "f1-score": 0.7142857142857143,
+        "precision": 0.875,
+        "recall": 0.9333333333333333,
+        "f1-score": 0.9032258064516129,
         "support": 15.0
       },
       "1": {
-        "precision": 0.9193548387096774,
-        "recall": 0.95,
-        "f1-score": 0.9344262295081968,
+        "precision": 0.9830508474576272,
+        "recall": 0.9666666666666667,
+        "f1-score": 0.9747899159663865,
         "support": 60.0
       },
-      "accuracy": 0.8933333333333333,
+      "accuracy": 0.96,
       "macro avg": {
-        "precision": 0.8442928039702233,
-        "recall": 0.8083333333333333,
-        "f1-score": 0.8243559718969555,
+        "precision": 0.9290254237288136,
+        "recall": 0.95,
+        "f1-score": 0.9390078612089997,
         "support": 75.0
       },
       "weighted avg": {
-        "precision": 0.8893300248138957,
-        "recall": 0.8933333333333333,
-        "f1-score": 0.8903981264637002,
+        "precision": 0.9614406779661018,
+        "recall": 0.96,
+        "f1-score": 0.9604770940634318,
         "support": 75.0
       }
     },
-    "best_threshold": 0.7500000000000002,
-    "best_f1_macro": 0.8243559718969555,
-    "roc_auc_flooded": 0.8744444444444445,
-    "pr_auc_flooded": 0.7990159296041649,
+    "decision_threshold": 0.5000000000000001,
+    "decision_threshold_source": "validation-tuned, read from checkpoint",
+    "f1_macro_at_threshold": 0.9390078612089997,
+    "test_set_size": 75,
+    "flooded_test_positives": 15,
+    "roc_auc_flooded": 0.9855555555555555,
+    "pr_auc_flooded": 0.9577777777777776,
     "classes": [
       "flooded",
       "unflooded"
     ],
     "test_samples": 75,
-    "inference_seconds": 1.6005604000529274,
-    "average_latency_ms": 21.340805334039032,
-    "throughput_samples_per_second": 46.85858777808066,
-    "model_size_mb": 0.3606,
+    "inference_seconds": 2.6062505999980203,
+    "average_latency_ms": 34.750007999973604,
+    "throughput_samples_per_second": 28.776971792373676,
+    "model_size_mb": 42.7154,
     "training_history_available": false
   },
   "lstm": {
-    "mae": 0.2306401569730211,
-    "mse": 0.5026222906987584,
-    "rmse": 0.7089585958987721,
+    "mae": 0.22842614496078073,
+    "mse": 0.4997319597639802,
+    "rmse": 0.706917222709972,
     "test_samples": 1314,
-    "inference_seconds": 0.4657543000066653,
-    "average_latency_ms": 0.3544553272501258,
-    "throughput_samples_per_second": 2821.2299918244357,
+    "inference_seconds": 0.22565140000006068,
+    "average_latency_ms": 0.17172861491633232,
+    "throughput_samples_per_second": 5823.141358749144,
     "model_size_mb": 0.1997,
     "lookback": 72,
     "dataset": "data/Engineered_History_Trend_Dataset.csv",
@@ -66,7 +69,7 @@
   },
   "robustness": {
     "perturbation": "Gaussian noise, scaled-space standard deviation 0.05",
-    "mae": 0.23093961419880535,
-    "rmse": 0.7108557360411463
+    "mae": 0.22842344439842716,
+    "rmse": 0.7083544148126487
   }
 }

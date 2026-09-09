@@ -2,9 +2,13 @@
 
 This module uses only data under ``Stage02_DL/data/raw``:
 
-* ``01_SATELLITE_FLOOD_DATASET`` or ``data/images`` trains a binary flooded/unflooded CNN.
-* ``03_RIVER_WATER_LEVEL_DATASET`` trains a chronological LSTM forecaster.
-* ``04_MASTER_DATASET/Master_Dataset.csv`` trains the labelled zone-risk model.
+* ``data/images`` trains a binary flooded/unflooded CNN (ResNet18 transfer learning).
+* ``data/Engineered_History_Trend_Dataset.csv`` trains a chronological water-level LSTM.
+
+A third model (a logistic-regression zone-risk classifier over Master_Dataset.csv)
+was removed: it duplicated the Stage 01 ML task on the same labels, was never
+called by the dashboard or by any other stage, and existed only as dead weight.
+Zone-risk classification lives in Stage 01.
 
 Run from the repository root with::
 
@@ -14,10 +18,9 @@ Run from the repository root with::
 from __future__ import annotations
 
 import json
-import os
 import random
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 import joblib
 import matplotlib
@@ -28,8 +31,6 @@ import pandas as pd
 import seaborn as sns
 import torch
 from PIL import Image
-from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
 	accuracy_score,
 	average_precision_score,
@@ -43,8 +44,7 @@ from sklearn.metrics import (
 	roc_auc_score,
 )
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, Subset, WeightedRandomSampler
 from torchvision import datasets as vision_datasets
@@ -233,6 +233,34 @@ def train_cnn() -> dict:
 	train_targets = np.asarray(base_dataset.targets)[train_indices]
 	val_targets = np.asarray(base_dataset.targets)[val_indices]
 	test_targets = np.asarray(base_dataset.targets)[test_indices]
+
+	# Persist the split by FILE PATH, not just by index.
+	# ImageFolder orders samples by the filesystem, so re-deriving the split from
+	# a seed on another machine can silently produce a different "held-out" set.
+	# The evaluation engineer replays this manifest instead of re-splitting.
+	split_manifest = {
+		"seed": RANDOM_STATE,
+		"strategy": "stratified 70/15/15 via train_test_split on ImageFolder order",
+		"classes": labels,
+		"counts": {
+			"train": int(len(train_indices)),
+			"val": int(len(val_indices)),
+			"test": int(len(test_indices)),
+		},
+		"splits": {
+			name: [
+				str(Path(base_dataset.samples[index][0]).relative_to(BASE_DIR)).replace("\\", "/")
+				for index in split_indices
+			]
+			for name, split_indices in (
+				("train", train_indices), ("val", val_indices), ("test", test_indices)
+			)
+		},
+	}
+	(OUTPUT_DIR / "cnn_split_manifest.json").write_text(
+		json.dumps(split_manifest, indent=2), encoding="utf-8"
+	)
+	print(f"  Split manifest saved: {OUTPUT_DIR / 'cnn_split_manifest.json'}")
 	
 	class_counts = np.bincount(train_targets, minlength=len(labels)).astype(np.float32)
 	print(f"\n[CNN DATA DISTRIBUTION]")
@@ -348,7 +376,7 @@ def train_cnn() -> dict:
 		val_loss, val_true, val_prob = run_cnn_epoch(model, loaders["val"], None, None)
 		best_thresh = 0.5
 		best_val_flooded_f1 = -1.0
-		
+
 		# Grid search threshold on validation set
 		for t in np.arange(0.15, 0.85, 0.05):
 			t_preds = [flooded_idx if p >= t else unflooded_idx for p in val_prob]
@@ -358,6 +386,21 @@ def train_cnn() -> dict:
 			if f_f1 > best_val_flooded_f1:
 				best_val_flooded_f1 = f_f1
 				best_thresh = float(t)
+
+		# VALIDATION metrics at the selected threshold. Architecture selection is
+		# driven exclusively by these: an earlier revision computed the selection
+		# score from held-out TEST metrics, which leaks the test set into the
+		# model-choice decision and invalidates it as an independent estimate.
+		val_eval_thresh = 0.5 if cfg["use_double_sampler"] else best_thresh
+		val_preds_at_thresh = [flooded_idx if p >= val_eval_thresh else unflooded_idx for p in val_prob]
+		val_flooded_rec = recall_score(val_true, val_preds_at_thresh, pos_label=flooded_idx, zero_division=0)
+		val_flooded_f1 = f1_score(val_true, val_preds_at_thresh, pos_label=flooded_idx, zero_division=0)
+		binary_val_true = (np.array(val_true) == flooded_idx).astype(int)
+		val_pr_auc = (
+			float(average_precision_score(binary_val_true, np.array(val_prob)))
+			if len(np.unique(binary_val_true)) == 2
+			else 0.0
+		)
 
 		# Evaluate on HELD-OUT TEST SET
 		test_loss, test_true, test_prob = run_cnn_epoch(model, loaders["test"], None, None)
@@ -388,6 +431,9 @@ def train_cnn() -> dict:
 
 		exp_results[exp_name] = {
 			"threshold": float(eval_thresh),
+			"validation_flooded_recall": float(val_flooded_rec),
+			"validation_flooded_f1": float(val_flooded_f1),
+			"validation_pr_auc": float(val_pr_auc),
 			"accuracy": float(acc),
 			"macro_precision": float(macro_prec),
 			"macro_recall": float(macro_rec),
@@ -402,13 +448,15 @@ def train_cnn() -> dict:
 
 		print(f"\n--- Experiment: {exp_name} ---")
 		print(f"  Decision Threshold: {eval_thresh:.2f}")
-		print(f"  Accuracy          : {acc:.4f}  |  Macro F1: {macro_f1:.4f}")
-		print(f"  FLOODED Recall    : {flooded_rec:.4f}  |  FLOODED Precision: {flooded_prec:.4f}  |  FLOODED F1: {flooded_f1:.4f}")
-		print(f"  ROC-AUC           : {roc_auc:.4f}  |  PR-AUC   : {pr_auc:.4f}")
-		print(f"  Confusion Matrix  : TP(Flooded)={cm[0,0]}, FN={cm[0,1]}, FP={cm[1,0]}, TN(Unflooded)={cm[1,1]}")
+		print(f"  [VAL ] FLOODED Recall: {val_flooded_rec:.4f}  |  FLOODED F1: {val_flooded_f1:.4f}  |  PR-AUC: {val_pr_auc:.4f}   <- drives selection")
+		print(f"  [TEST] Accuracy      : {acc:.4f}  |  Macro F1: {macro_f1:.4f}")
+		print(f"  [TEST] FLOODED Recall: {flooded_rec:.4f}  |  FLOODED Precision: {flooded_prec:.4f}  |  FLOODED F1: {flooded_f1:.4f}")
+		print(f"  [TEST] ROC-AUC       : {roc_auc:.4f}  |  PR-AUC   : {pr_auc:.4f}")
+		print(f"  [TEST] Confusion     : TP(Flooded)={cm[0,0]}, FN={cm[0,1]}, FP={cm[1,0]}, TN(Unflooded)={cm[1,1]}")
 
-		# Selection score: Primary Flooded Recall, Secondary Flooded F1 & PR-AUC
-		selection_score = (flooded_rec * 0.5) + (flooded_f1 * 0.3) + (pr_auc * 0.2)
+		# Selection score computed on VALIDATION only.
+		# Primary Flooded Recall, Secondary Flooded F1 & PR-AUC.
+		selection_score = (val_flooded_rec * 0.5) + (val_flooded_f1 * 0.3) + (val_pr_auc * 0.2)
 		if selection_score > best_overall_score:
 			best_overall_score = selection_score
 			best_exp_name = exp_name
@@ -539,15 +587,16 @@ class WaterLevelLSTM(nn.Module):
 		self.output = nn.Linear(hidden_size, 1)
 
 	def forward(self, inputs):
+		# This used to silently rebuild self.lstm on a feature-count mismatch,
+		# which discards every trained weight and returns the output of a freshly
+		# initialised random network. A forecast produced that way is
+		# indistinguishable from a real one at the call site. Fail loudly instead.
 		if inputs.size(-1) != self.input_size:
-			self.input_size = inputs.size(-1)
-			self.lstm = nn.LSTM(
-				input_size=self.input_size,
-				hidden_size=self.hidden_size,
-				num_layers=self.num_layers,
-				batch_first=True,
-				dropout=self.dropout if self.num_layers > 1 else 0.0,
-			).to(inputs.device)
+			raise ValueError(
+				f"WaterLevelLSTM expects {self.input_size} features per timestep, "
+				f"received {inputs.size(-1)}. Rebuild the model with the correct "
+				"input_size instead of feeding a mismatched tensor."
+			)
 		outputs, _ = self.lstm(inputs)
 		return self.output(outputs[:, -1, :]).squeeze(-1)
 
@@ -560,6 +609,67 @@ def make_sequences(features: np.ndarray, lookback: int) -> tuple[np.ndarray, np.
 	sequences = np.asarray([features[index:index + lookback] for index in range(len(features) - lookback)])
 	targets = features[lookback:, 0]
 	return sequences, targets
+
+
+def evaluate_recursive_forecast(
+	series: pd.DataFrame,
+	scaler: StandardScaler,
+	model: nn.Module,
+	horizons: tuple[int, ...] = (1, 3, 6),
+	max_origins: int = 250,
+) -> dict:
+	"""Measure error at each step of the recursive forecast the API actually serves.
+
+	Rolls the model forward step by step from origins inside the chronological
+	test partition, exactly as forecast_water_levels() does at inference, and
+	compares each horizon against the observed series.
+	"""
+	feature_cols = ["water_level", "rolling_mean_6h", "rolling_std_6h", "diff_t_1"]
+	values = series[feature_cols].to_numpy(dtype=np.float32)
+	levels = series["water_level"].to_numpy(dtype=np.float64)
+	val_end = int(len(values) * 0.85)
+	max_horizon = max(horizons)
+
+	origins = [
+		origin for origin in range(val_end, len(levels) - max_horizon)
+		if origin >= LOOKBACK
+	]
+	if not origins:
+		return {}
+	# Evenly sample origins so this stays fast without biasing toward one period.
+	if len(origins) > max_origins:
+		step = len(origins) / max_origins
+		origins = [origins[int(index * step)] for index in range(max_origins)]
+
+	errors: dict[int, list[float]] = {horizon: [] for horizon in horizons}
+	model.eval()
+	with torch.no_grad():
+		for origin in origins:
+			window = list(levels[origin - LOOKBACK:origin])
+			for step in range(1, max_horizon + 1):
+				feats = make_features_for_inference(window[-LOOKBACK:])
+				scaled = scaler.transform(feats)[None, :, :]
+				scaled_prediction = model(
+					torch.tensor(scaled, dtype=torch.float32).to(DEVICE)
+				).cpu().item()
+				dummy = np.zeros((1, len(feature_cols)))
+				dummy[0, 0] = scaled_prediction
+				prediction = float(scaler.inverse_transform(dummy)[0, 0])
+				window.append(prediction)
+				if step in errors:
+					errors[step].append(prediction - levels[origin + step - 1])
+
+	results = {}
+	for horizon in horizons:
+		residuals = np.asarray(errors[horizon], dtype=np.float64)
+		if residuals.size == 0:
+			continue
+		results[f"step_{horizon}"] = {
+			"mae": float(np.mean(np.abs(residuals))),
+			"rmse": float(np.sqrt(np.mean(residuals ** 2))),
+			"samples": int(residuals.size),
+		}
+	return results
 
 
 def train_lstm() -> dict:
@@ -647,6 +757,51 @@ def train_lstm() -> dict:
 		"dataset": str(ENGINEERED_HISTORY_PATH.relative_to(BASE_DIR)).replace("\\", "/"),
 	}
 	
+	# Multi-step recursive forecast evaluation.
+	#
+	# The API and the dashboard chart both serve a 6-step recursive forecast, but
+	# only 1-step MAE was ever measured. Recursive forecasting feeds each
+	# prediction back in as input, so error compounds -- the honest thing is to
+	# report the horizon actually served.
+	multi_step_metrics = evaluate_recursive_forecast(series, scaler, model, horizons=(1, 3, 6))
+	metrics["recursive_forecast"] = multi_step_metrics
+	print("\n  Recursive multi-step forecast error (test partition):")
+	for horizon_key, horizon_metrics in multi_step_metrics.items():
+		print(
+			f"    {horizon_key:>9}: MAE={horizon_metrics['mae']:.4f}  "
+			f"RMSE={horizon_metrics['rmse']:.4f}  (n={horizon_metrics['samples']})"
+		)
+
+	metrics["training_distribution"] = {
+		"water_level_mean_m": float(scaler.mean_[0]),
+		"water_level_std_m": float(scaler.scale_[0]),
+		"water_level_min_m": float(series["water_level"].min()),
+		"water_level_max_m": float(series["water_level"].max()),
+		"note": (
+			"Inputs beyond +/-4 sigma of the training mean are extrapolation. "
+			"forecast_water_levels() flags them via water_level_distribution_check()."
+		),
+	}
+
+	split_manifest = {
+		"seed": RANDOM_STATE,
+		"strategy": "chronological 70/15/15, no shuffling",
+		"lookback": LOOKBACK,
+		"series_rows": int(len(values)),
+		"train_rows": int(train_end),
+		"val_rows": int(val_end - train_end),
+		"test_rows": int(len(values) - val_end),
+		"train_end_index": int(train_end),
+		"val_end_index": int(val_end),
+		"first_timestamp": str(series["timestamp"].iloc[0]),
+		"train_end_timestamp": str(series["timestamp"].iloc[train_end - 1]),
+		"val_end_timestamp": str(series["timestamp"].iloc[val_end - 1]),
+		"last_timestamp": str(series["timestamp"].iloc[-1]),
+	}
+	(OUTPUT_DIR / "lstm_split_manifest.json").write_text(
+		json.dumps(split_manifest, indent=2), encoding="utf-8"
+	)
+
 	torch.save({"state_dict": model.state_dict(), "lookback": LOOKBACK, "input_size": 4}, MODEL_DIR / "water_level_lstm.pt")
 	joblib.dump(scaler, MODEL_DIR / "water_level_scaler.joblib")
 	
@@ -661,59 +816,66 @@ def train_lstm() -> dict:
 	return metrics
 
 
-def train_severity_model() -> dict:
-	"""Train the labelled three-class zone-risk model from the master dataset."""
-	path = RAW_DIR / "04_MASTER_DATASET" / "Master_Dataset.csv"
-	df = pd.read_csv(path)
-	target = "zone_risk"
-	if target not in df or df[target].isna().any():
-		raise ValueError("Master dataset must contain complete zone_risk labels")
-	df["timestamp"] = pd.to_datetime(df["timestamp"], dayfirst=True, errors="coerce")
-	df["hour"] = df["timestamp"].dt.hour
-	df["month"] = df["timestamp"].dt.month
-	df["river_level_margin_m"] = df["river_level_m"] - df["river_level_threshold_m"]
-	df = df.drop(columns=["timestamp"])
-	features = [column for column in df.columns if column != target]
-	categorical = [column for column in ["state", "district"] if column in features]
-	numeric = [column for column in features if column not in categorical]
-	preprocessor = ColumnTransformer([
-		("numeric", StandardScaler(), numeric),
-		("categorical", OneHotEncoder(handle_unknown="ignore"), categorical),
-	])
-	pipeline = Pipeline([
-		("preprocessor", preprocessor),
-		("classifier", LogisticRegression(max_iter=1000, class_weight="balanced")),
-	])
-	ordered = df.reset_index(drop=True)
-	train_end, val_end = int(len(ordered) * 0.70), int(len(ordered) * 0.85)
-	pipeline.fit(ordered.loc[:train_end - 1, features], ordered.loc[:train_end - 1, target])
-	val_pred = pipeline.predict(ordered.loc[train_end:val_end - 1, features])
-	test_pred = pipeline.predict(ordered.loc[val_end:, features])
-	labels = sorted(ordered[target].unique().tolist())
-	metrics = classification_metrics(ordered.loc[val_end:, target], test_pred, labels)
-	metrics["validation"] = classification_metrics(ordered.loc[train_end:val_end - 1, target], val_pred, labels)
-	joblib.dump(pipeline, MODEL_DIR / "severity_model.joblib")
-	save_confusion_matrix(ordered.loc[val_end:, target], test_pred, labels, OUTPUT_DIR / "severity_confusion_matrix.png", "Zone-risk test confusion matrix")
-	return metrics
+_CNN_CACHE: dict[str, Any] = {}
+_LSTM_CACHE: dict[str, Any] = {}
+
+
+def _load_cnn_bundle() -> dict:
+	"""Load the CNN checkpoint once and reuse it across requests.
+
+	predict_image() previously re-read the 44 MB checkpoint and rebuilt ResNet18
+	on every single call (~230-450 ms per request).
+	"""
+	if not _CNN_CACHE:
+		# weights_only=True: torch.load unpickles arbitrary objects by default,
+		# which makes loading a checkpoint equivalent to executing it.
+		checkpoint = torch.load(
+			MODEL_DIR / "disaster_cnn.pt", map_location=DEVICE, weights_only=True
+		)
+		model = DisasterCNN(
+			len(checkpoint["classes"]),
+			use_resnet=checkpoint.get("use_resnet", True),
+			use_batchnorm=checkpoint.get("use_batchnorm", True),
+		).to(DEVICE)
+		model.load_state_dict(checkpoint["state_dict"])
+		model.eval()
+		normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+		_CNN_CACHE["checkpoint"] = checkpoint
+		_CNN_CACHE["model"] = model
+		_CNN_CACHE["transform"] = transforms.Compose([
+			transforms.Resize((checkpoint["image_size"], checkpoint["image_size"])),
+			transforms.ToTensor(),
+			normalize,
+		])
+	return _CNN_CACHE
+
+
+def _load_lstm_bundle() -> dict:
+	"""Load the LSTM checkpoint and scaler once and reuse them across requests."""
+	if not _LSTM_CACHE:
+		checkpoint = torch.load(
+			MODEL_DIR / "water_level_lstm.pt", map_location=DEVICE, weights_only=True
+		)
+		input_size = int(checkpoint.get("input_size", 4))
+		model = WaterLevelLSTM(input_size=input_size).to(DEVICE)
+		model.load_state_dict(checkpoint["state_dict"])
+		model.eval()
+		_LSTM_CACHE["checkpoint"] = checkpoint
+		_LSTM_CACHE["model"] = model
+		_LSTM_CACHE["scaler"] = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
+		_LSTM_CACHE["lookback"] = int(checkpoint["lookback"])
+		_LSTM_CACHE["input_size"] = input_size
+	return _LSTM_CACHE
 
 
 def predict_image(image_path: str | Path) -> dict:
 	"""Load the saved CNN and predict one new flood image."""
-	checkpoint = torch.load(MODEL_DIR / "disaster_cnn.pt", map_location=DEVICE)
-	use_resnet = checkpoint.get("use_resnet", True)
-	use_bn = checkpoint.get("use_batchnorm", True)
+	bundle = _load_cnn_bundle()
+	checkpoint = bundle["checkpoint"]
+	model = bundle["model"]
+	transform = bundle["transform"]
 	best_threshold = checkpoint.get("best_threshold", 0.5)
-	
-	model = DisasterCNN(len(checkpoint["classes"]), use_resnet=use_resnet, use_batchnorm=use_bn).to(DEVICE)
-	model.load_state_dict(checkpoint["state_dict"])
-	model.eval()
-	
-	normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-	transform = transforms.Compose([
-		transforms.Resize((checkpoint["image_size"], checkpoint["image_size"])),
-		transforms.ToTensor(),
-		normalize,
-	])
+
 	with Image.open(image_path).convert("RGB") as image:
 		input_tensor = transform(image).unsqueeze(0).to(DEVICE)
 	with torch.no_grad():
@@ -747,24 +909,61 @@ def forecast_water_level(recent_levels: Iterable[float]) -> float:
 	return forecast_water_levels(recent_levels, 1)[0]
 
 
+# Any input window whose water level sits further than this many standard
+# deviations from the training mean is outside the range the LSTM ever saw.
+# Beyond it the network's output is extrapolation, not forecasting.
+OOD_SIGMA_THRESHOLD = 4.0
+
+
+def water_level_distribution_check(values: Iterable[float]) -> dict:
+	"""Flag input windows that fall outside the LSTM's training distribution.
+
+	The scaler was fitted on the training partition, so its mean_/scale_ for the
+	water_level column IS the training distribution. Reusing it here avoids
+	storing a second copy of the same statistics.
+
+	This exists because the model silently produced physically impossible output
+	for out-of-range inputs: fed a flat 10.0 m series (training mean 3.12 m,
+	std 1.56 m, i.e. +4.4 sigma) it returned an oscillating
+	8.50 / 9.28 / 6.63 / 8.45 / 6.04 / 7.27 instead of a flat ~10.0 m.
+	"""
+	bundle = _load_lstm_bundle()
+	scaler = bundle["scaler"]
+	train_mean = float(scaler.mean_[0])
+	train_std = float(scaler.scale_[0])
+
+	array = np.asarray(list(values), dtype="float64")
+	z_scores = np.abs((array - train_mean) / max(train_std, 1e-9))
+	max_z = float(z_scores.max()) if array.size else 0.0
+
+	return {
+		"in_distribution": bool(max_z <= OOD_SIGMA_THRESHOLD),
+		"max_sigma_from_training_mean": round(max_z, 2),
+		"training_mean_m": round(train_mean, 3),
+		"training_std_m": round(train_std, 3),
+		"sigma_threshold": OOD_SIGMA_THRESHOLD,
+	}
+
+
 def forecast_water_levels(recent_levels: Iterable[float], horizon: int = 6) -> list[float]:
 	"""Recursively forecast multiple future water-level steps."""
 	if horizon < 1 or horizon > 168:
 		raise ValueError("horizon must be between 1 and 168 steps")
-	
-	checkpoint = torch.load(MODEL_DIR / "water_level_lstm.pt", map_location=DEVICE)
-	lookback = int(checkpoint["lookback"])
-	input_size = checkpoint.get("input_size", 4)
-	
-	values = list(recent_levels)
+
+	bundle = _load_lstm_bundle()
+	lookback = bundle["lookback"]
+	input_size = bundle["input_size"]
+	scaler = bundle["scaler"]
+	model = bundle["model"]
+
+	values = [float(value) for value in recent_levels]
 	if len(values) < lookback:
 		raise ValueError(f"At least {lookback} water-level values are required")
-	
-	scaler = joblib.load(MODEL_DIR / "water_level_scaler.joblib")
-	model = WaterLevelLSTM(input_size=input_size).to(DEVICE)
-	model.load_state_dict(checkpoint["state_dict"])
-	model.eval()
-	
+
+	# NaN/inf used to propagate silently and return a list of NaN forecasts.
+	if not np.isfinite(np.asarray(values, dtype="float64")).all():
+		raise ValueError("water_levels must contain only finite numeric values")
+
 	forecasts = []
 	with torch.no_grad():
 		for _ in range(horizon):
@@ -783,19 +982,6 @@ def forecast_water_levels(recent_levels: Iterable[float], horizon: int = 6) -> l
 	return forecasts
 
 
-def predict_severity(features: pd.DataFrame) -> np.ndarray:
-	"""Predict zone-risk labels using the saved master-dataset model."""
-	pipeline = joblib.load(MODEL_DIR / "severity_model.joblib")
-	prepared = features.copy()
-	if "timestamp" in prepared:
-		timestamp = pd.to_datetime(prepared.pop("timestamp"), dayfirst=True, errors="coerce")
-		prepared["hour"] = timestamp.dt.hour
-		prepared["month"] = timestamp.dt.month
-	if "river_level_margin_m" not in prepared and {"river_level_m", "river_level_threshold_m"}.issubset(prepared.columns):
-		prepared["river_level_margin_m"] = prepared["river_level_m"] - prepared["river_level_threshold_m"]
-	return pipeline.predict(prepared)
-
-
 def main() -> None:
 	"""Run all trainable Stage02 components and save one result manifest."""
 	seed_everything()
@@ -803,7 +989,6 @@ def main() -> None:
 	results = {
 		"cnn": train_cnn(),
 		"lstm": train_lstm(),
-		"severity": train_severity_model(),
 	}
 	(OUTPUT_DIR / "dl_training_metrics.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
 	print("\n" + "=" * 70)
