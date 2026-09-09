@@ -134,7 +134,9 @@ def compare_vocabulary(frame: pd.DataFrame, top_n: int) -> pd.DataFrame:
 			"log_rate_ratio": round(math.log((urgent_rate + 0.1) / (routine_rate + 0.1)), 4),
 		})
 	result = pd.DataFrame(rows)
-	return result.sort_values("rate_difference", ascending=False).head(top_n)
+	return result.sort_values(
+		["rate_difference", "term"], ascending=[False, True]
+	).head(top_n)
 
 
 def analyze_source(frame: pd.DataFrame, dataset: str, top_n: int) -> dict:
