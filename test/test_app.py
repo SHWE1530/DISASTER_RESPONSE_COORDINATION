@@ -309,3 +309,53 @@ def test_nlp_does_not_trigger_training(client, app_module, monkeypatch):
     monkeypatch.setattr(engine.module, "train_models", explode)
     response = client.post("/api/predict/nlp", json={"text": "Flooding near the bus stand."})
     assert response.status_code == 200
+
+
+# ------------------------------------------------------------------ FUSION ---
+
+def test_assess_requires_json(client, app_module):
+    if app_module.decision_engine is None:
+        pytest.skip("fusion engine unavailable")
+    response = client.post("/api/assess", data="nope", content_type="text/plain")
+    assert response.status_code == 400
+
+
+def test_assess_with_no_evidence_refuses_rather_than_saying_routine(client, app_module):
+    if app_module.decision_engine is None:
+        pytest.skip("fusion engine unavailable")
+    response = client.post("/api/assess", json={})
+    assert response.status_code == 422
+    payload = response.get_json()
+    assert payload["status"] == "insufficient_evidence"
+    assert payload["priority"] is None
+    assert payload["human_review_required"] is True
+
+
+def test_assess_combines_sensors_and_text(client, app_module):
+    if app_module.decision_engine is None or app_module.stage01_engine is None:
+        pytest.skip("fusion engine or Stage 01 unavailable")
+    response = client.post("/api/assess", json={
+        "sensors": VALID_ML_PAYLOAD,
+        "text": "Water is rising fast, three people are trapped near the bridge.",
+    })
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["priority"] in ["ROUTINE", "ELEVATED", "URGENT", "CRITICAL"]
+    assert "sensor_risk" in payload["sources_used"]
+    assert payload["recommended_actions"]
+    assert "must be confirmed by a human" in payload["disclaimer"]
+
+
+def test_assess_rejects_malformed_field_types(client, app_module):
+    if app_module.decision_engine is None:
+        pytest.skip("fusion engine unavailable")
+    assert client.post("/api/assess", json={"sensors": "not-an-object"}).status_code == 400
+    assert client.post("/api/assess", json={"water_levels": "not-a-list"}).status_code == 400
+
+
+def test_assess_reports_missing_modalities(client, app_module):
+    if app_module.decision_engine is None or app_module.stage01_engine is None:
+        pytest.skip("fusion engine or Stage 01 unavailable")
+    payload = client.post("/api/assess", json={"sensors": VALID_ML_PAYLOAD}).get_json()
+    assert "visual_flood" in payload["sources_missing"]
+    assert "text_urgency" in payload["sources_missing"]

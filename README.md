@@ -4,9 +4,10 @@ A decision-support system for urban flood response. Three independent AI models
 — classical ML, deep learning, and NLP — served behind one Flask dashboard.
 
 > **This is decision support for a human responder, not a verified assessment.**
-> Every prediction carries a confidence figure that is explicitly *not* a
-> calibrated probability, and the forecasting endpoint flags inputs that fall
-> outside the range its model was trained on.
+> Stage 01's confidence is isotonic-calibrated and clipped so it never claims
+> certainty; the forecasting endpoint flags inputs outside its trained range; and
+> the fusion layer forces human review whenever sources conflict, evidence is
+> thin, or priority is URGENT or above.
 
 ---
 
@@ -28,19 +29,47 @@ interface so they can be compared and used side by side.
 | **02 DL** | Camera/drone image | Binary flooded/unflooded | ResNet18 transfer learning |
 | **02 DL** | 72h water-level series | 6-hour river forecast | 2-layer LSTM |
 | **03 NLP** | Free-text emergency message | 4-class urgency + 12-class hazard + entity extraction | DistilBERT + TF-IDF LogReg + BIO tagger |
+| **Fusion** | Any subset of the above | One prioritised incident decision | Deterministic, auditable policy (not a learned model) |
 
 ## 3. System architecture
 
-The three stages are **parallel and independent**. They do not form a pipeline
-and no stage consumes another's output. Full detail and the honest data-flow
-diagram: **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
+The three stages are **parallel and independent** — no stage consumes another's
+output. A **fusion layer sits above all three** and is the only component that
+sees more than one modality. Full detail and the honest data-flow diagram:
+**[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
 
 ```
 Browser ──► app.py ──┬──► /api/predict/ml         ──► Stage 01 (XGBoost)
                      ├──► /api/predict/dl/image   ──► Stage 02 (ResNet18)
                      ├──► /api/predict/dl/lstm    ──► Stage 02 (LSTM)
-                     └──► /api/predict/nlp        ──► Stage 03 (DistilBERT + NER)
+                     ├──► /api/predict/nlp        ──► Stage 03 (DistilBERT + NER)
+                     │
+                     └──► /api/assess  ──► fusion/decision_engine.py
+                                            └─► calls whichever stages have evidence
+                                                └─► ROUTINE / ELEVATED / URGENT / CRITICAL
+                                                    + evidence provenance
+                                                    + conflict report
+                                                    + human-review flag
 ```
+
+### The fusion layer
+
+`POST /api/assess` accepts any subset of `{sensors, text, image_path,
+water_levels}` and returns one prioritised decision. It is a **deterministic
+policy, not a learned model** — training one would need a corpus of incidents
+where all four modalities describe the same event with a known outcome, which
+does not exist here. Every weight is a named constant in
+`fusion/decision_engine.py`.
+
+Properties worth knowing:
+
+- **Escalations only ever raise priority.** Under-responding costs more than over-responding.
+- **A human reporting CRITICAL sets an URGENT floor**, even against calmer sensors.
+- **A flat forecast cannot lower a present-tense assessment** — it describes a different point in time.
+- **An out-of-distribution forecast is suppressed entirely**, not down-weighted.
+- **Conflicts are surfaced, never averaged away**, and marked "not auto-resolved".
+- **No evidence never reads as safe** — it returns `insufficient_evidence`, not `ROUTINE`.
+- **Human review is mandatory** on conflict, single-source, low confidence, or URGENT+.
 
 ## 4. Installation
 
@@ -120,8 +149,22 @@ and in each the minority class is the one that matters operationally.
 | **Macro** | 0.970 | 0.877 | **0.915** | 1,500 |
 
 Accuracy 0.969. Severe recall 0.987 with 15 missed Severe cases.
-Calibration: Brier 0.0197, ECE 0.0174 — well calibrated at high confidence,
-**overconfident in the 0.6–0.7 band** (right ~43% of the time there).
+
+**Calibration (held-out test).** An isotonic calibrator is fitted on the
+*validation* partition and serves the reported confidence:
+
+| | Brier (mean) | ECE |
+| --- | ---: | ---: |
+| Raw model score | 0.0163 | 0.0120 |
+| **Isotonic-calibrated (served)** | **0.0159** | **0.0042** |
+
+The **class decision still comes from the raw model**. Using calibrated argmax
+instead was measured: macro F1 rose 0.915 → 0.928 and Low recall 0.710 → 0.774,
+but Severe recall fell 0.9866 → 0.9786 and missed Severe zones went **15 → 24**.
+Model selection deliberately optimised Severe recall, so a post-hoc calibrator is
+not allowed to overturn it for a better aggregate. Calibration fixes the
+probability, not the boundary. Confidence is clipped to [0.01, 0.99] — isotonic
+regression emits exactly 1.0, and no flood warning should display 100%.
 
 Candidate benchmark (validation): Logistic Regression macro F1 0.911, LightGBM
 0.868, **XGBoost 0.845 (selected)**, Stacking 0.857, Random Forest 0.673.
@@ -129,18 +172,29 @@ XGBoost was selected on Severe recall (0.984 vs LR's 0.979) — a ~8-sample
 difference bought at a 6.6-point macro F1 cost. That trade is debatable and is
 flagged as such rather than hidden.
 
-### Stage 02 — CNN (held-out test, n = 75; **15 flooded**)
+### Stage 02 — CNN
 
-| Metric | Result |
-| --- | ---: |
-| Accuracy | 0.960 |
-| **Macro F1** | **0.939** |
-| Flooded recall | 0.933 |
-| Flooded ROC-AUC | 0.986 |
-| Flooded PR-AUC | 0.958 |
+**Quote the cross-validated figures, not the single split.** The held-out split
+evaluates 75 images with only 15 flooded positives, which cannot support a
+precise claim. 5-fold stratified CV scores all 500 images exactly once, each by a
+model that never trained on it — 100 flooded positives in total.
 
-With 15 positives the 95% CI on flooded recall spans roughly 68%–99.8%. Treat
-accordingly.
+| Metric | Single split (n=75) | **5-fold CV (n=500)** | Fold std | **95% CI (bootstrap)** |
+| --- | ---: | ---: | ---: | :---: |
+| Accuracy | 0.960 | **0.9580** | ±0.0319 | [0.9400, 0.9740] |
+| **Macro F1** | 0.939 | **0.9326** | ±0.0510 | [0.9029, 0.9583] |
+| Flooded recall | 0.933 | **0.8600** | ±0.0962 | [0.7884, 0.9239] |
+| Flooded precision | 1.000 | **0.9247** | ±0.0836 | [0.8700, 0.9717] |
+| Flooded ROC-AUC | 0.986 | 0.9792 | ±0.0212 | — |
+| Flooded PR-AUC | 0.958 | 0.9509 | ±0.0433 | — |
+
+The correction matters: the single split's **0.933 flooded recall sits above the
+cross-validated 95% upper bound of 0.924**. It was a lucky partition. The honest
+figure is **0.86 recall, ±0.10 across folds**. Per-fold recall ranged 0.75–1.00,
+which is the real measure of how much any single number here should be trusted.
+
+Reproduce with `python Stage02_DL/06_cross_validation.py`; full output in
+`data/outputs/cnn_cross_validation.json`.
 
 ### Stage 02 — LSTM water-level forecast
 
@@ -187,9 +241,14 @@ thing to fix next.
 
 ## 8. Limitations
 
-1. **The three stages do not combine.** There is no fusion layer and no joint decision.
+1. **Fusion is a hand-written policy, not a learned model.** Its weights are
+   defensible defaults, not empirically optimal ones — see `docs/ARCHITECTURE.md`
+   §3a for why learning them is not possible with the available data.
 2. **Stage 03's corpora are synthetic.** Even with leakage removed, template text is far more regular than real messages — treat the scores as an upper bound. Hazard F1 of 1.000 and NER F1 of 0.996 are **near-ceiling by construction** (the templates name the hazard and fill entities from slots), not evidence of a hard problem solved.
-3. **The CNN has 500 images**, 15 flooded in the test set. Wide confidence intervals.
+3. **The CNN has only 500 images.** Cross-validation and bootstrap intervals now
+   quantify that properly rather than hiding it, but ±0.10 fold-to-fold variation
+   on flooded recall is a data-volume limit, not something better methodology can
+   remove.
 4. **Stage 01's Low class is weak** (recall 0.710 on 31 samples); genuinely calm inputs are often returned as Moderate.
 5. **No negation handling in NLP.** "NO FLOOD HERE" is scored on its flood vocabulary.
 6. **Confidence is uncalibrated** and labelled as such in the UI.

@@ -154,3 +154,25 @@ def test_engineered_features_are_derived_not_required(engine):
     assert "is_monsoon" not in api.RAW_REQUIRED_COLUMNS
     result = engine.predict(dict(VALID_RECORD))
     assert result["risk_category"] in {"Low", "Moderate", "Severe"}
+
+
+def test_confidence_is_calibrated_and_never_claims_certainty(engine):
+    """Isotonic regression can emit exactly 1.0; a flood warning must never
+    display 100% certainty."""
+    result = engine.predict(dict(VALID_RECORD))
+    assert result["confidence_is_calibrated"] is True
+    low, high = api.CONFIDENCE_CLIP
+    assert low <= result["confidence"] <= high
+    assert result["raw_confidence"] is not None
+
+
+def test_decision_comes_from_the_raw_model_not_the_calibrator(engine):
+    """Regression: taking argmax over calibrated probabilities moved the
+    operating point and cost 9 additional missed Severe zones on the held-out
+    test set. Calibration must change the confidence, not the decision."""
+    import numpy as np
+
+    _frame, features = engine._prepare_features(dict(VALID_RECORD))
+    transformed = engine.preprocessor.transform(features)
+    predictions, _calibrated, _raw = engine._score(transformed)
+    assert predictions[0] == np.asarray(engine.model.predict(transformed))[0]

@@ -35,8 +35,9 @@ guarantee the same held-out set on another machine.
 
 > **Sample-size caveat, stated up front.** The test set contains **15 flooded
 > images**. A flooded recall of 0.9333 means 14 of 15 — one image moves it by
-> 6.7 points, and its 95% confidence interval spans roughly 68%–99.8%. Every
-> CNN figure below should be read with that interval in mind.
+> 6.7 points. Because that is too thin to support a precise claim,
+> `06_cross_validation.py` runs 5-fold stratified CV over all 500 images and is
+> the source you should quote. See section 2b.
 
 ### Architecture and preprocessing
 
@@ -85,6 +86,39 @@ never selected on.
 The evaluation script uses the checkpoint's threshold. It previously
 grid-searched the threshold **on the test set** and reported the maximised
 score, which is not an independent estimate regardless of the size of the effect.
+
+## 2b. CNN — cross-validated results (quote these)
+
+5-fold stratified CV. Every image is scored exactly once by a model that never
+trained on it, so the estimate rests on all **100 flooded positives** instead of
+15. Threshold and early stopping are tuned on an inner validation slice carved
+from each fold's own training data; the fold's test partition is never touched
+until final scoring.
+
+| Metric | Single split (n=75) | **5-fold CV (n=500)** | Fold std | **95% CI** |
+| --- | ---: | ---: | ---: | :---: |
+| Accuracy | 0.960 | **0.9580** | ±0.0319 | [0.9400, 0.9740] |
+| Macro F1 | 0.939 | **0.9326** | ±0.0510 | [0.9029, 0.9583] |
+| Flooded recall | 0.933 | **0.8600** | ±0.0962 | [0.7884, 0.9239] |
+| Flooded precision | 1.000 | **0.9247** | ±0.0836 | [0.8700, 0.9717] |
+| Flooded F1 | 0.903 | **0.8905** | ±0.0822 | — |
+| Flooded ROC-AUC | 0.986 | 0.9792 | ±0.0212 | — |
+| Flooded PR-AUC | 0.958 | 0.9509 | ±0.0433 | — |
+
+**The single split was optimistic.** Its 0.933 flooded recall is *above* the
+cross-validated 95% upper bound (0.924). Per-fold recall ranged 0.75 to 1.00.
+The defensible claim is **0.86 flooded recall, ±0.10**.
+
+This does not replace the held-out evaluation in `04_evaluation_engineer.py`:
+that measures the exact deployed checkpoint, while CV measures the architecture
+and training procedure — which is the thing a confidence interval can
+legitimately be placed around.
+
+```bash
+python Stage02_DL/06_cross_validation.py --folds 5 --epochs 25
+```
+
+Output: `data/outputs/cnn_cross_validation.json`.
 
 ## 3. LSTM — water-level forecasting
 
@@ -227,7 +261,9 @@ pytest Stage02_DL/test/ -v
 
 ## 9. Known limitations
 
-1. **500 images, 15 flooded in the test set.** Wide confidence intervals on every CNN metric.
+1. **500 images total.** Cross-validation and bootstrap CIs now quantify the
+   uncertainty honestly, but ±0.10 fold-to-fold variation on flooded recall is a
+   data-volume limit that no amount of methodology can remove.
 2. **No true Grad-CAM**; wet-asphalt false positives cannot be isolated.
 3. **Recursive forecast degrades sharply** with horizon (measured above).
 4. **No exogenous variables** in the forecaster — rainfall is not an input, which

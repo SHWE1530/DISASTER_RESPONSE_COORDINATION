@@ -29,6 +29,7 @@ import seaborn as sns
 from sklearn.base import clone
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -624,15 +625,72 @@ for entry in reliability_bins:
         f"acc={entry['observed_accuracy']:.4f}  gap={entry['gap']:+.4f}"
     )
 
+# ---- Fit an isotonic calibrator so confidence becomes a real probability ----
+#
+# Measuring miscalibration is only half the job. The reliability curve above
+# shows the model is materially overconfident in its middle bins, which is
+# exactly the range where a responder most needs to know the answer is shaky.
+#
+# The calibrator is fitted on the VALIDATION partition with cv="prefit", so it
+# never sees training data (which the model has already memorised) and never
+# sees the held-out test partition. Its real effect is measured independently by
+# 04_evaluation_engineer.py on the test set.
+print("\n[STEP 7c] Fitting isotonic probability calibrator on the validation partition...")
+
+calibrator = CalibratedClassifierCV(final_model, method="isotonic", cv="prefit")
+calibrator.fit(X_val_prep, y_val)
+calibrated_val_probs = calibrator.predict_proba(X_val_prep)
+
+calibrated_brier = {}
+for class_index, class_name in enumerate(expected_labels):
+    binary_truth = (y_val.to_numpy() == class_index).astype(int)
+    calibrated_brier[class_name] = float(
+        brier_score_loss(binary_truth, calibrated_val_probs[:, class_index])
+    )
+calibrated_mean_brier = float(np.mean(list(calibrated_brier.values())))
+
+calibrated_confidence = np.max(calibrated_val_probs, axis=1)
+calibrated_preds = np.argmax(calibrated_val_probs, axis=1)
+calibrated_correct = (calibrated_preds == y_val.to_numpy()).astype(int)
+calibrated_bin_indices = np.digitize(calibrated_confidence, bin_edges[1:-1], right=False)
+
+calibrated_gap_total = 0.0
+for bin_index in range(10):
+    mask = calibrated_bin_indices == bin_index
+    if not mask.any():
+        continue
+    calibrated_gap_total += abs(
+        calibrated_confidence[mask].mean() - calibrated_correct[mask].mean()
+    ) * int(mask.sum())
+calibrated_ece = float(calibrated_gap_total / max(len(calibrated_confidence), 1))
+
+print(f"  Brier (raw -> calibrated): {mean_brier:.4f} -> {calibrated_mean_brier:.4f}")
+print(f"  ECE   (raw -> calibrated): {expected_calibration_error:.4f} -> {calibrated_ece:.4f}")
+print("  NOTE: measured on the calibrator's own fitting data; see the evaluation")
+print("        engineer for the independent held-out test measurement.")
+
 calibration_report = {
     "brier_per_class": brier_per_class,
     "brier_mean": mean_brier,
     "expected_calibration_error": expected_calibration_error,
     "reliability_bins": reliability_bins,
+    "calibrated": {
+        "method": "isotonic regression, fitted on the validation partition (cv='prefit')",
+        "brier_per_class": calibrated_brier,
+        "brier_mean": calibrated_mean_brier,
+        "expected_calibration_error": calibrated_ece,
+        "in_sample_warning": (
+            "These calibrated figures are computed on the same validation rows the "
+            "calibrator was fitted on and are therefore optimistic. The independent "
+            "measurement is in eval_final_report.json, produced from the held-out "
+            "test partition."
+        ),
+    },
     "note": (
-        "Confidence is the max softmax probability of the selected model and is NOT "
-        "calibrated. Positive gap means the model is overconfident in that bin. Treat "
-        "the displayed confidence as a ranking signal, not as a probability of being correct."
+        "The serving layer returns the ISOTONIC-CALIBRATED probability as "
+        "'confidence' and the model's raw score as 'raw_confidence'. The raw score "
+        "is overconfident in its middle bins; the calibrated value is the one to "
+        "read as a probability of being correct."
     ),
 }
 
@@ -803,6 +861,9 @@ print("\n[STEP 10] Serializing ML Pipeline Artifacts & Metrics JSON...")
 full_pipeline = {
     "preprocessor": preprocessor,
     "model": final_model,
+    # Isotonic calibrator fitted on the validation partition. Serving uses this
+    # for the reported confidence so the number is a probability, not a score.
+    "calibrator": calibrator,
     "feature_cols_num": feature_cols_num,
     "feature_cols_cat": feature_cols_cat,
     "target_map": target_map,

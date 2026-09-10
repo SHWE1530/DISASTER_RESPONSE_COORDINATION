@@ -28,7 +28,8 @@ from sklearn.metrics import (
     recall_score,
     f1_score,
     confusion_matrix,
-    classification_report
+    classification_report,
+    brier_score_loss
 )
 
 # ============================================================
@@ -130,7 +131,75 @@ def generate_predictions(X, pipeline):
     if hasattr(model, "predict_proba"):
         probs = model.predict_proba(X_prep)
 
-    return preds, probs
+    # Serving reports the calibrated probability, so evaluation must score the
+    # calibrated probability too -- otherwise the published numbers describe a
+    # different quantity from the one the dashboard shows.
+    # The class decision stays with the raw model; only the reported confidence
+    # is calibrated. This mirrors the serving layer exactly (see
+    # 05_integration_engineer._score for the measured justification: calibrated
+    # argmax raises macro F1 but costs 9 additional missed Severe zones).
+    calibrator = pipeline.get("calibrator")
+    calibrated_probs = None
+    if calibrator is not None:
+        try:
+            calibrated_probs = calibrator.predict_proba(X_prep)
+            print("  Isotonic-calibrated confidence in use; class decision from the raw model.")
+        except Exception as exc:
+            print(f"  Calibrator unusable ({type(exc).__name__}); falling back to raw scores.")
+
+    return preds, (calibrated_probs if calibrated_probs is not None else probs), probs
+
+
+def evaluate_calibration(y_test, raw_probs, calibrated_probs, pipeline):
+    """Measure calibration on the HELD-OUT test set.
+
+    The calibrator was fitted on the validation partition, so this is the first
+    genuinely independent measurement of whether it helped.
+    """
+    print("\n[STEP 4b] Measuring probability calibration on the held-out test set...")
+    if raw_probs is None:
+        print("  Model provides no probabilities; calibration analysis unavailable.")
+        return None
+
+    labels = ["Low", "Moderate", "Severe"]
+    y_true = np.asarray(y_test)
+
+    def summarise(probs, name):
+        brier = {
+            label: float(brier_score_loss((y_true == index).astype(int), probs[:, index]))
+            for index, label in enumerate(labels)
+        }
+        confidence = np.max(probs, axis=1)
+        correct = (np.argmax(probs, axis=1) == y_true).astype(int)
+        edges = np.linspace(0.0, 1.0, 11)
+        bins = np.digitize(confidence, edges[1:-1], right=False)
+        gap = 0.0
+        for b in range(10):
+            mask = bins == b
+            if mask.any():
+                gap += abs(confidence[mask].mean() - correct[mask].mean()) * int(mask.sum())
+        ece = float(gap / max(len(confidence), 1))
+        print(f"  {name:11} Brier(mean)={np.mean(list(brier.values())):.4f}  ECE={ece:.4f}")
+        return {"brier_per_class": brier,
+                "brier_mean": float(np.mean(list(brier.values()))),
+                "expected_calibration_error": ece}
+
+    report = {"raw": summarise(raw_probs, "raw")}
+    if calibrated_probs is not None:
+        report["calibrated"] = summarise(calibrated_probs, "calibrated")
+        improvement = (report["raw"]["expected_calibration_error"]
+                       - report["calibrated"]["expected_calibration_error"])
+        report["ece_improvement"] = float(improvement)
+        report["verdict"] = (
+            "Calibration improves the held-out ECE; the served confidence is "
+            "usable as a probability."
+            if improvement > 0 else
+            "Calibration did NOT improve the held-out ECE. Treat the served "
+            "confidence as a ranking signal only."
+        )
+        print(f"  ECE improvement on held-out data: {improvement:+.4f}")
+        print(f"  {report['verdict']}")
+    return report
 
 
 # ============================================================
@@ -332,9 +401,10 @@ def main():
         pipeline, X_test_raw, y_test_raw = load_assets()
         X, y_test, df_test = prepare_features(X_test_raw, y_test_raw, pipeline)
 
-        preds, probs = generate_predictions(X, pipeline)
+        preds, probs, raw_probs = generate_predictions(X, pipeline)
 
         metrics_report = evaluate_metrics(y_test, preds, pipeline)
+        calibration_report = evaluate_calibration(y_test, raw_probs, probs if probs is not raw_probs else None, pipeline)
         overconfidence_report = analyze_overconfidence(df_test, y_test, preds, probs, pipeline)
         generalization_report = stress_test_unseen_disasters(df_test, y_test, preds, pipeline)
         eval_summary = generate_evaluation_summary(metrics_report, overconfidence_report, generalization_report)
@@ -344,6 +414,7 @@ def main():
             "model_name": pipeline.get("model_name", "unknown"),
             "test_samples": int(len(X)),
             "metrics": metrics_report,
+            "calibration": calibration_report,
             "overconfidence_analysis": overconfidence_report,
             "generalization_stress_test": generalization_report,
             "evaluation_summary": eval_summary
