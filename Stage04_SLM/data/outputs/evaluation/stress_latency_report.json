@@ -1,0 +1,10 @@
+{
+  "n_requests": 50,
+  "total_s": 0.06,
+  "throughput_rps": 808.58,
+  "mean_ms": 1.2,
+  "p50_ms": 0.0,
+  "p95_ms": 7.6,
+  "p99_ms": 14.1,
+  "max_ms": 14.2
+}

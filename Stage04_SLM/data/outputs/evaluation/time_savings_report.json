@@ -1,0 +1,11 @@
+{
+  "wpm": 238,
+  "n_pairs": 481,
+  "mean_log_read_s": 45.8,
+  "mean_summary_read_s": 10.1,
+  "mean_saving_pct": 77.4,
+  "min_saving_pct": 68.9,
+  "max_saving_pct": 88.1,
+  "meets_target_pct": 26.6,
+  "target_pct": 80
+}

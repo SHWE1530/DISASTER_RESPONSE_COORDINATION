@@ -1032,40 +1032,50 @@ def extract_entities(text: str) -> dict[str, Any]:
 	generic_location_terms = {
 		"flood", "flooding", "cyclone", "rain", "rainfall", "storm", "landslide",
 		"earthquake", "tsunami", "fire", "wildfire", "drowning", "waterlogging",
-		"disaster", "heavy rain", "flash flood", "wind", "damage"
+		"disaster", "heavy rain", "flash flood", "wind", "damage",
+		"rescue", "resuce", "team", "police", "ambulance", "water", "people", "person", "help", "emergency"
 	}
-	connectors = {"to", "the", "and", "of", "for", "after", "due", "with", "in", "near", "around", "at", "from", "on"}
+	connectors = {"to", "the", "and", "of", "for", "after", "due", "with", "in", "near", "around", "at", "from", "on", "send", "me", "please", "help", "need"}
 	unique_locations = [
 		loc for loc in unique_locations
-		if str(loc).strip().lower() not in generic_location_terms
+		if str(loc).strip().lower() not in generic_location_terms and not str(loc).strip().isdigit()
 	]
 
 	# Apply Controlled Fallback Layer if slots are empty or only generic hazard words remain.
-	loc_match = re.search(
-		r"\b(?:in|near|around|at|close to|from)\s+([A-Za-z0-9]+(?:\s+[A-Za-z0-9]+){0,3})",
-		raw_text,
-		re.IGNORECASE,
-	)
-	if loc_match:
-		candidate = loc_match.group(1).strip()
-		candidate_tokens = re.findall(r"[A-Za-z0-9]+", candidate)
-		filtered_tokens = []
-		for tok in candidate_tokens:
-			lower_tok = tok.lower()
-			if lower_tok in connectors or lower_tok in generic_location_terms:
-				break
-			filtered_tokens.append(tok)
-		if filtered_tokens:
-			location = " ".join(filtered_tokens).title()
-			if location.lower() not in generic_location_terms:
-				unique_locations = [location] + [loc for loc in unique_locations if str(loc).lower() != location.lower()]
+	words = re.findall(r"[A-Za-z0-9]+", raw_text)
+	for i, word in enumerate(words):
+		if word.lower() in {"in", "near", "around", "at", "from"}:
+			candidate_words = []
+			for w in words[i+1:i+6]:
+				w_lower = w.lower()
+				if w_lower == "the" and not candidate_words:
+					continue
+				if w_lower in connectors or w_lower in generic_location_terms:
+					break
+				candidate_words.append(w)
+			
+			if candidate_words:
+				location = " ".join(candidate_words).title()
+				if location.lower() not in generic_location_terms:
+					unique_locations = [location] + [loc for loc in unique_locations if str(loc).lower() != location.lower()]
+	
 	if not unique_locations:
-		if loc_match:
-			candidate = loc_match.group(1).strip()
-			cleaned = re.sub(r"\s+(?:to|the|and|of|for|after|due|with|on)\b.*$", "", candidate, flags=re.IGNORECASE)
-			cleaned = re.sub(r"\s+", " ", cleaned).strip()
-			if cleaned:
-				unique_locations.append(cleaned.title())
+		for i, word in enumerate(words):
+			if word.lower() in {"in", "near", "around", "at", "from"}:
+				candidate_words = []
+				for w in words[i+1:i+5]:
+					w_lower = w.lower()
+					if w_lower == "the" and not candidate_words:
+						continue
+					if w_lower in connectors:
+						break
+					candidate_words.append(w)
+				
+				if candidate_words:
+					location = " ".join(candidate_words).title()
+					if location.lower() not in generic_location_terms:
+						unique_locations.append(location)
+						break
 
 	if not unique_resources:
 		res_keywords = [

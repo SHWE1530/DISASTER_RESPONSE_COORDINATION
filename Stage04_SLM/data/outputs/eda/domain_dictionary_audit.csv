@@ -1,0 +1,63 @@
+term,category,shorthand,origin,found_in_corpus
+water pump,Resource,RES-WP,derived from Stage 03 corpus,True
+ambulance,Resource,RES-AMBU,derived from Stage 03 corpus,True
+relief supplies,Resource,RES-RS,derived from Stage 03 corpus,True
+NDRF flood rescue team,Resource,RES-NFRT,derived from Stage 03 corpus,True
+rescue boat,Resource,RES-RB,derived from Stage 03 corpus,True
+life jackets,Resource,RES-LJ,derived from Stage 03 corpus,True
+rescue rope and ladder,Resource,RES-RRAL,derived from Stage 03 corpus,True
+NDRF rescue team,Resource,RES-NRT,derived from Stage 03 corpus,True
+fire and rescue unit,Resource,RES-FARU,derived from Stage 03 corpus,True
+road clearance team,Resource,RES-RCT,derived from Stage 03 corpus,True
+drainage team,Resource,RES-DT,derived from Stage 03 corpus,True
+sandbags,Resource,RES-SAND,derived from Stage 03 corpus,True
+tow truck,Resource,RES-TT,derived from Stage 03 corpus,True
+traffic police team,Resource,RES-TPT,derived from Stage 03 corpus,True
+earthmover (JCB),Resource,RES-EJ,derived from Stage 03 corpus,True
+road clearance crew,Resource,RES-RCC,derived from Stage 03 corpus,True
+emergency medical team,Resource,RES-EMT,derived from Stage 03 corpus,True
+paramedic team,Resource,RES-PT,derived from Stage 03 corpus,True
+medical first-aid kit,Resource,RES-MFAK,derived from Stage 03 corpus,True
+industrial area,Location type,LOC-IA,derived from Stage 03 corpus,True
+riverside settlement,Location type,LOC-RS,derived from Stage 03 corpus,True
+railway crossing,Location type,LOC-RC,derived from Stage 03 corpus,True
+bus stand,Location type,LOC-BS,derived from Stage 03 corpus,True
+hilly terrain,Location type,LOC-HT,derived from Stage 03 corpus,True
+national highway,Location type,LOC-NH,derived from Stage 03 corpus,True
+government hospital,Location type,LOC-GH,derived from Stage 03 corpus,True
+local market,Location type,LOC-LM,derived from Stage 03 corpus,True
+village school,Location type,LOC-VS,derived from Stage 03 corpus,True
+main bridge,Location type,LOC-MB,derived from Stage 03 corpus,True
+river bank,Location type,LOC-RB,derived from Stage 03 corpus,True
+old town area,Location type,LOC-OTA,derived from Stage 03 corpus,True
+residential colony,Location type,LOC-RC,derived from Stage 03 corpus,True
+low-lying area,Location type,LOC-LLA,derived from Stage 03 corpus,True
+highway junction,Location type,LOC-HJ,derived from Stage 03 corpus,True
+Flood,Hazard type,HZ-F,derived from Stage 03 corpus,True
+Medical Emergency,Hazard type,HZ-ME,derived from Stage 03 corpus,True
+Rescue Emergency,Hazard type,HZ-RE,derived from Stage 03 corpus,False
+Road Blockage,Hazard type,HZ-RB,derived from Stage 03 corpus,True
+LOW,Severity level,SEV-L,project-defined (Stage 03 label space),True
+MEDIUM,Severity level,SEV-M,project-defined (Stage 03 label space),False
+HIGH,Severity level,SEV-H,project-defined (Stage 03 label space),True
+CRITICAL,Severity level,SEV-C,project-defined (Stage 03 label space),False
+Incident Commander,Incident-command term,IC,standard incident-command terminology,False
+Staging Area,Incident-command term,STAGING,standard incident-command terminology,True
+Triage,Incident-command term,TRIAGE,standard incident-command terminology,True
+Evacuation,Incident-command term,EVAC,standard incident-command terminology,True
+Shelter-in-place,Incident-command term,SIP,standard incident-command terminology,False
+Situation Report,Incident-command term,SITREP,standard incident-command terminology,False
+Estimated Time of Arrival,Incident-command term,ETA,standard incident-command terminology,False
+Casualty,Incident-command term,CAS,standard incident-command terminology,False
+Access Route,Incident-command term,ACCESS,standard incident-command terminology,True
+Standby,Incident-command term,STANDBY,standard incident-command terminology,True
+National Disaster Response Force,Agency,NDRF,real agency referenced in project data,False
+State Disaster Response Force,Agency,SDRF,real agency referenced in project data,False
+Central Water Commission,Agency,CWC,real agency referenced in project data,False
+India Meteorological Department,Agency,IMD,real agency referenced in project data,False
+National Disaster Management Authority,Agency,NDMA,real agency referenced in project data,False
+Emergency Response Support System,Agency,ERSS,real agency referenced in project data,False
+ROUTINE,Briefing priority,P-ROUT,project-defined (Stage 04 summary format),True
+ELEVATED,Briefing priority,P-ELEV,project-defined (Stage 04 summary format),True
+URGENT,Briefing priority,P-URGE,project-defined (Stage 04 summary format),True
+IMMEDIATE,Briefing priority,P-IMME,project-defined (Stage 04 summary format),True

@@ -118,11 +118,12 @@ def save_confusion_matrix(y_true, y_pred, labels: list[str], path: Path, title: 
 class DisasterCNN(nn.Module):
 	"""CNN classifier supporting baseline custom architecture, BatchNorm custom architecture, and ResNet18 transfer learning."""
 
-	def __init__(self, classes: int = 2, use_resnet: bool = True, use_batchnorm: bool = True):
+	def __init__(self, classes: int = 2, use_resnet: bool = True, use_batchnorm: bool = True, pretrained: bool = True):
 		super().__init__()
 		self.classes = classes
 		self.use_resnet = use_resnet
 		self.use_batchnorm = use_batchnorm
+		self.pretrained = pretrained
 		self._build_architecture()
 
 	def _build_architecture(self):
@@ -131,9 +132,12 @@ class DisasterCNN(nn.Module):
 				delattr(self, "features")
 			if hasattr(self, "classifier"):
 				delattr(self, "classifier")
-			try:
-				backbone = vision_models.resnet18(weights=vision_models.ResNet18_Weights.DEFAULT)
-			except Exception:
+			if self.pretrained:
+				try:
+					backbone = vision_models.resnet18(weights=vision_models.ResNet18_Weights.DEFAULT)
+				except Exception:
+					backbone = vision_models.resnet18(weights=None)
+			else:
 				backbone = vision_models.resnet18(weights=None)
 			num_ftrs = backbone.fc.in_features
 			backbone.fc = nn.Sequential(
@@ -836,6 +840,7 @@ def _load_cnn_bundle() -> dict:
 			len(checkpoint["classes"]),
 			use_resnet=checkpoint.get("use_resnet", True),
 			use_batchnorm=checkpoint.get("use_batchnorm", True),
+			pretrained=False
 		).to(DEVICE)
 		model.load_state_dict(checkpoint["state_dict"])
 		model.eval()

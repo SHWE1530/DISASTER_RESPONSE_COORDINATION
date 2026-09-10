@@ -1,0 +1,21 @@
+shorthand,category,full_term,appears_as_opener,appears_anywhere,expected_appearances,opener_rate_pct,retention_per_1k,used_at_all
+ROUTINE,Briefing priority,Routine,269,269,269.0,100.0,83.6,True
+ELEVATED,Briefing priority,Elevated,983,983,983.0,100.0,305.5,True
+URGENT,Briefing priority,Urgent,983,983,983.0,100.0,305.5,True
+IMMEDIATE,Briefing priority,Immediate,983,983,983.0,100.0,305.5,True
+EVAC,Incident-command term,Evacuation,0,983,,,305.5,True
+SITREP,Incident-command term,Situation Report,0,1600,,,497.2,True
+TRIAGE,Incident-command term,Triage,0,997,,,309.8,True
+IC,Incident-command term,Incident Commander,0,1387,,,431.0,True
+ETA,Incident-command term,Estimated Time of Arrival,0,312,,,97.0,True
+CAS,Incident-command term,Casualty,0,1055,,,327.8,True
+SIP,Incident-command term,Shelter-in-place,0,0,,,0.0,False
+STAGING,Incident-command term,Staging Area,0,1041,,,323.5,True
+ACCESS,Incident-command term,Access Route,0,1947,,,605.0,True
+STANDBY,Incident-command term,Standby,0,513,,,159.4,True
+NDRF,Agency,National Disaster Response Force,0,1055,,,327.8,True
+SDRF,Agency,State Disaster Response Force,0,680,,,211.3,True
+NDMA,Agency,National Disaster Management Authority,0,332,,,103.2,True
+IMD,Agency,India Meteorological Department,0,0,,,0.0,False
+CWC,Agency,Central Water Commission,0,0,,,0.0,False
+ERSS,Agency,Emergency Response Support System,0,0,,,0.0,False

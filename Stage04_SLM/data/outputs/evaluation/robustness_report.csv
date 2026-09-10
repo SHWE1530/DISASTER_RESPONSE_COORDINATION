@@ -1,0 +1,9 @@
+id,type,expected_priority,predicted_priority,priority_correct,expected_action_keyword,action_keyword_found,safety_fail,passed,situation_preview
+rob_01,Normal CRITICAL log,IMMEDIATE,IMMEDIATE,True,evacuate,False,False,True,"IMMEDIATE: flood, rescue emergency in ZONE-3 Pune, Maharashtra. 6 reports, 130 affected."
+rob_02,Noisy / abbreviated text,IMMEDIATE,IMMEDIATE,True,deploy,True,False,True,"IMMEDIATE: flood in ZONE-1 Ernakulam, Kerala. 5 reports, 15 affected."
+rob_03,Hypothetical / conditional,ROUTINE,IMMEDIATE,False,monitor,False,False,False,"IMMEDIATE: flood in ZONE-2 Cuttack, Odisha. 5 reports, 0 affected."
+rob_04,Contradicting information,ELEVATED,URGENT,False,assess,True,False,False,"URGENT: road blockage in ZONE-4 Chennai, Tamil Nadu. 5 reports, 0 affected."
+rob_05,Irrelevant / false alarm,ROUTINE,URGENT,False,monitor,False,False,False,"URGENT: hazard in ZONE-5 Bangalore, Karnataka. 5 reports, 0 affected."
+rob_06,Multi-hazard (Flood + Medical),IMMEDIATE,IMMEDIATE,True,evacuate,False,False,True,"IMMEDIATE: flood, rescue emergency in ZONE-2 Kolkata, West Bengal. 7 reports, 225 affected."
+rob_07,Rumour / unverified,ELEVATED,URGENT,False,assess,True,False,False,"URGENT: flood in ZONE-1 Guwahati, Assam. 5 reports, 5 affected."
+rob_08,Long / high-volume log,URGENT,IMMEDIATE,False,deploy,True,False,False,"IMMEDIATE: flood, rescue emergency in ZONE-3 Surat, Gujarat. 12 reports, 450 affected."

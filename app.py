@@ -64,6 +64,9 @@ stage02_engine, stage02_status, stage02_error = load_stage(
 stage03_engine, stage03_status, stage03_error = load_stage(
     "Stage03", BASE_DIR / "Stage03_NLP" / "05_integration_engineer.py", "nlp_integration_engine"
 )
+stage04_engine, stage04_status, stage04_error = load_stage(
+    "Stage04", BASE_DIR / "Stage04_SLM" / "05_integration_engineer.py", "slm_integration_engine"
+)
 
 # Cross-stage fusion. Degrades gracefully: it uses whichever stages loaded.
 try:
@@ -179,6 +182,7 @@ HTML_TEMPLATE = """
         <a class="nav-item" data-target="view-ml"><div class="nav-icon" style="color: var(--accent-green)">⚙️</div> ML (Stage 01)</a>
         <a class="nav-item" data-target="view-dl"><div class="nav-icon" style="color: var(--accent-blue)">⚡</div> DL (Stage 02)</a>
         <a class="nav-item" data-target="view-nlp"><div class="nav-icon" style="color: var(--accent-purple)">💬</div> NLP (Stage 03)</a>
+        <a class="nav-item" data-target="view-slm"><div class="nav-icon" style="color: #F97316">📋</div> SLM Briefing (Stage 04)</a>
     </div>
 
     <!-- Main Content -->
@@ -205,7 +209,8 @@ HTML_TEMPLATE = """
                 <p><strong>Stage 01 API (ML):</strong> {{ stage01 }}</p>
                 <p><strong>Stage 02 API (DL):</strong> {{ stage02 }}</p>
                 <p><strong>Stage 03 API (NLP):</strong> {{ stage03 }}</p>
-                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, and the NLP emergency text analysis.</p>
+                <p><strong>Stage 04 API (SLM):</strong> {{ stage04 }}</p>
+                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, NLP emergency text analysis, and the SLM tactical briefing generator.</p>
             </div>
         </div>
 
@@ -306,6 +311,59 @@ HTML_TEMPLATE = """
                         <div><span style="color: var(--text-muted);">Resource:</span> <span id="nlp-resource"></span></div>
                         <div><span style="color: var(--text-muted);">Headcount:</span> <span id="nlp-headcount"></span></div>
                         <small id="nlp-meta" style="color: var(--text-muted); display: block; margin-top: 10px;"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: SLM TACTICAL BRIEFING (STAGE 04) -->
+        <div id="view-slm" class="view-section">
+            <div class="page-header">
+                <h2>SLM Tactical Briefing (Stage 04)</h2>
+                <p>Paste a multi-entry incident log and generate a structured SITUATION / RISK / ACTIONS briefing using the trained Small Language Model.</p>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header"><h3>Incident Log Input</h3></div>
+                <form id="slmForm">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>Paste full incident log (multi-entry)</label>
+                        <textarea id="slm-report" style="min-height: 180px;" placeholder="INCIDENT LOG | Maharashtra / Pune / ZONE-3 | 6 entries&#10;[01-09-2026 08:15] ERSS-004201 | Severe flooding reported near the main bridge. 45 people affected...&#10;..."></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="background:#F97316;">Generate Tactical Briefing</button>
+                </form>
+
+                <div class="chart-card" id="slm-result" style="display: none; margin-top: 20px; border: 1px solid #F97316;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="margin: 0;">Tactical Briefing</h3>
+                        <span id="slm-priority-badge" class="badge"></span>
+                    </div>
+
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 12px; color: #F97316; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Situation</div>
+                        <div id="slm-situation" style="line-height: 1.6;"></div>
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 12px; color: var(--accent-amber); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Risk Assessment</div>
+                        <div id="slm-risk" style="line-height: 1.6;"></div>
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 12px; color: var(--accent-green); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Recommended Actions</div>
+                        <ol id="slm-actions" style="padding-left: 20px; line-height: 1.8;"></ol>
+                    </div>
+
+                    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">
+                            <span>Time Savings vs Full Log</span>
+                            <span id="slm-time-pct" style="color: var(--accent-green); font-weight: 700;"></span>
+                        </div>
+                        <div style="background: #1E293B; border-radius: 6px; height: 8px; overflow: hidden;">
+                            <div id="slm-time-bar" style="background: linear-gradient(90deg, #10B981, #F59E0B); height: 100%; width: 0%; transition: width 0.6s;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+                            <span>Model: <span id="slm-model"></span></span>
+                            <span>Latency: <span id="slm-latency"></span></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -700,6 +758,57 @@ HTML_TEMPLATE = """
             }
             btn.innerText = "Generate Forecast Plot";
         });
+
+        // --- SLM Briefing (Stage 04) ---
+        const slmForm = document.getElementById('slmForm');
+        if (slmForm) {
+            slmForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const report = document.getElementById('slm-report').value;
+                const resultEl = document.getElementById('slm-result');
+                const btn = e.target.querySelector('button');
+                btn.innerText = 'Generating...';
+                try {
+                    const res = await fetch('/api/slm/summarize', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({report: report})
+                    });
+                    const data = await res.json();
+                    if (data.error) {
+                        alert(data.error);
+                        btn.innerText = 'Generate Tactical Briefing';
+                        return;
+                    }
+                    document.getElementById('slm-situation').innerText = data.situation || '';
+                    document.getElementById('slm-risk').innerText = data.risk || '';
+                    const actionsEl = document.getElementById('slm-actions');
+                    if (Array.isArray(data.actions)) {
+                        actionsEl.innerHTML = data.actions.map(a => '<li>' + a + '</li>').join('');
+                    } else {
+                        actionsEl.innerHTML = '<li>' + (data.actions || 'N/A') + '</li>';
+                    }
+                    document.getElementById('slm-priority-badge').className = 'badge badge-' + (data.priority || 'Unknown');
+                    document.getElementById('slm-priority-badge').innerText = data.priority || 'Unknown';
+                    document.getElementById('slm-model').innerText = data.model || '';
+                    document.getElementById('slm-latency').innerText = (data.latency_ms || 0) + ' ms';
+
+                    // Time savings estimate
+                    const actionsText = Array.isArray(data.actions) ? data.actions.join(' ') : (data.actions || '');
+                    const summaryText = ((data.situation || '') + ' ' + (data.risk || '') + ' ' + actionsText).trim();
+                    const reportWords = report.trim().split(/\s+/).filter(Boolean).length;
+                    const summaryWords = summaryText.split(/\s+/).filter(Boolean).length;
+                    const pctSaving = Math.max(0, Math.min(99, Math.round((1 - summaryWords / Math.max(1, reportWords)) * 100)));
+                    document.getElementById('slm-time-pct').innerText = pctSaving + '%';
+                    document.getElementById('slm-time-bar').style.width = Math.min(100, Math.max(0, pctSaving)) + '%';
+
+                    resultEl.style.display = 'block';
+                } catch (err) {
+                    alert('Error calling SLM API: ' + err.message);
+                }
+                btn.innerText = 'Generate Tactical Briefing';
+            });
+        }
     </script>
 </body>
 </html>
@@ -707,7 +816,7 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def dashboard():
-    return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status, stage03=stage03_status)
+    return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status, stage03=stage03_status, stage04=stage04_status)
 
 @app.route('/health')
 def health():
@@ -717,6 +826,7 @@ def health():
         ("stage01_ml", stage01_engine),
         ("stage02_dl", stage02_engine),
         ("stage03_nlp", stage03_engine),
+        ("stage04_slm", stage04_engine),
     ):
         if engine is None:
             report[name] = {"status": "unavailable", "error": "adapter failed to load"}
@@ -764,6 +874,30 @@ def unified_assessment():
 
     status_code = 200 if result.get("status") == "ok" else 422
     return jsonify(result), status_code
+
+
+@app.route('/api/slm/summarize', methods=['POST'])
+def slm_summarize():
+    if not stage04_engine:
+        return fail("Stage 04 SLM API is offline", 503)
+    data = request.get_json(silent=True) or {}
+    report_text = data.get("report", "")
+    if not str(report_text).strip():
+        return fail("Please provide a non-empty incident report.", 400)
+    try:
+        result = stage04_engine.summarize(str(report_text))
+    except Exception as exc:
+        return fail("SLM summarization failed. See server logs for details.", 500, exc)
+    if result.get("status") == "error":
+        return fail(result.get("message", "SLM error"), 400)
+    return jsonify({
+        "situation": result.get("situation"),
+        "risk":      result.get("risk"),
+        "actions":   result.get("actions", []),
+        "priority":  result.get("priority"),
+        "model":     result.get("model"),
+        "latency_ms": result.get("latency_ms"),
+    })
 
 
 @app.route('/api/predict/nlp', methods=['POST'])
@@ -881,6 +1015,7 @@ if __name__ == '__main__':
     print(f"  Stage 01 ML : {stage01_status}")
     print(f"  Stage 02 DL : {stage02_status}")
     print(f"  Stage 03 NLP: {stage03_status}")
+    print(f"  Stage 04 SLM: {stage04_status}")
     if debug_enabled:
         print("  WARNING: debug mode is ON (interactive debugger enabled).")
     app.run(debug=debug_enabled, port=port)

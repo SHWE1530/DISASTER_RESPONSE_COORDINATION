@@ -1,0 +1,132 @@
+{
+  "stage": "04_SLM",
+  "script": "02_eda_engineer.py",
+  "top_n": 30,
+  "overall": {
+    "total_pairs": 3218,
+    "priority_distribution": {
+      "ELEVATED": 983,
+      "URGENT": 983,
+      "IMMEDIATE": 983,
+      "ROUTINE": 269
+    },
+    "grouping_distribution": {
+      "severity_banded": 1667,
+      "natural": 1551
+    },
+    "report_words": {
+      "min": 139,
+      "max": 378,
+      "mean": 180.9,
+      "std": 36.2
+    },
+    "summary_words": {
+      "min": 27,
+      "max": 49,
+      "mean": 40.1,
+      "std": 3.2
+    },
+    "compression_pct": {
+      "min": 68.0,
+      "max": 89.7,
+      "mean": 77.2,
+      "std": 3.9
+    },
+    "states": 10,
+    "districts": 50,
+    "zones": 5
+  },
+  "splits": {
+    "train": {
+      "pairs": 2256,
+      "priority_counts": {
+        "ELEVATED": 689,
+        "URGENT": 689,
+        "IMMEDIATE": 689,
+        "ROUTINE": 189
+      },
+      "mean_report_words": 181.0,
+      "mean_summary_words": 40.1,
+      "mean_compression_pct": 77.2,
+      "states": 10,
+      "districts": 50
+    },
+    "validation": {
+      "pairs": 481,
+      "priority_counts": {
+        "ELEVATED": 147,
+        "URGENT": 147,
+        "IMMEDIATE": 147,
+        "ROUTINE": 40
+      },
+      "mean_report_words": 179.7,
+      "mean_summary_words": 39.9,
+      "mean_compression_pct": 77.1,
+      "states": 10,
+      "districts": 50
+    },
+    "test": {
+      "pairs": 481,
+      "priority_counts": {
+        "ELEVATED": 147,
+        "URGENT": 147,
+        "IMMEDIATE": 147,
+        "ROUTINE": 40
+      },
+      "mean_report_words": 181.9,
+      "mean_summary_words": 40.0,
+      "mean_compression_pct": 77.3,
+      "states": 10,
+      "districts": 50
+    }
+  },
+  "factual_integrity": {
+    "total_pairs": 3218,
+    "overall_pass_pct": 100.0,
+    "overall_pass_count": 3218,
+    "slot_pass_rates": {
+      "chk_priority": 100.0,
+      "chk_zone": 100.0,
+      "chk_district": 100.0,
+      "chk_state": 100.0,
+      "chk_headcount": 100.0,
+      "chk_entry_count": 100.0,
+      "chk_hazard": 100.0,
+      "chk_location": 100.0
+    }
+  },
+  "hallucination_drift": {
+    "total_pairs": 3218,
+    "drifted": 3153,
+    "drift_rate_pct": 98.0,
+    "number_drift": 3153,
+    "entity_drift": 0,
+    "priority_mismatch": 0
+  },
+  "verified_flagged": {
+    "verified": 65,
+    "flagged": 3153,
+    "total": 3218,
+    "verified_pct": 2.0
+  },
+  "artefacts": {
+    "priority_distribution.png": "Briefing priority bar chart",
+    "compression_histogram.png": "Compression % histograms by priority",
+    "report_length_distribution.png": "Length distribution histogram",
+    "summary_length_distribution.png": "Length distribution histogram",
+    "split_priority_matrix.png": "Split x priority heatmap",
+    "per_state_coverage.png": "Pairs per state",
+    "top_report_unigrams.csv": "Top 30 unigrams in reports",
+    "report_bigrams.csv": "Top 30 bigrams in reports",
+    "top_summary_unigrams.csv": "Top 30 unigrams in summarys",
+    "summary_bigrams.csv": "Top 30 bigrams in summarys",
+    "domain_dictionary_audit.csv": "Domain dictionary term coverage audit",
+    "factual_comparison.csv": "Per-pair slot-by-slot report vs summary factual check",
+    "hallucination_drift_report.csv": "Per-pair hallucination and numeric-drift flags",
+    "verified_pairs.csv": "Pairs passing all factual checks",
+    "flagged_pairs.csv": "Pairs with at least one factual violation",
+    "radio_code_retention.csv": "Per-shorthand retention rate in summaries",
+    "radio_code_retention.png": "Bar chart of shorthand retention rates"
+  },
+  "output_dir": "C:\\Users\\asus\\DISASTER_RESPONSE_COORDINATION\\Stage04_SLM\\data\\outputs\\eda"
+}

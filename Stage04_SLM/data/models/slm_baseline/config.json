@@ -1,0 +1,10 @@
+{
+  "model_type": "slm_baseline",
+  "description": "TF-IDF priority classifier + rule-based slot extractor",
+  "classes": [
+    "ELEVATED",
+    "IMMEDIATE",
+    "ROUTINE",
+    "URGENT"
+  ]
+}

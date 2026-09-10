@@ -1,0 +1,55 @@
+{
+  "total_pairs": 3218,
+  "splits": {
+    "train": 2256,
+    "validation": 481,
+    "test": 481
+  },
+  "priority_distribution": {
+    "URGENT": 983,
+    "IMMEDIATE": 983,
+    "ELEVATED": 983,
+    "ROUTINE": 269
+  },
+  "grouping_distribution": {
+    "severity_banded": 1667,
+    "natural": 1551
+  },
+  "worst_severity_distribution": {
+    "HIGH": 983,
+    "CRITICAL": 983,
+    "MEDIUM": 983,
+    "LOW": 269
+  },
+  "entries_per_report": {
+    "min": 5,
+    "max": 12,
+    "mean": 5.9
+  },
+  "report_words": {
+    "min": 139,
+    "max": 378,
+    "mean": 180.9
+  },
+  "summary_words": {
+    "min": 27,
+    "max": 49,
+    "mean": 40.1
+  },
+  "compression_pct": {
+    "min": 68.0,
+    "max": 89.7,
+    "mean": 77.2
+  },
+  "states": 10,
+  "districts": 50,
+  "grouping": {
+    "min_entries": 5,
+    "max_entries": 12,
+    "window_minutes": 480,
+    "key": "state + district + zone, within a rolling time window",
+    "banded_key": "state + district + zone + severity, 4x window; used only to top up starved priorities"
+  },
+  "seed": 42,
+  "source": "Stage03_NLP/data/processed/Dispatcher_Log_Master_60000_Processed.csv"
+}

@@ -1,0 +1,41 @@
+{
+  "priority": {
+    "ROUTINE": {
+      "precision": 1.0,
+      "recall": 0.075,
+      "f1-score": 0.13953488372093023,
+      "support": 40.0
+    },
+    "ELEVATED": {
+      "precision": 0.6462264150943396,
+      "recall": 0.9319727891156463,
+      "f1-score": 0.7632311977715878,
+      "support": 147.0
+    },
+    "URGENT": {
+      "precision": 0.6111111111111112,
+      "recall": 0.5986394557823129,
+      "f1-score": 0.6048109965635738,
+      "support": 147.0
+    },
+    "IMMEDIATE": {
+      "precision": 0.7295081967213115,
+      "recall": 0.6054421768707483,
+      "f1-score": 0.6617100371747212,
+      "support": 147.0
+    },
+    "accuracy": 0.659043659043659,
+    "macro avg": {
+      "precision": 0.7467114307316907,
+      "recall": 0.552763605442177,
+      "f1-score": 0.5423217788077033,
+      "support": 481.0
+    },
+    "weighted avg": {
+      "precision": 0.690366572287389,
+      "recall": 0.659043659043659,
+      "f1-score": 0.6319230215816839,
+      "support": 481.0
+    }
+  }
+}
