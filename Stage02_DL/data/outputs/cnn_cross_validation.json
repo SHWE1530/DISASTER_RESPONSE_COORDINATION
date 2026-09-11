@@ -1,0 +1,139 @@
+{
+  "folds": 5,
+  "epochs_max": 25,
+  "architecture": "ResNet18 transfer learning",
+  "total_images": 500,
+  "per_fold": [
+    {
+      "threshold": 0.45000000000000007,
+      "accuracy": 0.95,
+      "macro_f1": 0.9203694855868769,
+      "flooded_recall": 0.85,
+      "flooded_precision": 0.8947368421052632,
+      "flooded_f1": 0.8717948717948718,
+      "roc_auc": 0.980625,
+      "pr_auc": 0.9390851059387587,
+      "test_size": 100,
+      "flooded_positives": 20
+    },
+    {
+      "threshold": 0.5000000000000001,
+      "accuracy": 0.94,
+      "macro_f1": 0.8983739837398375,
+      "flooded_recall": 0.75,
+      "flooded_precision": 0.9375,
+      "flooded_f1": 0.8333333333333334,
+      "roc_auc": 0.949375,
+      "pr_auc": 0.907161402402152,
+      "test_size": 100,
+      "flooded_positives": 20
+    },
+    {
+      "threshold": 0.7500000000000002,
+      "accuracy": 0.98,
+      "macro_f1": 0.9675113710201428,
+      "flooded_recall": 0.9,
+      "flooded_precision": 1.0,
+      "flooded_f1": 0.9473684210526315,
+      "roc_auc": 0.9981249999999999,
+      "pr_auc": 0.9929545454545454,
+      "test_size": 100,
+      "flooded_positives": 20
+    },
+    {
+      "threshold": 0.3500000000000001,
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "flooded_recall": 1.0,
+      "flooded_precision": 1.0,
+      "flooded_f1": 1.0,
+      "roc_auc": 1.0,
+      "pr_auc": 1.0000000000000002,
+      "test_size": 100,
+      "flooded_positives": 20
+    },
+    {
+      "threshold": 0.3500000000000001,
+      "accuracy": 0.92,
+      "macro_f1": 0.875,
+      "flooded_recall": 0.8,
+      "flooded_precision": 0.8,
+      "flooded_f1": 0.8,
+      "roc_auc": 0.9681249999999999,
+      "pr_auc": 0.9153864283907863,
+      "test_size": 100,
+      "flooded_positives": 20
+    }
+  ],
+  "summary_across_folds": {
+    "accuracy": {
+      "mean": 0.958,
+      "std": 0.03193743884534262,
+      "min": 0.92,
+      "max": 1.0
+    },
+    "macro_f1": {
+      "mean": 0.9322509680693715,
+      "std": 0.050989509661090095,
+      "min": 0.875,
+      "max": 1.0
+    },
+    "flooded_recall": {
+      "mean": 0.86,
+      "std": 0.09617692030835671,
+      "min": 0.75,
+      "max": 1.0
+    },
+    "flooded_precision": {
+      "mean": 0.9264473684210527,
+      "std": 0.08357127848284729,
+      "min": 0.8,
+      "max": 1.0
+    },
+    "flooded_f1": {
+      "mean": 0.8904993252361674,
+      "std": 0.08220770479354551,
+      "min": 0.8,
+      "max": 1.0
+    },
+    "roc_auc": {
+      "mean": 0.9792499999999998,
+      "std": 0.02124264578624801,
+      "min": 0.949375,
+      "max": 1.0
+    },
+    "pr_auc": {
+      "mean": 0.9509174964372485,
+      "std": 0.04328181971887689,
+      "min": 0.907161402402152,
+      "max": 1.0000000000000002
+    }
+  },
+  "pooled_out_of_fold": {
+    "n": 500,
+    "flooded_positives": 100,
+    "accuracy": 0.958,
+    "macro_f1": 0.9325847025059228,
+    "flooded_recall": 0.86,
+    "flooded_precision": 0.9247311827956989,
+    "confidence_intervals_95": {
+      "accuracy": [
+        0.94,
+        0.974
+      ],
+      "macro_f1": [
+        0.9028663831295409,
+        0.9582667205989046
+      ],
+      "flooded_recall": [
+        0.7884308510638298,
+        0.9239130434782609
+      ],
+      "flooded_precision": [
+        0.8699891304347827,
+        0.9716981132075472
+      ]
+    }
+  },
+  "interpretation": "The single 70/15/15 held-out split evaluates only 75 images with 15 flooded positives, so its metrics carry wide uncertainty. These cross-validated figures use every image exactly once for evaluation. The fold-to-fold standard deviation and the bootstrap confidence intervals are the honest precision of the estimate; quote the interval, not the point estimate alone."
+}

@@ -1,0 +1,482 @@
+pair_id,hallucination_rate,predicted_entities,unsupported_count,unsupported_tokens
+SLM-000014,0.2222,9,2,conditions; 60
+SLM-000020,0.4444,9,4,30; 10; 304; failure
+SLM-000031,0.2857,7,2,full; every
+SLM-000039,0.3333,9,3,conditions; 15; 60
+SLM-000041,0.375,8,3,full; 83; every
+SLM-000046,0.2222,9,2,203; failure
+SLM-000050,0.4286,7,3,full; 81; every
+SLM-000052,0.375,8,3,30; conditions; 60
+SLM-000059,0.4,10,4,30; 133; failure; 15
+SLM-000069,0.2222,9,2,30; conditions
+SLM-000083,0.4286,7,3,full; every; 144
+SLM-000095,0.4286,7,3,full; 174; every
+SLM-000100,0.4286,7,3,full; 97; every
+SLM-000103,0.4286,7,3,full; 126; every
+SLM-000115,0.3333,9,3,10; 90; failure
+SLM-000122,0.375,8,3,full; 163; every
+SLM-000125,0.5714,7,4,30; conditions; 11; 60
+SLM-000129,0.4286,7,3,full; 137; every
+SLM-000133,0.5,6,3,full; 217; every
+SLM-000144,0.25,8,2,conditions; 74
+SLM-000149,0.375,8,3,full; every; 172
+SLM-000158,0.4444,9,4,10; 49; 15; failure
+SLM-000170,0.3333,9,3,30; conditions; 60
+SLM-000187,0.3333,9,3,30; 35; conditions
+SLM-000199,0.5556,9,5,30; 10; 126; 15; failure
+SLM-000206,0.375,8,3,conditions; 46; 60
+SLM-000212,0.2,10,2,90; failure
+SLM-000223,0.4286,7,3,30; conditions; 60
+SLM-000234,0.5,8,4,30; 31; conditions; 60
+SLM-000255,0.4286,7,3,full; 130; every
+SLM-000269,0.5556,9,5,30; 10; 66; failure; 15
+SLM-000287,0.4286,7,3,full; 65; every
+SLM-000291,0.5,8,4,30; 66; conditions; 60
+SLM-000297,0.375,8,3,30; conditions; 60
+SLM-000303,0.375,8,3,30; conditions; 60
+SLM-000306,0.4286,7,3,full; 219; every
+SLM-000321,0.2222,9,2,240; failure
+SLM-000332,0.3333,6,2,full; every
+SLM-000334,0.3333,9,3,180; failure; 15
+SLM-000336,0.375,8,3,30; conditions; 60
+SLM-000340,0.375,8,3,conditions; 65; 60
+SLM-000346,0.5,8,4,30; conditions; 37; 60
+SLM-000354,0.375,8,3,22; conditions; 60
+SLM-000371,0.375,8,3,51; conditions; 60
+SLM-000382,0.5556,9,5,30; 10; 15; 127; failure
+SLM-000394,0.4,10,4,30; 10; failure; 15
+SLM-000397,0.375,8,3,conditions; 24; 60
+SLM-000400,0.4444,9,4,30; conditions; 71; 60
+SLM-000402,0.3333,9,3,conditions; 135; 60
+SLM-000409,0.4286,7,3,full; 175; every
+SLM-000414,0.5,8,4,30; 188; conditions; 60
+SLM-000426,0.2222,9,2,30; failure
+SLM-000430,0.375,8,3,30; conditions; 60
+SLM-000437,0.2857,7,2,conditions; 60
+SLM-000440,0.5714,7,4,30; 53; conditions; 60
+SLM-000461,0.5,8,4,43; 30; conditions; 60
+SLM-000471,0.5556,9,5,30; 10; 15; 56; failure
+SLM-000477,0.25,8,2,full; every
+SLM-000479,0.25,8,2,conditions; 60
+SLM-000497,0.4,10,4,30; failure; 15; 155
+SLM-000499,0.5,8,4,30; conditions; 56; 60
+SLM-000500,0.4286,7,3,full; 168; every
+SLM-000501,0.375,8,3,full; every; 194
+SLM-000511,0.4286,7,3,full; 168; every
+SLM-000517,0.375,8,3,41; 30; conditions
+SLM-000535,0.25,8,2,conditions; 62
+SLM-000540,0.375,8,3,conditions; 32; 60
+SLM-000541,0.375,8,3,conditions; 44; 60
+SLM-000545,0.375,8,3,30; conditions; 60
+SLM-000546,0.3333,9,3,30; conditions; 60
+SLM-000560,0.2222,9,2,failure; 194
+SLM-000571,0.3333,9,3,15; 181; failure
+SLM-000589,0.375,8,3,full; 158; every
+SLM-000593,0.25,8,2,57; conditions
+SLM-000600,0.4286,7,3,full; 148; every
+SLM-000605,0.4286,7,3,full; 166; every
+SLM-000610,0.3333,9,3,30; conditions; 60
+SLM-000616,0.25,8,2,conditions; 60
+SLM-000617,0.25,8,2,conditions; 60
+SLM-000621,0.4286,7,3,full; 176; every
+SLM-000625,0.375,8,3,30; conditions; 45
+SLM-000633,0.2,10,2,364; failure
+SLM-000655,0.3333,9,3,10; 110; failure
+SLM-000658,0.5,10,5,30; 10; 119; 15; failure
+SLM-000661,0.375,8,3,conditions; 37; 60
+SLM-000665,0.375,8,3,59; conditions; 60
+SLM-000668,0.25,8,2,30; conditions
+SLM-000672,0.25,8,2,conditions; 60
+SLM-000679,0.3333,9,3,136; 30; failure
+SLM-000684,0.4,10,4,30; 10; 96; failure
+SLM-000686,0.4286,7,3,89; full; every
+SLM-000691,0.4,10,4,30; 10; failure; 106
+SLM-000707,0.4444,9,4,30; 10; 88; failure
+SLM-000728,0.4286,7,3,full; 103; every
+SLM-000734,0.4444,9,4,30; 15; failure; 106
+SLM-000737,0.4444,9,4,10; 15; failure; 73
+SLM-000743,0.375,8,3,30; conditions; 127
+SLM-000747,0.375,8,3,30; 66; conditions
+SLM-000761,0.3333,9,3,200; 15; failure
+SLM-000774,0.4286,7,3,full; 134; every
+SLM-000778,0.375,8,3,full; 170; every
+SLM-000797,0.4286,7,3,full; every; 98
+SLM-000804,0.5,8,4,41; 30; conditions; 60
+SLM-000806,0.5556,9,5,30; 10; 108; 15; failure
+SLM-000821,0.4444,9,4,30; 10; 122; failure
+SLM-000824,0.375,8,3,full; 176; every
+SLM-000829,0.2222,9,2,conditions; 60
+SLM-000834,0.375,8,3,full; 118; every
+SLM-000845,0.2222,9,2,153; failure
+SLM-000848,0.25,8,2,full; every
+SLM-000849,0.2,10,2,failure; 107
+SLM-000860,0.4286,7,3,full; 191; every
+SLM-000867,0.4286,7,3,full; 141; every
+SLM-000882,0.4286,7,3,112; full; every
+SLM-000886,0.2857,7,2,full; every
+SLM-000893,0.5,8,4,30; conditions; 76; 60
+SLM-000896,0.375,8,3,30; conditions; 69
+SLM-000899,0.2857,7,2,full; every
+SLM-000905,0.4,10,4,159; 30; 15; failure
+SLM-000915,0.4444,9,4,10; 67; 15; failure
+SLM-000916,0.5714,7,4,30; conditions; 17; 60
+SLM-000920,0.375,8,3,conditions; 16; 60
+SLM-000932,0.3,10,3,failure; 15; 70
+SLM-000935,0.25,8,2,conditions; 60
+SLM-000936,0.5,10,5,30; 10; 15; 120; failure
+SLM-000937,0.2,10,2,251; failure
+SLM-000948,0.2222,9,2,conditions; 60
+SLM-000951,0.3333,6,2,15; 60
+SLM-000954,0.5556,9,5,178; 30; 10; 15; failure
+SLM-000956,0.4444,9,4,30; 10; 171; failure
+SLM-000961,0.3333,9,3,109; 30; failure
+SLM-000962,0.2222,9,2,30; conditions
+SLM-000963,0.3333,9,3,conditions; 19; 60
+SLM-000967,0.4444,9,4,30; 10; 125; failure
+SLM-000993,0.375,8,3,full; 81; every
+SLM-000995,0.125,8,1,conditions
+SLM-000999,0.5,6,3,full; 210; every
+SLM-001005,0.3333,9,3,conditions; 38; 60
+SLM-001008,0.375,8,3,conditions; 75; 60
+SLM-001013,0.375,8,3,57; conditions; 60
+SLM-001015,0.25,8,2,conditions; 60
+SLM-001020,0.375,8,3,30; conditions; 60
+SLM-001024,0.25,8,2,conditions; 75
+SLM-001034,0.5,8,4,30; 10; 15; failure
+SLM-001036,0.5556,9,5,111; 30; 10; 15; failure
+SLM-001043,0.375,8,3,conditions; 60; 63
+SLM-001055,0.2,10,2,failure; 120
+SLM-001056,0.4286,7,3,full; 252; every
+SLM-001059,0.375,8,3,30; 33; conditions
+SLM-001060,0.375,8,3,30; conditions; 76
+SLM-001061,0.2857,7,2,full; every
+SLM-001062,0.375,8,3,conditions; 60; 70
+SLM-001066,0.5,8,4,30; 55; conditions; 60
+SLM-001070,0.3333,9,3,55; conditions; 60
+SLM-001073,0.4444,9,4,30; 10; 26; failure
+SLM-001078,0.375,8,3,30; conditions; 73
+SLM-001082,0.5,8,4,30; 55; conditions; 60
+SLM-001083,0.5,8,4,30; 39; conditions; 60
+SLM-001085,0.4286,7,3,full; 191; every
+SLM-001096,0.4286,7,3,full; 86; every
+SLM-001097,0.4286,7,3,full; 187; every
+SLM-001099,0.375,8,3,full; 107; every
+SLM-001103,0.5714,7,4,30; conditions; 74; 60
+SLM-001114,0.4,10,4,139; 30; 10; failure
+SLM-001126,0.5,8,4,30; 59; conditions; 60
+SLM-001136,0.25,8,2,30; conditions
+SLM-001147,0.3333,9,3,131; 30; failure
+SLM-001154,0.5,10,5,30; 10; 19; 15; failure
+SLM-001155,0.375,8,3,257; full; every
+SLM-001156,0.2222,9,2,97; failure
+SLM-001161,0.3333,9,3,30; conditions; 60
+SLM-001176,0.4286,7,3,full; 107; every
+SLM-001187,0.375,8,3,30; conditions; 60
+SLM-001201,0.2222,9,2,59; failure
+SLM-001202,0.4286,7,3,30; conditions; 60
+SLM-001207,0.3333,9,3,10; failure; 129
+SLM-001214,0.4,10,4,30; 15; 152; failure
+SLM-001217,0.375,8,3,full; 133; every
+SLM-001219,0.4286,7,3,161; full; every
+SLM-001238,0.375,8,3,30; conditions; 60
+SLM-001261,0.4286,7,3,full; 140; every
+SLM-001277,0.4286,7,3,30; conditions; 60
+SLM-001279,0.375,8,3,30; 85; conditions
+SLM-001283,0.375,8,3,conditions; 56; 60
+SLM-001284,0.4444,9,4,30; conditions; 60; 156
+SLM-001293,0.5,8,4,30; conditions; 42; 60
+SLM-001304,0.4286,7,3,full; 181; every
+SLM-001306,0.4444,9,4,30; 10; failure; 118
+SLM-001313,0.3333,9,3,103; conditions; 60
+SLM-001314,0.4444,9,4,109; 10; 15; failure
+SLM-001317,0.4444,9,4,10; 15; 127; failure
+SLM-001332,0.375,8,3,full; every; 77
+SLM-001334,0.4286,7,3,full; 141; every
+SLM-001341,0.4286,7,3,full; 135; every
+SLM-001351,0.4444,9,4,30; conditions; 83; 60
+SLM-001353,0.4444,9,4,30; 15; 121; failure
+SLM-001371,0.4286,7,3,full; 65; every
+SLM-001383,0.375,8,3,conditions; 143; 60
+SLM-001397,0.3333,9,3,58; 30; conditions
+SLM-001406,0.375,8,3,30; conditions; 60
+SLM-001410,0.25,8,2,conditions; 81
+SLM-001414,0.3333,9,3,10; 130; failure
+SLM-001430,0.4444,9,4,30; 80; 15; failure
+SLM-001438,0.375,8,3,30; conditions; 60
+SLM-001445,0.4286,7,3,full; 180; every
+SLM-001452,0.3333,9,3,10; 150; failure
+SLM-001458,0.4286,7,3,full; 187; every
+SLM-001462,0.5714,7,4,30; 59; conditions; 60
+SLM-001469,0.4444,9,4,30; conditions; 83; 60
+SLM-001474,0.375,8,3,30; conditions; 60
+SLM-001485,0.375,8,3,conditions; 60; 12
+SLM-001487,0.375,8,3,30; conditions; 32
+SLM-001500,0.4286,7,3,full; 238; every
+SLM-001509,0.25,8,2,conditions; 73
+SLM-001510,0.4286,7,3,full; 211; every
+SLM-001514,0.4444,9,4,30; 37; 15; failure
+SLM-001523,0.375,8,3,30; conditions; 60
+SLM-001526,0.5556,9,5,30; 10; 15; failure; 162
+SLM-001529,0.4286,7,3,full; 100; every
+SLM-001551,0.375,8,3,126; conditions; 60
+SLM-001556,0.1111,9,1,failure
+SLM-001559,0.375,8,3,full; 88; every
+SLM-001560,0.5,8,4,30; conditions; 60; 69
+SLM-001562,0.4286,7,3,61; conditions; 60
+SLM-001564,0.4444,9,4,30; 10; 78; failure
+SLM-001566,0.5,8,4,30; conditions; 68; 60
+SLM-001601,0.375,8,3,full; 166; every
+SLM-001614,0.5,8,4,30; conditions; 56; 60
+SLM-001622,0.4444,9,4,30; 86; 15; failure
+SLM-001631,0.3333,9,3,30; 115; failure
+SLM-001636,0.5,6,3,full; 49; every
+SLM-001637,0.4286,7,3,128; full; every
+SLM-001642,0.375,8,3,206; full; every
+SLM-001643,0.375,8,3,full; 72; every
+SLM-001644,0.25,8,2,full; every
+SLM-001649,0.375,8,3,conditions; 79; 60
+SLM-001653,0.3333,9,3,178; 15; failure
+SLM-001662,0.25,8,2,conditions; 121
+SLM-001666,0.3333,9,3,30; 66; conditions
+SLM-001678,0.4444,9,4,51; 30; conditions; 60
+SLM-001681,0.3,10,3,10; failure; 98
+SLM-001685,0.4286,7,3,full; 52; every
+SLM-001692,0.375,8,3,full; 160; every
+SLM-001694,0.5,8,4,30; conditions; 60; 36
+SLM-001698,0.3333,9,3,30; 229; failure
+SLM-001701,0.4,10,4,30; 10; failure; 50
+SLM-001709,0.375,8,3,conditions; 130; 60
+SLM-001714,0.4444,9,4,10; 180; 15; failure
+SLM-001723,0.3333,9,3,conditions; 79; 60
+SLM-001726,0.3333,9,3,112; 10; failure
+SLM-001730,0.4286,7,3,30; conditions; 60
+SLM-001731,0.5,8,4,30; conditions; 21; 60
+SLM-001734,0.4444,9,4,109; 10; 15; failure
+SLM-001739,0.375,8,3,58; conditions; 60
+SLM-001741,0.4286,7,3,full; 193; every
+SLM-001758,0.4,10,4,30; 10; 96; failure
+SLM-001760,0.3333,9,3,15; 56; failure
+SLM-001766,0.4444,9,4,10; 15; 121; failure
+SLM-001778,0.3,10,3,30; 86; failure
+SLM-001779,0.4444,9,4,10; 103; 15; failure
+SLM-001790,0.2,10,2,failure; 114
+SLM-001791,0.5,8,4,30; 22; conditions; 60
+SLM-001795,0.5,8,4,30; conditions; 56; 60
+SLM-001800,0.375,8,3,conditions; 38; 60
+SLM-001809,0.4,10,4,131; 10; 15; failure
+SLM-001825,0.375,8,3,full; 230; every
+SLM-001837,0.375,8,3,conditions; 60; 70
+SLM-001849,0.375,8,3,30; 122; conditions
+SLM-001850,0.4444,9,4,30; conditions; 62; 60
+SLM-001855,0.3333,9,3,30; 121; failure
+SLM-001858,0.5,8,4,30; 33; conditions; 60
+SLM-001864,0.375,8,3,full; 87; every
+SLM-001867,0.2,10,2,failure; 144
+SLM-001872,0.5,8,4,30; 49; conditions; 60
+SLM-001879,0.375,8,3,136; full; every
+SLM-001881,0.375,8,3,30; conditions; 60
+SLM-001882,0.375,8,3,30; conditions; 60
+SLM-001889,0.375,8,3,full; 173; every
+SLM-001894,0.4444,9,4,30; conditions; 16; 60
+SLM-001909,0.25,8,2,conditions; 50
+SLM-001921,0.375,8,3,conditions; 60; 50
+SLM-001936,0.5,10,5,30; 10; failure; 15; 38
+SLM-001955,0.5,8,4,82; 30; conditions; 60
+SLM-001968,0.375,8,3,92; full; every
+SLM-001971,0.3,10,3,failure; 15; 144
+SLM-001989,0.5,8,4,43; 30; conditions; 60
+SLM-002004,0.3333,9,3,30; conditions; 60
+SLM-002006,0.3333,9,3,67; conditions; 60
+SLM-002013,0.375,8,3,full; 207; every
+SLM-002014,0.25,8,2,conditions; 60
+SLM-002017,0.2857,7,2,full; every
+SLM-002018,0.2222,9,2,15; failure
+SLM-002023,0.4286,7,3,full; 103; every
+SLM-002026,0.3,10,3,30; 83; failure
+SLM-002027,0.4286,7,3,full; 217; every
+SLM-002032,0.4444,9,4,61; 30; conditions; 60
+SLM-002034,0.3333,9,3,105; 10; failure
+SLM-002037,0.3,10,3,30; 75; failure
+SLM-002040,0.5,8,4,30; conditions; 60; 63
+SLM-002050,0.4444,9,4,30; 205; 15; failure
+SLM-002071,0.3333,9,3,30; 96; failure
+SLM-002077,0.375,8,3,30; conditions; 60
+SLM-002082,0.5556,9,5,30; 10; 15; 135; failure
+SLM-002085,0.4444,9,4,30; 10; 15; failure
+SLM-002093,0.3,10,3,30; 67; failure
+SLM-002098,0.5,8,4,30; conditions; 24; 60
+SLM-002101,0.375,8,3,conditions; 64; 60
+SLM-002106,0.4286,7,3,full; 272; every
+SLM-002116,0.5,8,4,30; conditions; 46; 60
+SLM-002131,0.5,8,4,30; 90; conditions; 60
+SLM-002132,0.5,6,3,full; 158; every
+SLM-002141,0.5,10,5,30; 10; 57; 15; failure
+SLM-002148,0.4286,7,3,full; 122; every
+SLM-002153,0.4286,7,3,full; 26; every
+SLM-002161,0.25,8,2,49; conditions
+SLM-002170,0.4444,9,4,10; 15; 118; failure
+SLM-002177,0.4,10,4,10; failure; 15; 156
+SLM-002186,0.4286,7,3,full; 229; every
+SLM-002189,0.3333,9,3,30; conditions; 60
+SLM-002209,0.3,10,3,112; 30; failure
+SLM-002214,0.3333,9,3,30; 84; failure
+SLM-002216,0.5,8,4,30; conditions; 60; 36
+SLM-002221,0.3,10,3,75; 15; failure
+SLM-002230,0.5,8,4,82; 30; conditions; 60
+SLM-002243,0.3,10,3,30; failure; 183
+SLM-002260,0.25,8,2,conditions; 28
+SLM-002273,0.375,8,3,30; conditions; 34
+SLM-002275,0.4286,7,3,full; 238; every
+SLM-002284,0.4286,7,3,full; 168; every
+SLM-002285,0.125,8,1,conditions
+SLM-002286,0.3,10,3,30; 15; failure
+SLM-002302,0.25,8,2,conditions; 60
+SLM-002304,0.5,8,4,30; 48; conditions; 60
+SLM-002310,0.2222,9,2,30; failure
+SLM-002312,0.3333,9,3,30; 10; failure
+SLM-002334,0.375,8,3,30; conditions; 60
+SLM-002335,0.375,8,3,30; conditions; 60
+SLM-002338,0.375,8,3,41; conditions; 60
+SLM-002344,0.375,8,3,conditions; 60; 73
+SLM-002345,0.4,10,4,30; 10; failure; 15
+SLM-002346,0.375,8,3,full; every; 50
+SLM-002347,0.375,8,3,full; 312; every
+SLM-002349,0.375,8,3,conditions; 60; 70
+SLM-002350,0.375,8,3,104; conditions; 60
+SLM-002353,0.4444,9,4,89; 10; 15; failure
+SLM-002360,0.5,8,4,30; 35; conditions; 60
+SLM-002388,0.5,8,4,30; conditions; 37; 60
+SLM-002391,0.4286,7,3,full; 141; every
+SLM-002394,0.25,8,2,conditions; 60
+SLM-002399,0.4286,7,3,104; full; every
+SLM-002413,0.5,8,4,30; 55; conditions; 60
+SLM-002431,0.375,8,3,full; 32; every
+SLM-002437,0.4444,9,4,30; 10; 15; failure
+SLM-002447,0.3333,9,3,31; conditions; 60
+SLM-002448,0.5,8,4,30; conditions; 65; 60
+SLM-002449,0.4444,9,4,30; 39; conditions; 60
+SLM-002452,0.3,10,3,15; 283; failure
+SLM-002473,0.3333,9,3,30; 138; failure
+SLM-002484,0.3333,9,3,30; 188; failure
+SLM-002491,0.5,8,4,92; 30; conditions; 60
+SLM-002495,0.25,8,2,conditions; 96
+SLM-002502,0.5,8,4,30; conditions; 44; 60
+SLM-002503,0.4286,7,3,full; 180; every
+SLM-002514,0.4444,9,4,149; 30; 15; failure
+SLM-002528,0.2,5,1,24
+SLM-002534,0.25,8,2,conditions; 60
+SLM-002541,0.5,8,4,30; conditions; 62; 60
+SLM-002544,0.4444,9,4,30; conditions; 69; 60
+SLM-002557,0.3333,9,3,30; 15; failure
+SLM-002559,0.25,8,2,18; conditions
+SLM-002585,0.5,8,4,159; 30; conditions; 60
+SLM-002589,0.5,8,4,30; conditions; 39; 60
+SLM-002605,0.3333,9,3,30; conditions; 60
+SLM-002618,0.5,8,4,10; 222; 15; failure
+SLM-002620,0.4286,7,3,full; 138; every
+SLM-002626,0.4286,7,3,full; 107; every
+SLM-002638,0.375,8,3,30; conditions; 154
+SLM-002654,0.5,8,4,30; 55; conditions; 60
+SLM-002655,0.25,8,2,conditions; 60
+SLM-002660,0.4,10,4,30; 141; 15; failure
+SLM-002664,0.3,10,3,30; failure; 157
+SLM-002669,0.2857,7,2,full; every
+SLM-002673,0.375,8,3,full; 207; every
+SLM-002677,0.5,8,4,30; 53; conditions; 60
+SLM-002687,0.4286,7,3,full; 188; every
+SLM-002688,0.3333,9,3,15; 196; failure
+SLM-002693,0.3333,9,3,30; 57; conditions
+SLM-002700,0.4444,9,4,30; conditions; 78; 60
+SLM-002703,0.5,10,5,30; 10; failure; 114; 15
+SLM-002705,0.3333,9,3,15; 215; failure
+SLM-002706,0.5,6,3,full; 96; every
+SLM-002712,0.4286,7,3,full; 227; every
+SLM-002713,0.5,6,3,full; 155; every
+SLM-002716,0.4286,7,3,213; full; every
+SLM-002748,0.4286,7,3,113; full; every
+SLM-002756,0.25,8,2,conditions; 60
+SLM-002768,0.4286,7,3,full; 217; every
+SLM-002771,0.2222,9,2,conditions; 60
+SLM-002772,0.375,8,3,full; 133; every
+SLM-002775,0.2857,7,2,full; every
+SLM-002781,0.4286,7,3,260; full; every
+SLM-002787,0.3333,9,3,209; 15; failure
+SLM-002788,0.3333,9,3,30; failure; 69
+SLM-002790,0.4286,7,3,full; 187; every
+SLM-002794,0.3333,9,3,66; conditions; 60
+SLM-002795,0.4286,7,3,full; 236; every
+SLM-002804,0.2222,9,2,139; failure
+SLM-002810,0.3333,9,3,30; conditions; 60
+SLM-002813,0.3333,6,2,30; conditions
+SLM-002823,0.4,10,4,30; 15; 79; failure
+SLM-002830,0.4444,9,4,82; 30; 15; failure
+SLM-002834,0.2222,9,2,109; failure
+SLM-002838,0.3333,9,3,10; 241; failure
+SLM-002844,0.1429,7,1,conditions
+SLM-002845,0.25,8,2,30; conditions
+SLM-002847,0.0,7,0,None
+SLM-002848,0.4286,7,3,full; 252; every
+SLM-002855,0.4444,9,4,30; 15; failure; 218
+SLM-002858,0.3333,9,3,112; conditions; 60
+SLM-002861,0.4286,7,3,full; 222; every
+SLM-002866,0.375,8,3,61; 30; conditions
+SLM-002867,0.5,8,4,30; conditions; 44; 60
+SLM-002871,0.5,8,4,30; conditions; 47; 60
+SLM-002881,0.2,10,2,10; failure
+SLM-002889,0.375,8,3,full; 155; every
+SLM-002893,0.5556,9,5,30; 10; failure; 195; 15
+SLM-002897,0.3,10,3,30; 15; failure
+SLM-002907,0.5,8,4,30; conditions; 60; 73
+SLM-002910,0.2222,9,2,conditions; 48
+SLM-002917,0.25,8,2,conditions; 17
+SLM-002922,0.375,8,3,30; conditions; 60
+SLM-002925,0.4444,9,4,30; 133; 15; failure
+SLM-002928,0.3333,9,3,conditions; 101; 60
+SLM-002933,0.3333,9,3,206; 30; failure
+SLM-002948,0.2222,9,2,15; failure
+SLM-002949,0.5,8,4,30; conditions; 13; 60
+SLM-002952,0.5714,7,4,41; 30; conditions; 60
+SLM-002958,0.3333,9,3,30; 55; failure
+SLM-002959,0.4286,7,3,full; 139; every
+SLM-002968,0.4286,7,3,full; 211; every
+SLM-002973,0.4444,9,4,54; 30; conditions; 60
+SLM-002976,0.25,8,2,conditions; 60
+SLM-002977,0.4444,9,4,10; 15; failure; 70
+SLM-002978,0.375,8,3,full; 179; every
+SLM-002981,0.3,10,3,30; failure; 143
+SLM-002985,0.4,10,4,92; 30; 15; failure
+SLM-002986,0.25,8,2,30; conditions
+SLM-002988,0.4286,7,3,full; 120; every
+SLM-002992,0.4444,9,4,10; 15; 121; failure
+SLM-002995,0.5,8,4,51; 30; conditions; 60
+SLM-002998,0.4444,9,4,51; 30; conditions; 60
+SLM-003007,0.375,8,3,full; 148; every
+SLM-003008,0.375,8,3,full; 203; every
+SLM-003010,0.25,8,2,conditions; 60
+SLM-003016,0.25,8,2,full; every
+SLM-003028,0.5,8,4,30; conditions; 38; 60
+SLM-003030,0.25,8,2,conditions; 60
+SLM-003035,0.4286,7,3,full; 103; every
+SLM-003038,0.375,8,3,323; 30; failure
+SLM-003047,0.4286,7,3,full; 66; every
+SLM-003053,0.5,10,5,30; 10; 212; failure; 15
+SLM-003057,0.5,8,4,30; conditions; 28; 60
+SLM-003063,0.3333,9,3,82; conditions; 60
+SLM-003070,0.375,8,3,30; 55; conditions
+SLM-003072,0.4444,9,4,357; 30; 15; failure
+SLM-003077,0.3333,9,3,10; failure; 157
+SLM-003079,0.375,8,3,49; conditions; 60
+SLM-003082,0.5,8,4,30; 31; conditions; 60
+SLM-003085,0.4444,9,4,30; 10; failure; 73
+SLM-003095,0.375,8,3,30; conditions; 24
+SLM-003104,0.4444,9,4,30; 10; 15; failure
+SLM-003115,0.3333,9,3,116; 30; failure
+SLM-003117,0.375,8,3,full; 74; every
+SLM-003134,0.5,8,4,30; conditions; 72; 60
+SLM-003157,0.1111,9,1,failure
+SLM-003168,0.375,8,3,61; full; every
+SLM-003179,0.4444,9,4,30; conditions; 60; 63
+SLM-003180,0.4,10,4,104; 30; 15; failure
+SLM-003187,0.3333,9,3,15; failure; 99
+SLM-003188,0.25,8,2,conditions; 60
+SLM-003198,0.25,8,2,54; conditions

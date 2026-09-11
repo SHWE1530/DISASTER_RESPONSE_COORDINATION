@@ -56,6 +56,28 @@
             ]
         ]
     },
+    "calibration": {
+        "raw": {
+            "brier_per_class": {
+                "Low": 0.004799955488803211,
+                "Moderate": 0.02448964828825991,
+                "Severe": 0.019655801398868456
+            },
+            "brier_mean": 0.01631513505864386,
+            "expected_calibration_error": 0.01198011807600659
+        },
+        "calibrated": {
+            "brier_per_class": {
+                "Low": 0.004155043567830435,
+                "Moderate": 0.023949563589342783,
+                "Severe": 0.019556608587201926
+            },
+            "brier_mean": 0.015887071914791714,
+            "expected_calibration_error": 0.004178967022705556
+        },
+        "ece_improvement": 0.007801151053301034,
+        "verdict": "Calibration improves the held-out ECE; the served confidence is usable as a probability."
+    },
     "overconfidence_analysis": {
         "missed_severe_count": 15,
         "critical_overconfident_errors": 0

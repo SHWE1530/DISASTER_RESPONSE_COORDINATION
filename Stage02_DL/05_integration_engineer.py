@@ -71,6 +71,9 @@ class DLIntegrationEngine:
 		inference_ok = True
 		inference_error: str | None = None
 		try:
+			# Preload CNN model to avoid severe latency spikes on first prediction
+			self.module._load_cnn_bundle()
+
 			lookback = int(self.metrics.get("lstm", {}).get("lookback", 72))
 			mean_level = float(self.module._load_lstm_bundle()["scaler"].mean_[0])
 			self.module.forecast_water_levels([mean_level] * lookback, 1)

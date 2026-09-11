@@ -1,0 +1,37 @@
+{
+  "stage": "04_SLM",
+  "script": "03_slm_engineer.py",
+  "base_model": "Stage04_SLM/data/models/qwen_base",
+  "adaptation": "QLoRA (r=16, alpha=32, NF4 4-bit)",
+  "task": "disaster-response grounded generation",
+  "output_format": [
+    "SITUATION",
+    "RISK",
+    "ACTIONS"
+  ],
+  "baseline": {
+    "model_type": "TF-IDF + LogisticRegression priority classifier",
+    "saved_to": "C:\\Users\\asus\\DISASTER_RESPONSE_COORDINATION\\Stage04_SLM\\data\\models\\slm_baseline"
+  },
+  "qwen_qlora": {
+    "status": "trained",
+    "model_id": "Stage04_SLM/data/models/qwen_base",
+    "adapter_path": "C:\\Users\\asus\\DISASTER_RESPONSE_COORDINATION\\Stage04_SLM\\data\\models\\qwen_slm_qlora",
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "epochs": 1,
+    "train_samples": 2256,
+    "val_samples": 481,
+    "device": "cuda",
+    "training_seconds": 3269.2
+  }
+}

@@ -2,10 +2,15 @@
 
 ## 1. What this system actually is
 
-Three **independent** predictors served behind one Flask dashboard. They are not
-a pipeline, and this document says so plainly because an earlier version of the
-project diagram implied a chain (`ML -> DL -> NLP -> fusion -> decision`) that
-does not exist in the code.
+Three **independent** predictors, each answering a different question from a
+different modality, plus a **fusion layer** that combines whichever of them have
+evidence into a single prioritised decision.
+
+The stages themselves are still parallel, not a pipeline — Stage 03 does not
+consume Stage 01's output. The fusion layer sits *above* all three and is the
+only component that sees more than one modality. This document is explicit about
+that because an earlier project diagram implied a sequential chain
+(`ML -> DL -> NLP -> decision`) that has never existed in the code.
 
 Each stage answers a different question from a different input modality:
 
@@ -52,8 +57,77 @@ ml_pipeline        disaster_cnn.pt             water_level_     urgency + hazard
                           JSON response -> browser
 ```
 
-**There is no fusion layer.** No stage consumes another stage's output. Building
-one is listed under Known Limitations rather than implied by the diagram.
+The four endpoints above serve each stage in isolation. `POST /api/assess` sits
+on top of them:
+
+```
+                   POST /api/assess   {sensors?, text?, image_path?, water_levels?}
+                              |
+                   fusion/decision_engine.py
+                              |
+        +---------------+-----+-------+----------------+
+        v               v             v                v
+  Stage01 risk    Stage03 urgency  Stage02 CNN    Stage02 LSTM
+        |               |             |                |
+        +---------------+------+------+----------------+
+                               v
+                 project onto one 0-3 severity scale
+                 weight by each stage's own confidence
+                 renormalise over AVAILABLE sources only
+                               v
+                 one-directional escalation rules
+                 (they may only ever RAISE priority)
+                               v
+        ROUTINE / ELEVATED / URGENT / CRITICAL
+        + per-source evidence and provenance
+        + explicit conflict report (never averaged away)
+        + human_review_required flag and reasons
+        + recommended actions
+```
+
+## 3a. How fusion decides
+
+**It is a deterministic policy, not a learned model.** Learning the fusion would
+require a corpus of incidents where sensor readings, imagery, water levels and a
+text report all describe the *same* event with a known outcome. No such joint
+dataset exists here, and fabricating one would put a trained-looking number on
+top of invented supervision — the exact defect Stage 03 had to have removed.
+Every weight in `fusion/decision_engine.py` is a named constant a domain expert
+can inspect and change.
+
+**Evidence weights** (`EVIDENCE_WEIGHTS`): sensor risk 0.35, text urgency 0.30,
+visual confirmation 0.20, forecast 0.15. Sensor telemetry is weighted highest
+because it is the only signal validated against held-out ground-truth labels;
+the text model is weighted almost as highly but is capped because it is trained
+on synthetic text.
+
+**Rules that matter:**
+
+- *Escalations are one-directional.* Every rule may raise the priority; none may
+  lower it. Under-responding to a real emergency costs more than over-responding
+  to a false alarm. An escalation is only reported when it actually changed the
+  outcome.
+- *A human reporting CRITICAL sets an URGENT floor*, even when the sensors
+  disagree. A person on the scene is not out-voted by a weighted mean.
+- *Corroboration escalates.* Imagery confirming flooding **and** sensors reading
+  high jumps to CRITICAL.
+- *The forecast cannot lower a present-tense assessment.* It describes the
+  future, so a flat projection is not evidence that conditions are calm now. It
+  is excluded from the base score unless it warns of a rise, and it is excluded
+  from conflict detection entirely — two different points in time cannot
+  contradict each other.
+- *An out-of-distribution forecast is suppressed outright*, not down-weighted.
+- *Low confidence is floored, not discarded* (`MIN_CONFIDENCE_FLOOR = 0.25`), so
+  a low-confidence CRITICAL report still carries weight.
+- *Conflicts are surfaced, never averaged away.* A ≥2-level disagreement between
+  present-tense sources is reported with both readings and marked
+  "Not auto-resolved"; the higher assessment sets the floor and a human
+  adjudicates.
+- *Human review is mandatory* when sources conflict, when only one source was
+  available, when any evidence is low-confidence, or when priority is URGENT or
+  above.
+- *No evidence never reads as safe.* Zero usable inputs returns
+  `insufficient_evidence` with `human_review_required`, not `ROUTINE`.
 
 ## 3. Module loading
 
@@ -131,14 +205,35 @@ series with mean 3.12 m and std 1.56 m. Given inputs several sigma outside that,
 it extrapolates and produces physically implausible output. Rather than hide
 this, `forecast_water_levels` returns `in_distribution` and a warning string.
 
-**Why confidence is labelled as uncalibrated.** Stage 01 measures Brier score and
-expected calibration error and publishes the reliability curve. The model is
-overconfident in its middle bins, so the UI states that the number is a ranking
-signal, not a probability of being correct.
+**Why the confidence is calibrated but the decision is not.** Stage 01 fits an
+isotonic calibrator on the *validation* partition and serves the calibrated
+probability as `confidence` (raw score kept as `raw_confidence`). Measured on
+the held-out test set, this cuts expected calibration error from 0.0120 to
+0.0042.
+
+The class decision still comes from the raw model. Taking argmax over the
+calibrated probabilities instead was measured and it moved the operating point:
+macro F1 rose 0.915 -> 0.928 and Low recall rose 0.710 -> 0.774, but Severe
+recall fell 0.9866 -> 0.9786 and missed Severe zones rose from 15 to 24. Model
+selection deliberately chose XGBoost on Severe recall, so letting a post-hoc
+calibrator overturn that rule for a better aggregate metric would undo the
+selection criterion. Calibration fixes the probability, not the boundary.
+Confidence is additionally clipped to [0.01, 0.99] -- isotonic regression will
+emit exactly 1.0, and no flood warning should display 100% certainty.
+
+**Why the CNN is cross-validated as well as held-out tested.** The single split
+evaluates 75 images with 15 flooded positives, which is too few to place a
+meaningful interval around. `06_cross_validation.py` runs stratified k-fold so
+every image is scored once by a model that never trained on it, and reports
+fold-to-fold standard deviation plus bootstrap confidence intervals. The
+held-out evaluation still measures the exact deployed checkpoint; the CV
+measures the architecture and training procedure, which is the thing an interval
+can legitimately be placed around.
 
 ## 7. Known limitations
 
-1. **The three stages do not combine.** There is no joint decision.
+1. **Fusion is a hand-written policy, not a learned model** -- for the reason in
+   section 3a. Its weights are defensible defaults, not empirically optimal ones.
 2. **Datasets are synthetic or small.** The Stage 03 corpora are generated; the
    CNN has 500 images (75 test, 15 of them flooded), so its confidence interval
    is wide.

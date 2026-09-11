@@ -1,0 +1,8 @@
+{
+  "mean_grounding_index": 846.34,
+  "median_grounding_index": 821.44,
+  "max_grounding_index": 1377.41,
+  "grounded_pairs_pct": 0.0,
+  "n_samples": 200,
+  "diagnostic_scope": "Evaluates generated SLM output tokens against report vocabulary. Diagnostic unigram cross-entropy, not model perplexity."
+}

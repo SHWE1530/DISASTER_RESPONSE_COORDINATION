@@ -48,5 +48,16 @@
             "gap": 0.006779339693594677
         }
     ],
-    "note": "Confidence is the max softmax probability of the selected model and is NOT calibrated. Positive gap means the model is overconfident in that bin. Treat the displayed confidence as a ranking signal, not as a probability of being correct."
+    "calibrated": {
+        "method": "isotonic regression, fitted on the validation partition (cv='prefit')",
+        "brier_per_class": {
+            "Low": 0.006893832053893794,
+            "Moderate": 0.025581531268865698,
+            "Severe": 0.018494341494947324
+        },
+        "brier_mean": 0.01698990160590227,
+        "expected_calibration_error": 0.0027767866043201484,
+        "in_sample_warning": "These calibrated figures are computed on the same validation rows the calibrator was fitted on and are therefore optimistic. The independent measurement is in eval_final_report.json, produced from the held-out test partition."
+    },
+    "note": "The serving layer returns the ISOTONIC-CALIBRATED probability as 'confidence' and the model's raw score as 'raw_confidence'. The raw score is overconfident in its middle bins; the calibrated value is the one to read as a probability of being correct."
 }

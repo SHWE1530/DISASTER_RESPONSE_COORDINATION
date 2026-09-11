@@ -64,6 +64,24 @@ stage02_engine, stage02_status, stage02_error = load_stage(
 stage03_engine, stage03_status, stage03_error = load_stage(
     "Stage03", BASE_DIR / "Stage03_NLP" / "05_integration_engineer.py", "nlp_integration_engine"
 )
+stage04_engine, stage04_status, stage04_error = load_stage(
+    "Stage04", BASE_DIR / "Stage04_SLM" / "05_integration_engineer.py", "slm_integration_engine"
+)
+
+# Cross-stage fusion. Degrades gracefully: it uses whichever stages loaded.
+try:
+    from fusion.decision_engine import DecisionEngine
+
+    decision_engine = DecisionEngine(
+        ml_engine=stage01_engine, dl_engine=stage02_engine, nlp_engine=stage03_engine
+    )
+    fusion_status = "Online" if any(
+        (stage01_engine, stage02_engine, stage03_engine)
+    ) else "Offline"
+except Exception as exc:
+    logger.exception("Failed to load the fusion decision engine")
+    decision_engine = None
+    fusion_status = "Offline"
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = BASE_DIR / "Stage02_DL" / "data" / "raw"
@@ -160,9 +178,11 @@ HTML_TEMPLATE = """
         </div>
 
         <a class="nav-item active" data-target="view-dashboard"><div class="nav-icon">🏠</div> Dashboard</a>
+        <a class="nav-item" data-target="view-fusion"><div class="nav-icon" style="color: var(--accent-amber)">🎯</div> Unified Decision</a>
         <a class="nav-item" data-target="view-ml"><div class="nav-icon" style="color: var(--accent-green)">⚙️</div> ML (Stage 01)</a>
         <a class="nav-item" data-target="view-dl"><div class="nav-icon" style="color: var(--accent-blue)">⚡</div> DL (Stage 02)</a>
         <a class="nav-item" data-target="view-nlp"><div class="nav-icon" style="color: var(--accent-purple)">💬</div> NLP (Stage 03)</a>
+        <a class="nav-item" data-target="view-slm"><div class="nav-icon" style="color: #F97316">📋</div> SLM Briefing (Stage 04)</a>
     </div>
 
     <!-- Main Content -->
@@ -189,7 +209,78 @@ HTML_TEMPLATE = """
                 <p><strong>Stage 01 API (ML):</strong> {{ stage01 }}</p>
                 <p><strong>Stage 02 API (DL):</strong> {{ stage02 }}</p>
                 <p><strong>Stage 03 API (NLP):</strong> {{ stage03 }}</p>
-                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, and the NLP emergency text analysis.</p>
+                <p><strong>Stage 04 API (SLM):</strong> {{ stage04 }}</p>
+                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, NLP emergency text analysis, and the SLM tactical briefing generator.</p>
+            </div>
+        </div>
+
+        <!-- VIEW: UNIFIED DECISION (FUSION) -->
+        <div id="view-fusion" class="view-section">
+            <div class="page-header">
+                <h2>Unified Incident Assessment</h2>
+                <p>Combines sensor risk (Stage 01), visual confirmation and forecast (Stage 02), and the text report (Stage 03) into one prioritised decision.</p>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header"><h3>Incident Evidence</h3></div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                    Supply any subset. Missing evidence is reported, never assumed benign.
+                </p>
+                <form id="fusionForm">
+                    <div class="form-grid">
+                        <div class="input-group"><label>Rainfall (mm)</label><input type="number" step="0.1" id="fu-rainfall" value="118.0"></div>
+                        <div class="input-group"><label>River Level (m)</label><input type="number" step="0.1" id="fu-river" value="5.4"></div>
+                        <div class="input-group"><label>River Threshold (m)</label><input type="number" step="0.1" id="fu-thresh" value="5.0"></div>
+                        <div class="input-group"><label>Emergency Calls</label><input type="number" id="fu-calls" value="140"></div>
+                        <div class="input-group"><label>District</label><input type="text" id="fu-district" value="Pune"></div>
+                        <div class="input-group"><label>State</label><input type="text" id="fu-state" value="Maharashtra"></div>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>Field report / emergency message (optional)</label>
+                        <textarea id="fu-text" style="min-height: 80px;">Water is rising fast near the railway bridge, three people are trapped and need immediate rescue.</textarea>
+                    </div>
+                    <label style="font-size: 12px; color: var(--text-muted);">
+                        <input type="checkbox" id="fu-forecast" checked> Include 6-hour water-level forecast
+                    </label>
+                    <div style="margin-top: 15px;">
+                        <button type="submit" class="btn btn-green">Run Unified Assessment</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="chart-card" id="fusion-result" style="display: none;">
+                <div class="chart-header">
+                    <h3>Decision</h3>
+                    <span id="fu-badge" class="badge"></span>
+                </div>
+                <div style="line-height: 1.9;">
+                    <div><span style="color: var(--text-muted);">Fused score (0-3):</span> <strong id="fu-score"></strong></div>
+                    <div><span style="color: var(--text-muted);">Source agreement:</span> <strong id="fu-agree"></strong></div>
+                    <div><span style="color: var(--text-muted);">Human review required:</span> <strong id="fu-review"></strong></div>
+                </div>
+
+                <h4 style="margin-top: 20px; margin-bottom: 8px; font-size: 14px;">Evidence</h4>
+                <div id="fu-evidence" style="font-size: 13px;"></div>
+
+                <div id="fu-conflict-wrap" style="display:none;">
+                    <h4 style="margin-top: 20px; margin-bottom: 8px; font-size: 14px; color: #EF4444;">Conflicts</h4>
+                    <div id="fu-conflicts" style="font-size: 13px;"></div>
+                </div>
+
+                <div id="fu-escalation-wrap" style="display:none;">
+                    <h4 style="margin-top: 20px; margin-bottom: 8px; font-size: 14px; color: var(--accent-amber);">Escalations applied</h4>
+                    <div id="fu-escalations" style="font-size: 13px;"></div>
+                </div>
+
+                <h4 style="margin-top: 20px; margin-bottom: 8px; font-size: 14px;">Recommended actions</h4>
+                <div id="fu-actions" style="font-size: 13px;"></div>
+
+                <div id="fu-warn-wrap" style="display:none;">
+                    <h4 style="margin-top: 20px; margin-bottom: 8px; font-size: 14px; color: var(--accent-amber);">Caveats</h4>
+                    <div id="fu-warnings" style="font-size: 13px;"></div>
+                </div>
+
+                <p id="fu-disclaimer" style="margin-top: 20px; padding: 12px; border-left: 3px solid var(--accent-amber); background: rgba(245,158,11,0.08); font-size: 12px; color: var(--text-muted); line-height: 1.6;"></p>
             </div>
         </div>
 
@@ -220,6 +311,59 @@ HTML_TEMPLATE = """
                         <div><span style="color: var(--text-muted);">Resource:</span> <span id="nlp-resource"></span></div>
                         <div><span style="color: var(--text-muted);">Headcount:</span> <span id="nlp-headcount"></span></div>
                         <small id="nlp-meta" style="color: var(--text-muted); display: block; margin-top: 10px;"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: SLM TACTICAL BRIEFING (STAGE 04) -->
+        <div id="view-slm" class="view-section">
+            <div class="page-header">
+                <h2>SLM Tactical Briefing (Stage 04)</h2>
+                <p>Paste a multi-entry incident log and generate a structured SITUATION / RISK / ACTIONS briefing using the trained Small Language Model.</p>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header"><h3>Incident Log Input</h3></div>
+                <form id="slmForm">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>Paste full incident log (multi-entry)</label>
+                        <textarea id="slm-report" style="min-height: 180px;" placeholder="INCIDENT LOG | Maharashtra / Pune / ZONE-3 | 6 entries&#10;[01-09-2026 08:15] ERSS-004201 | Severe flooding reported near the main bridge. 45 people affected...&#10;..."></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="background:#F97316;">Generate Tactical Briefing</button>
+                </form>
+
+                <div class="chart-card" id="slm-result" style="display: none; margin-top: 20px; border: 1px solid #F97316;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="margin: 0;">Tactical Briefing</h3>
+                        <span id="slm-priority-badge" class="badge"></span>
+                    </div>
+
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 12px; color: #F97316; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Situation</div>
+                        <div id="slm-situation" style="line-height: 1.6;"></div>
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 12px; color: var(--accent-amber); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Risk Assessment</div>
+                        <div id="slm-risk" style="line-height: 1.6;"></div>
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 12px; color: var(--accent-green); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Recommended Actions</div>
+                        <ol id="slm-actions" style="padding-left: 20px; line-height: 1.8;"></ol>
+                    </div>
+
+                    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">
+                            <span>Time Savings vs Full Log</span>
+                            <span id="slm-time-pct" style="color: var(--accent-green); font-weight: 700;"></span>
+                        </div>
+                        <div style="background: #1E293B; border-radius: 6px; height: 8px; overflow: hidden;">
+                            <div id="slm-time-bar" style="background: linear-gradient(90deg, #10B981, #F59E0B); height: 100%; width: 0%; transition: width 0.6s;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+                            <span>Model: <span id="slm-model"></span></span>
+                            <span>Latency: <span id="slm-latency"></span></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -318,6 +462,98 @@ HTML_TEMPLATE = """
                 const targetView = document.getElementById(targetId);
                 if (targetView) targetView.classList.add('active');
             });
+        });
+
+        // Unified Assessment (fusion) Submission
+        const PRIORITY_COLORS = { ROUTINE: '#10B981', ELEVATED: '#F59E0B', URGENT: '#F97316', CRITICAL: '#EF4444' };
+
+        function renderList(elementId, items, bullet) {
+            document.getElementById(elementId).innerHTML = items.length
+                ? items.map(t => `<div style="margin-bottom:6px;">${bullet} ${t}</div>`).join('')
+                : '<div style="color: var(--text-muted);">None</div>';
+        }
+
+        document.getElementById('fusionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Assessing...';
+
+            const river = parseFloat(document.getElementById('fu-river').value);
+            const payload = {
+                sensors: {
+                    timestamp: "05-09-2026 12:00",
+                    state: document.getElementById('fu-state').value,
+                    district: document.getElementById('fu-district').value,
+                    rainfall_mm: parseFloat(document.getElementById('fu-rainfall').value),
+                    river_level_m: river,
+                    river_level_threshold_m: parseFloat(document.getElementById('fu-thresh').value),
+                    emergency_calls: parseInt(document.getElementById('fu-calls').value),
+                    water_level_change_m: 0.4,
+                    road_closures: 1, bridge_closures: 0,
+                    flood_history_count: 5, population_affected: 50000
+                },
+                text: document.getElementById('fu-text').value
+            };
+
+            if (document.getElementById('fu-forecast').checked) {
+                // 72 h of history ending at the entered river level, within the trained range.
+                const start = Math.max(2.4, river - 2.5);
+                payload.water_levels = Array.from({length: 72}, (_, i) =>
+                    +(start + (river - start) * (i / 71)).toFixed(3));
+            }
+
+            try {
+                const res = await fetch('/api/assess', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                document.getElementById('fusion-result').style.display = 'block';
+
+                const badge = document.getElementById('fu-badge');
+                badge.innerText = data.priority || 'NO ASSESSMENT';
+                badge.style.color = PRIORITY_COLORS[data.priority] || '#94A3B8';
+                badge.style.border = '1px solid ' + (PRIORITY_COLORS[data.priority] || '#94A3B8');
+                badge.style.background = 'transparent';
+
+                document.getElementById('fu-score').innerText = data.score ?? 'N/A';
+                document.getElementById('fu-agree').innerText = data.agreement || 'N/A';
+                const review = document.getElementById('fu-review');
+                review.innerText = data.human_review_required ? 'YES' : 'No';
+                review.style.color = data.human_review_required ? '#F59E0B' : '#10B981';
+
+                document.getElementById('fu-evidence').innerHTML = (data.evidence || []).map(ev => {
+                    const dot = ev.available ? '🟢' : '⚪';
+                    const lvl = ev.available
+                        ? `<strong style="color:${PRIORITY_COLORS[ev.level_name] || '#94A3B8'}">${ev.level_name}</strong>`
+                          + (ev.confidence != null ? ` <span style="color:var(--text-muted)">(conf ${(ev.confidence*100).toFixed(1)}%)</span>` : '')
+                        : '<span style="color:var(--text-muted)">not available</span>';
+                    return `<div style="margin-bottom:8px;">${dot} <strong>${ev.source}</strong> → ${lvl}<br>
+                            <span style="color:var(--text-muted); margin-left:20px;">${ev.detail}</span></div>`;
+                }).join('');
+
+                const conflicts = data.conflicts || [];
+                document.getElementById('fu-conflict-wrap').style.display = conflicts.length ? 'block' : 'none';
+                renderList('fu-conflicts', conflicts.map(c => c.description + ' <em style="color:var(--text-muted)">' + c.resolution + '</em>'), '⚠');
+
+                const escalations = data.escalations || [];
+                document.getElementById('fu-escalation-wrap').style.display = escalations.length ? 'block' : 'none';
+                renderList('fu-escalations', escalations, '↑');
+
+                renderList('fu-actions', data.recommended_actions || [], '▸');
+
+                const warnings = (data.warnings || []).concat(data.human_review_reasons || []);
+                document.getElementById('fu-warn-wrap').style.display = warnings.length ? 'block' : 'none';
+                renderList('fu-warnings', warnings, '•');
+
+                document.getElementById('fu-disclaimer').innerText = data.disclaimer || '';
+            } catch (err) {
+                alert('Unified assessment error: ' + err.message);
+            }
+            btn.innerText = 'Run Unified Assessment';
         });
 
         // ML Form Submission
@@ -522,6 +758,57 @@ HTML_TEMPLATE = """
             }
             btn.innerText = "Generate Forecast Plot";
         });
+
+        // --- SLM Briefing (Stage 04) ---
+        const slmForm = document.getElementById('slmForm');
+        if (slmForm) {
+            slmForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const report = document.getElementById('slm-report').value;
+                const resultEl = document.getElementById('slm-result');
+                const btn = e.target.querySelector('button');
+                btn.innerText = 'Generating...';
+                try {
+                    const res = await fetch('/api/slm/summarize', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({report: report})
+                    });
+                    const data = await res.json();
+                    if (data.error) {
+                        alert(data.error);
+                        btn.innerText = 'Generate Tactical Briefing';
+                        return;
+                    }
+                    document.getElementById('slm-situation').innerText = data.situation || '';
+                    document.getElementById('slm-risk').innerText = data.risk || '';
+                    const actionsEl = document.getElementById('slm-actions');
+                    if (Array.isArray(data.actions)) {
+                        actionsEl.innerHTML = data.actions.map(a => '<li>' + a + '</li>').join('');
+                    } else {
+                        actionsEl.innerHTML = '<li>' + (data.actions || 'N/A') + '</li>';
+                    }
+                    document.getElementById('slm-priority-badge').className = 'badge badge-' + (data.priority || 'Unknown');
+                    document.getElementById('slm-priority-badge').innerText = data.priority || 'Unknown';
+                    document.getElementById('slm-model').innerText = data.model || '';
+                    document.getElementById('slm-latency').innerText = (data.latency_ms || 0) + ' ms';
+
+                    // Time savings estimate
+                    const actionsText = Array.isArray(data.actions) ? data.actions.join(' ') : (data.actions || '');
+                    const summaryText = ((data.situation || '') + ' ' + (data.risk || '') + ' ' + actionsText).trim();
+                    const reportWords = report.trim().split(/\s+/).filter(Boolean).length;
+                    const summaryWords = summaryText.split(/\s+/).filter(Boolean).length;
+                    const pctSaving = Math.max(0, Math.min(99, Math.round((1 - summaryWords / Math.max(1, reportWords)) * 100)));
+                    document.getElementById('slm-time-pct').innerText = pctSaving + '%';
+                    document.getElementById('slm-time-bar').style.width = Math.min(100, Math.max(0, pctSaving)) + '%';
+
+                    resultEl.style.display = 'block';
+                } catch (err) {
+                    alert('Error calling SLM API: ' + err.message);
+                }
+                btn.innerText = 'Generate Tactical Briefing';
+            });
+        }
     </script>
 </body>
 </html>
@@ -529,7 +816,7 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def dashboard():
-    return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status, stage03=stage03_status)
+    return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status, stage03=stage03_status, stage04=stage04_status)
 
 @app.route('/health')
 def health():
@@ -539,6 +826,7 @@ def health():
         ("stage01_ml", stage01_engine),
         ("stage02_dl", stage02_engine),
         ("stage03_nlp", stage03_engine),
+        ("stage04_slm", stage04_engine),
     ):
         if engine is None:
             report[name] = {"status": "unavailable", "error": "adapter failed to load"}
@@ -552,6 +840,64 @@ def health():
         entry.get("status") == "healthy" for entry in report.values()
     ) else "degraded"
     return jsonify({"status": overall, "stages": report})
+
+
+@app.route('/api/assess', methods=['POST'])
+def unified_assessment():
+    """Fuse every available stage into one prioritised decision.
+
+    Accepts any subset of: sensors, text, water_levels, image_path.
+    Missing modalities are reported, not silently treated as zero evidence.
+    """
+    if decision_engine is None:
+        return fail("Fusion decision engine is offline", 503)
+    data = request.get_json(silent=True)
+    if data is None:
+        return fail("Request body must be JSON", 400)
+
+    sensors = data.get("sensors")
+    if sensors is not None and not isinstance(sensors, dict):
+        return fail("'sensors' must be a JSON object", 400)
+    water_levels = data.get("water_levels")
+    if water_levels is not None and not isinstance(water_levels, list):
+        return fail("'water_levels' must be a list of numbers", 400)
+
+    try:
+        result = decision_engine.assess(
+            sensors=sensors,
+            text=data.get("text"),
+            image_path=data.get("image_path"),
+            water_levels=water_levels,
+        )
+    except Exception as exc:
+        return fail("Assessment failed. See server logs for details.", 500, exc)
+
+    status_code = 200 if result.get("status") == "ok" else 422
+    return jsonify(result), status_code
+
+
+@app.route('/api/slm/summarize', methods=['POST'])
+def slm_summarize():
+    if not stage04_engine:
+        return fail("Stage 04 SLM API is offline", 503)
+    data = request.get_json(silent=True) or {}
+    report_text = data.get("report", "")
+    if not str(report_text).strip():
+        return fail("Please provide a non-empty incident report.", 400)
+    try:
+        result = stage04_engine.summarize(str(report_text))
+    except Exception as exc:
+        return fail("SLM summarization failed. See server logs for details.", 500, exc)
+    if result.get("status") == "error":
+        return fail(result.get("message", "SLM error"), 400)
+    return jsonify({
+        "situation": result.get("situation"),
+        "risk":      result.get("risk"),
+        "actions":   result.get("actions", []),
+        "priority":  result.get("priority"),
+        "model":     result.get("model"),
+        "latency_ms": result.get("latency_ms"),
+    })
 
 
 @app.route('/api/predict/nlp', methods=['POST'])
@@ -669,6 +1015,7 @@ if __name__ == '__main__':
     print(f"  Stage 01 ML : {stage01_status}")
     print(f"  Stage 02 DL : {stage02_status}")
     print(f"  Stage 03 NLP: {stage03_status}")
+    print(f"  Stage 04 SLM: {stage04_status}")
     if debug_enabled:
         print("  WARNING: debug mode is ON (interactive debugger enabled).")
     app.run(debug=debug_enabled, port=port)

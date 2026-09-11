@@ -1,0 +1,195 @@
+{
+  "stage": "04_SLM",
+  "script": "04_evaluation_engineer.py",
+  "model": "slm_baseline",
+  "test_pairs": 481,
+  "random_seed": 42,
+  "environment": {
+    "os": "Windows",
+    "python_version": "3.11.9",
+    "scikit_learn_version": "1.6.0",
+    "torch_version": "2.5.1+cu121",
+    "peft_version": "0.20.0"
+  },
+  "threshold_config": {
+    "priority_accuracy_target": 0.7,
+    "high_risk_recall_target": 0.8,
+    "safety_fail_max": 0,
+    "slot_fidelity_target": 0.8,
+    "hallucination_max_rate": 0.15,
+    "robustness_pass_target": 0.75
+  },
+  "metrics": {
+    "rouge1": {
+      "mean": 0.3282,
+      "std": 0.0464
+    },
+    "rouge2": {
+      "mean": 0.1452,
+      "std": 0.0333
+    },
+    "rougeL": {
+      "mean": 0.2416,
+      "std": 0.0415
+    },
+    "rouge_is_exact": false,
+    "priority_accuracy": 0.659,
+    "macro_f1": 0.5423,
+    "weighted_f1": 0.6319,
+    "high_risk_recall": {
+      "urgent_recall": 0.5986,
+      "immediate_recall": 0.6054,
+      "combined_high_risk_recall": 0.602
+    },
+    "slot_fidelity": {
+      "zone": 1.0,
+      "district": 1.0,
+      "state": 1.0,
+      "location": 0.2744,
+      "hazard": 0.9938,
+      "headcount_correct": 1.0,
+      "all_slots": 0.2744
+    },
+    "hallucination": {
+      "mean_rate": 0.3829,
+      "max_rate": 0.5714
+    },
+    "safety": {
+      "fails": 0,
+      "total": 481,
+      "fail_rate": 0.0
+    },
+    "latency_ms": {
+      "mean": 1.5,
+      "p50": 1.4,
+      "p95": 2.4,
+      "p99": 3.0
+    },
+    "classification_report": {
+      "ROUTINE": {
+        "precision": 1.0,
+        "recall": 0.075,
+        "f1-score": 0.13953488372093023,
+        "support": 40.0
+      },
+      "ELEVATED": {
+        "precision": 0.6462264150943396,
+        "recall": 0.9319727891156463,
+        "f1-score": 0.7632311977715878,
+        "support": 147.0
+      },
+      "URGENT": {
+        "precision": 0.6111111111111112,
+        "recall": 0.5986394557823129,
+        "f1-score": 0.6048109965635738,
+        "support": 147.0
+      },
+      "IMMEDIATE": {
+        "precision": 0.7295081967213115,
+        "recall": 0.6054421768707483,
+        "f1-score": 0.6617100371747212,
+        "support": 147.0
+      },
+      "accuracy": 0.659043659043659,
+      "macro avg": {
+        "precision": 0.7467114307316907,
+        "recall": 0.552763605442177,
+        "f1-score": 0.5423217788077033,
+        "support": 481.0
+      },
+      "weighted avg": {
+        "precision": 0.690366572287389,
+        "recall": 0.659043659043659,
+        "f1-score": 0.6319230215816839,
+        "support": 481.0
+      }
+    }
+  },
+  "robustness": {
+    "total": 8,
+    "passed": 1
+  },
+  "vocabulary_grounding_diagnostic": {
+    "mean_grounding_index": 846.34,
+    "median_grounding_index": 821.44,
+    "max_grounding_index": 1377.41,
+    "grounded_pairs_pct": 0.0,
+    "n_samples": 200,
+    "diagnostic_scope": "Evaluates generated SLM output tokens against report vocabulary. Diagnostic unigram cross-entropy, not model perplexity."
+  },
+  "stress_latency": {
+    "n_requests": 50,
+    "total_s": 0.08,
+    "throughput_rps": 645.32,
+    "concurrent_5workers_throughput_rps": 853.99,
+    "mean_ms": 1.5,
+    "p50_ms": 1.6,
+    "p95_ms": 2.2,
+    "p99_ms": 2.3,
+    "max_ms": 2.4
+  },
+  "time_savings": {
+    "wpm": 238,
+    "n_pairs": 481,
+    "mean_log_read_s": 45.8,
+    "mean_summary_read_s": 24.1,
+    "mean_saving_pct": 45.9,
+    "min_saving_pct": 24.2,
+    "max_saving_pct": 71.4,
+    "meets_target_pct": 0.0,
+    "target_pct": 80
+  },
+  "comparison": {
+    "comparison_executed": true,
+    "baseline": {
+      "name": "slm_baseline",
+      "status": "evaluated",
+      "rouge1": 0.3282,
+      "rouge2": 0.1452,
+      "rougeL": 0.2416,
+      "priority_accuracy": 0.659,
+      "macro_f1": 0.5423,
+      "urgent_recall": 0.5986,
+      "immediate_recall": 0.6054,
+      "high_risk_recall": 0.602,
+      "slot_fidelity": 0.2744,
+      "hallucination_rate": 0.3829,
+      "safety_fail_rate": 0.0,
+      "robustness_pass_rate": 0.125,
+      "latency_mean": 1.0,
+      "latency_p50": 1.0,
+      "latency_p95": 1.5,
+      "latency_p99": 2.1
+    },
+    "qwen": {
+      "name": "qwen2.5-3b-instruct-qlora",
+      "status": "evaluated",
+      "rouge1": 0.0908,
+      "rouge2": 0.008,
+      "rougeL": 0.0701,
+      "priority_accuracy": 0.0,
+      "macro_f1": 0.0,
+      "urgent_recall": 0.0,
+      "immediate_recall": 0.0,
+      "high_risk_recall": 0.0,
+      "slot_fidelity": 0.0,
+      "hallucination_rate": 0.5004,
+      "safety_fail_rate": 0.5,
+      "robustness_pass_rate": 0.0,
+      "latency_mean": 10008.4,
+      "latency_p50": 9889.5,
+      "latency_p95": 11170.0,
+      "latency_p99": 11444.3
+    },
+    "delta": {
+      "rouge1": "-0.2374",
+      "priority_accuracy": "-65.9%",
+      "high_risk_recall": "-60.2%",
+      "slot_fidelity": "-27.4%",
+      "hallucination_rate": "+0.1175",
+      "safety_fail_rate": "+50.0%",
+      "robustness_pass_rate": "-12.5%",
+      "latency_p50": "+9888.5 ms"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-"""Stage 04 SLM — Integration Adapter.
+"""Stage 04 SLM -- Integration Adapter.
 
 Exposes a thin, app-friendly API so the Flask dashboard can call the Stage 04
 SLM without duplicating model-loading or preprocessing logic.
@@ -12,11 +12,11 @@ Usage (in app.py or any Flask route)::
 
 Public API
 ----------
-SLMIntegrationEngine.health_check()     → dict
-SLMIntegrationEngine.summarize(text)    → dict
-SLMIntegrationEngine.batch_summarize()  → list[dict]
+SLMIntegrationEngine.health_check()     -> dict
+SLMIntegrationEngine.summarize(text)    -> dict
+SLMIntegrationEngine.batch_summarize()  -> list[dict]
 
-slm_integration_engine                  → module-level singleton
+slm_integration_engine                  -> module-level singleton
 """
 
 from __future__ import annotations
@@ -96,8 +96,8 @@ class SLMIntegrationEngine:
             manifest_path = QWEN_DIR / "training_manifest.json"
             if manifest_path.exists():
                 try:
-                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                    base_id = manifest.get("model_id", "Qwen/Qwen2.5-3B-Instruct")
+                    local_base = BASE_DIR / "data" / "models" / "qwen_base"
+                    base_id = str(local_base) if local_base.exists() else "Qwen/Qwen2.5-3B-Instruct"
                     model = self._module.QwenSLM(QWEN_DIR, base_id)
                     return model, "qwen2.5-3b-instruct-qlora"
                 except Exception as exc:
@@ -206,13 +206,13 @@ class SLMIntegrationEngine:
         dict with keys:
             status          "ok" | "error"
             message         human-readable status
-            situation       str   — priority, hazard, location, scale
-            risk            str   — severity assessment, escalation note
-            actions         list[str]  — numbered recommended actions
-            priority        str   — ROUTINE / ELEVATED / URGENT / IMMEDIATE
-            model           str   — model name
-            latency_ms      float — end-to-end inference latency
-            raw             dict  — full model output
+            situation       str   -- priority, hazard, location, scale
+            risk            str   -- severity assessment, escalation note
+            actions         list[str]  -- numbered recommended actions
+            priority        str   -- ROUTINE / ELEVATED / URGENT / IMMEDIATE
+            model           str   -- model name
+            latency_ms      float -- end-to-end inference latency
+            raw             dict  -- full model output
         """
         if self._model is None:
             return {
@@ -293,7 +293,7 @@ def _extract_priority(situation: str) -> str | None:
 
 
 # ---------------------------------------------------------------------------
-# Module-level singleton — import this in app.py
+# Module-level singleton -- import this in app.py
 # ---------------------------------------------------------------------------
 
 slm_integration_engine = SLMIntegrationEngine()
@@ -305,7 +305,7 @@ slm_integration_engine = SLMIntegrationEngine()
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Stage 04 SLM Integration Engine — Self-Test")
+    print("Stage 04 SLM Integration Engine -- Self-Test")
     print("=" * 60)
 
     health = slm_integration_engine.health_check()
