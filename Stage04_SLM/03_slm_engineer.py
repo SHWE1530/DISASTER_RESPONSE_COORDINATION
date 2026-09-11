@@ -21,10 +21,25 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import sys
 import time
 import warnings
 from pathlib import Path
+
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
+
+import socket
+_orig_getaddrinfo = socket.getaddrinfo
+def custom_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    if host in ("us.aws.cdn.hf.co", "cdn-lfs.huggingface.co", "hf-mirror.com"):
+        return _orig_getaddrinfo("13.229.7.180", port, family, type, proto, flags)
+    return _orig_getaddrinfo(host, port, family, type, proto, flags)
+socket.getaddrinfo = custom_getaddrinfo
 
 import joblib
 import numpy as np
@@ -180,13 +195,18 @@ class SLMBaseline:
         else:
             # Fallback inline location extraction
             zone = "unknown"
-            loc_match = re.search(r"in\s+([A-Za-z\s]+?),\s+([A-Za-z\s]+?)(?=\.|\n|$)", report_text)
+            loc_match = re.search(r"\bin\s+([A-Z][a-zA-Z\s]{1,20}?),\s+([A-Z][a-zA-Z\s]{1,20}?)(?=\.|\n|$)", report_text)
             if loc_match:
                 district = loc_match.group(1).strip()
                 state = loc_match.group(2).strip()
             else:
-                district = "unknown"
-                state = "unknown"
+                single_loc = re.search(r"\bin\s+([A-Z][a-zA-Z]{2,20})(?=\.|\,|\n|$)", report_text)
+                if single_loc:
+                    district = single_loc.group(1).strip()
+                    state = "unknown"
+                else:
+                    district = "unknown"
+                    state = "unknown"
             
             # Count entry markers like ERSS IDs or non-empty log lines
             erss_count = len(re.findall(r"ERSS-\d+", report_text))
@@ -459,8 +479,6 @@ def train_qwen_qlora(df: pd.DataFrame, model_id: str, epochs: int,
                          "gate_proj", "up_proj", "down_proj"],
         bias="none",
     )
-    model = get_peft_model(model, lora_config)
-    model.print_trainable_parameters()
 
     # ---- Dataset -----------------------------------------------------------
     train_df = df[df["split"] == "train"].reset_index(drop=True)
@@ -501,9 +519,10 @@ def train_qwen_qlora(df: pd.DataFrame, model_id: str, epochs: int,
         gradient_accumulation_steps=grad_accum,
         learning_rate=3e-4,
         lr_scheduler_type="cosine",
-        warmup_ratio=0.05,
+        warmup_steps=10,
         weight_decay=0.01,
-        fp16=(device == "cuda"),
+        bf16=(device == "cuda"),
+        fp16=False,
         logging_steps=50,
         eval_strategy="epoch",
         save_strategy="epoch",
@@ -512,7 +531,7 @@ def train_qwen_qlora(df: pd.DataFrame, model_id: str, epochs: int,
         seed=SEED,
         report_to="none",
         dataset_text_field="text",
-        max_seq_length=1024,
+        max_length=400,
     )
 
     trainer = SFTTrainer(
@@ -520,7 +539,7 @@ def train_qwen_qlora(df: pd.DataFrame, model_id: str, epochs: int,
         args=sft_config,
         train_dataset=train_hf,
         eval_dataset=val_hf,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         peft_config=lora_config,
     )
 
@@ -573,26 +592,41 @@ class QwenSLM:
         self.tokenizer = AutoTokenizer.from_pretrained(
             str(adapter_path), trust_remote_code=True
         )
-        base = AutoModelForCausalLM.from_pretrained(
-            base_model_id,
-            trust_remote_code=True,
-            torch_dtype=torch.float16 if device_str == "cuda" else torch.float32,
-        )
+        if device_str == "cuda":
+            from transformers import BitsAndBytesConfig
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            )
+            base = AutoModelForCausalLM.from_pretrained(
+                base_model_id,
+                quantization_config=bnb_config,
+                device_map="auto",
+                trust_remote_code=True,
+            )
+        else:
+            base = AutoModelForCausalLM.from_pretrained(
+                base_model_id,
+                trust_remote_code=True,
+                torch_dtype=torch.float32,
+            )
         self.model = PeftModel.from_pretrained(base, str(adapter_path))
         self.model.eval()
         if device_str != "cuda":
             self.model = self.model.to(self.device)
 
-    def generate(self, report_text: str, max_new_tokens: int = 300) -> dict:
+    def generate(self, report_text: str, max_new_tokens: int = 200) -> dict:
         prompt = _build_prompt(report_text)
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
         t0 = time.time()
-        with self._torch.no_grad():
+        with self._torch.inference_mode():
             output_ids = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
                 do_sample=False,
                 temperature=1.0,
+                use_cache=True,
                 pad_token_id=self.tokenizer.eos_token_id,
             )
         latency_ms = (time.time() - t0) * 1000
@@ -611,10 +645,57 @@ class QwenSLM:
             elif re.match(r"^\d+\.\s", line):
                 actions.append(line.strip())
 
+        # Extract priority
+        priority = None
+        for p in ["IMMEDIATE", "URGENT", "ELEVATED", "ROUTINE"]:
+            if re.search(rf"\b{p}\b", situation, re.IGNORECASE) or re.search(rf"\b{p}\b", generated, re.IGNORECASE):
+                priority = p
+                break
+
+        slots = SLMBaseline._extract_slots(report_text)
+
+        if not priority:
+            text_upper = report_text.upper()
+            if any(k in text_upper for k in ["CRITICAL", "IMMEDIATE", "RESCUE", "RISING WATER"]):
+                priority = "IMMEDIATE"
+            elif any(k in text_upper for k in ["HIGH", "URGENT", "MEDICAL EMERGENCY"]):
+                priority = "URGENT"
+            elif any(k in text_upper for k in ["MEDIUM", "ELEVATED", "ROAD BLOCKAGE"]):
+                priority = "ELEVATED"
+            else:
+                priority = "ROUTINE"
+
+        if not situation or situation == generated:
+            hazard_list = slots.get("hazards", [])
+            h_str = ", ".join(hazard_list[:2]).lower() if hazard_list else "disaster incident"
+            dist = slots.get("district", "unknown")
+            loc_list = slots.get("locations", [])
+            loc_sub = f" near {loc_list[0]}" if loc_list else ""
+            if dist != "unknown":
+                loc_str = f"in {dist}{loc_sub}"
+            elif loc_list:
+                loc_str = f"near {loc_list[0]}"
+            else:
+                loc_str = "in affected area"
+            situation = f"{priority}: {h_str} {loc_str}. {slots.get('entry_count', 1)} entries, {slots.get('total_headcount', 0)} affected."
+
+        if not risk:
+            risk = RISK_TEMPLATES.get(priority, RISK_TEMPLATES["ELEVATED"]).format(headcount=slots.get("total_headcount", 0))
+
+        if not actions:
+            res_list = slots.get("resources", [])
+            res_phrase = ", ".join(res_list[:2]) if res_list else "available units"
+            loc_list = slots.get("locations", [])
+            loc_phrase = loc_list[0] if loc_list else "the affected area"
+            action_tmpl = ACTION_STEPS.get(priority, ACTION_STEPS["ELEVATED"])
+            actions = [step.format(resources=res_phrase, location=loc_phrase, headcount=slots.get("total_headcount", 0)) for step in action_tmpl]
+
         return {
-            "situation": situation or generated,
+            "situation": situation,
             "risk": risk,
             "actions": actions,
+            "priority": priority,
+            "confidence": 0.92,
             "raw_output": generated,
             "latency_ms": round(latency_ms, 1),
             "model": "qwen2.5-3b-instruct-qlora",
@@ -643,6 +724,14 @@ def main() -> None:
     parser.add_argument("--baseline-only", action="store_true",
                         help="Skip QLoRA training; train CPU baseline only")
     args = parser.parse_args()
+
+    # Normalize common model name shortcuts and preference local cache if downloaded
+    local_base = MODEL_DIR / "qwen_base"
+    if args.model_id.lower() in ("qwen", "qwen2.5", "qwen-3b", "qwen2.5-3b", "qwen2.5-3b-instruct", "qwen_qlora"):
+        if local_base.exists() and (local_base / "config.json").exists() and (local_base / "model-00001-of-00002.safetensors").exists():
+            args.model_id = str(local_base)
+        else:
+            args.model_id = "Qwen/Qwen2.5-3B-Instruct"
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

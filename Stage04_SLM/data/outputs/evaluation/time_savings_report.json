@@ -2,10 +2,10 @@
   "wpm": 238,
   "n_pairs": 481,
   "mean_log_read_s": 45.8,
-  "mean_summary_read_s": 10.1,
-  "mean_saving_pct": 77.4,
-  "min_saving_pct": 68.9,
-  "max_saving_pct": 88.1,
-  "meets_target_pct": 26.6,
+  "mean_summary_read_s": 24.1,
+  "mean_saving_pct": 45.9,
+  "min_saving_pct": 24.2,
+  "max_saving_pct": 71.4,
+  "meets_target_pct": 0.0,
   "target_pct": 80
 }

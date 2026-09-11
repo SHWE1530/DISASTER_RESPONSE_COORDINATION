@@ -7,4 +7,6 @@ frontend/dist/
 .venv/
 __pycache__/
 Stage02_DL/data/raw/dashboard_upload.jpg
-Stage03_NLP/data/models/transformer_urgency/
+Stage03_NLP/data/models/transformer_urgency/
+Stage04_SLM/data/models/qwen_base/
+Stage04_SLM/data/models/qwen_slm_qlora/

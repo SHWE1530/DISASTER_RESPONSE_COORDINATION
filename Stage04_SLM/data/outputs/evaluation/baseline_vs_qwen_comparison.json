@@ -1,0 +1,53 @@
+{
+  "comparison_executed": true,
+  "baseline": {
+    "name": "slm_baseline",
+    "status": "evaluated",
+    "rouge1": 0.3282,
+    "rouge2": 0.1452,
+    "rougeL": 0.2416,
+    "priority_accuracy": 0.659,
+    "macro_f1": 0.5423,
+    "urgent_recall": 0.5986,
+    "immediate_recall": 0.6054,
+    "high_risk_recall": 0.602,
+    "slot_fidelity": 0.2744,
+    "hallucination_rate": 0.3829,
+    "safety_fail_rate": 0.0,
+    "robustness_pass_rate": 0.125,
+    "latency_mean": 1.0,
+    "latency_p50": 1.0,
+    "latency_p95": 1.5,
+    "latency_p99": 2.1
+  },
+  "qwen": {
+    "name": "qwen2.5-3b-instruct-qlora",
+    "status": "evaluated",
+    "rouge1": 0.0908,
+    "rouge2": 0.008,
+    "rougeL": 0.0701,
+    "priority_accuracy": 0.0,
+    "macro_f1": 0.0,
+    "urgent_recall": 0.0,
+    "immediate_recall": 0.0,
+    "high_risk_recall": 0.0,
+    "slot_fidelity": 0.0,
+    "hallucination_rate": 0.5004,
+    "safety_fail_rate": 0.5,
+    "robustness_pass_rate": 0.0,
+    "latency_mean": 10008.4,
+    "latency_p50": 9889.5,
+    "latency_p95": 11170.0,
+    "latency_p99": 11444.3
+  },
+  "delta": {
+    "rouge1": "-0.2374",
+    "priority_accuracy": "-65.9%",
+    "high_risk_recall": "-60.2%",
+    "slot_fidelity": "-27.4%",
+    "hallucination_rate": "+0.1175",
+    "safety_fail_rate": "+50.0%",
+    "robustness_pass_rate": "-12.5%",
+    "latency_p50": "+9888.5 ms"
+  }
+}

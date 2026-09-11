@@ -70,7 +70,7 @@ def test_health_endpoint_reports_every_stage(client):
     response = client.get("/health")
     assert response.status_code == 200
     payload = response.get_json()
-    assert set(payload["stages"]) == {"stage01_ml", "stage02_dl", "stage03_nlp"}
+    assert set(payload["stages"]) == {"stage01_ml", "stage02_dl", "stage03_nlp", "stage04_slm"}
     for stage, report in payload["stages"].items():
         assert "status" in report, stage
 

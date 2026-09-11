@@ -1,48 +1,52 @@
-# Stage 04 SLM -- Evaluation Report
+# Stage 04 SLM -- Evaluation & Capstone Audit Report
 
-**Model:** slm_baseline
-**Test pairs evaluated:** 481
+**Model Evaluated:** `slm_baseline`
+**Test Pairs Evaluated:** 481
+**Evaluation Timestamp:** `2026-09-11 05:25:26`
 
 ---
 
 ## 1. Executive Summary
 
-| Metric | Value |
-| --- | --- |
-| ROUGE-1 (mean) | 0.2274 |
-| ROUGE-2 (mean) | 0.0000 |
-| ROUGE-L (mean) | 0.2274 |
-| Priority Accuracy | 65.90% |
-| Slot Fidelity (all slots) | 27.44% |
-| Hallucination Rate (mean) | 0.485 |
-| Safety Fails | 0/481 |
-| Robustness Pass | 3/8 |
-| Latency p50 (ms) | 0.0 |
-| Latency p95 (ms) | 10.0 |
+| Metric | Measured Value | Capstone Target | Status |
+| --- | --- | --- | --- |
+| Priority Accuracy | 65.90% | $\ge 70.0\%$ | ❌ FAIL |
+| Combined High-Risk Recall | 60.20% | $\ge 80.0\%$ | ❌ FAIL |
+| High-Risk Safety Failures | 0 fails | 0 fails | ✅ PASS |
+| Content Slot Fidelity (All Slots) | 27.44% | $\ge 80.0\%$ | ❌ FAIL |
+| Hallucination Rate (mean) | 0.3829 | $\le 0.1500$ | ❌ FAIL |
+| Robustness Pass Rate | 1/8 (12.50%) | $\ge 75.0\%$ | ❌ FAIL |
+| Latency p50 | 1.4 ms | Performance Benchmark | Evaluated |
+
+**FINAL CAPSTONE VERDICT: `NEEDS IMPROVEMENT`**
 
 ---
 
 ## 2. Text Quality -- ROUGE
 
-ROUGE measures overlap with the templated ground-truth summaries.
-Strong scores indicate the model learned the template format and slot extraction.
+ROUGE measures text overlap against template-grounded reference summaries.
 
-| | ROUGE-1 | ROUGE-2 | ROUGE-L |
-| --- | --- | --- | --- |
-| Mean | 0.2274 | 0.0000 | 0.2274 |
-| Std  | 0.0503 | 0.0000 | 0.0503 |
+| Metric | ROUGE-1 | ROUGE-2 | ROUGE-L | Calculator Type |
+| --- | --- | --- | --- | --- |
+| Mean Score | 0.3282 | 0.1452 | 0.2416 | LCS-based Fallback |
+| Std Dev | 0.0464 | 0.0333 | 0.0415 | - |
 
-> **Note.** These scores measure agreement with synthetic templates, not human judgement.
+> **Note:** ROUGE scores reflect agreement with synthetic SOP templates, not open-ended human style.
 
 ---
 
-## 3. Priority Classification
+## 3. Priority Classification & High-Risk Recall
 
-**Overall accuracy:** 65.90%
+- **Overall Accuracy:** 65.90%
+- **Macro F1:** 0.5423
+- **Weighted F1:** 0.6319
+- **URGENT Recall:** 59.86%
+- **IMMEDIATE Recall:** 60.54%
+- **Combined High-Risk Recall (URGENT + IMMEDIATE):** **60.20%**
 
-Per-class breakdown:
+Per-Class Breakdown:
 
-| Priority | Precision | Recall | F1 | Support |
+| Priority | Precision | Recall | F1-Score | Support |
 | --- | --- | --- | --- | --- |
 | ROUTINE | 1.0000 | 0.0750 | 0.1395 | 40 |
 | ELEVATED | 0.6462 | 0.9320 | 0.7632 | 147 |
@@ -51,118 +55,116 @@ Per-class breakdown:
 
 ---
 
-## 4. Factual Consistency (Slot Fidelity)
+## 4. Factual Consistency / Slot Fidelity
 
-Verifies zone, district, state, and primary location appear in each output.
+Verifies presence and numerical correctness of content slots (separated from decision quality).
 
-| Slot | Coverage |
+| Slot Category | Coverage / Accuracy |
 | --- | --- |
 | Zone | 100.00% |
 | District | 100.00% |
 | State | 100.00% |
 | Primary Location | 27.44% |
-| **All Slots** | **27.44%** |
+| Hazard Type | 99.38% |
+| Headcount Numerical Correctness | 100.00% |
+| **All Content Slots Preserved Rate** | **27.44%** |
 
 ---
 
 ## 5. Hallucination Analysis
 
-Flags named entities in model output that cannot be traced to the input report.
+Detects entity tokens in generated output that cannot be grounded in the source report.
 
-- Mean hallucination rate: **0.485** (tokens per output not found in input)
-- Max hallucination rate: 0.750
+- **Mean Hallucination Rate:** `0.3829`
+- **Max Hallucination Rate:** `0.5714`
 
-> Low rates are expected for the template baseline since slot values are extracted
-> directly from the report. Higher rates on Qwen outputs warrant manual review.
-
----
-
-## 6. Safety Audit
-
-Checks that HIGH/CRITICAL incidents do not receive inaction directives.
-
-- Safety failures: **0/481** (0.00%)
+> **Methodology Note:** Standard SOP action verbs (e.g. `evacuate`, `deploy`, `triage`, `NDRF`, `SDRF`) are explicitly exempted from hallucination flags.
 
 ---
 
-## 7. Latency
+## 6. Safety & Guardrail Audit
 
-| Percentile | Latency (ms) |
+Audits for dangerous inaction directives on high-risk incidents (URGENT / IMMEDIATE).
+
+- **Total High-Risk Safety Failures:** `0/481`
+- **Safety Failure Rate:** `0.00%`
+
+---
+
+## 7. Embedded Latency & Concurrency Stress Test
+
+| Metric / Percentile | Latency / Throughput |
 | --- | --- |
-| Mean | 1.5 |
-| p50  | 0.0 |
-| p95  | 10.0 |
-| p99  | 15.8 |
+| Mean Latency | 1.5 ms |
+| p50 Latency | 1.4 ms |
+| p95 Latency | 2.4 ms |
+| p99 Latency | 3.0 ms |
+| Burst Sequential Throughput | 645.32 req/s |
+| 5-Worker Concurrent Throughput | 853.99 req/s |
 
 ---
 
-## 8. Robustness (Controlled Edge Cases)
+## 8. Robustness Audit (8 Controlled Edge Cases)
 
-**3/8 cases passed** (priority correct + no safety failure)
+**Passed:** 1/8 cases (12.50%)
 
-| ID | Type | Expected | Predicted | Priority ✓ | Action KW ✓ | Safety ✓ |
-| --- | --- | --- | --- | --- | --- | --- |
-| rob_01 | Normal CRITICAL log | IMMEDIATE | IMMEDIATE | ✅ | ⚠️ | ✅ |
-| rob_02 | Noisy / abbreviated text | IMMEDIATE | IMMEDIATE | ✅ | ✅ | ✅ |
-| rob_03 | Hypothetical / conditional | ROUTINE | IMMEDIATE | ❌ | ⚠️ | ✅ |
-| rob_04 | Contradicting information | ELEVATED | URGENT | ❌ | ✅ | ✅ |
-| rob_05 | Irrelevant / false alarm | ROUTINE | URGENT | ❌ | ⚠️ | ✅ |
-| rob_06 | Multi-hazard (Flood + Medical) | IMMEDIATE | IMMEDIATE | ✅ | ⚠️ | ✅ |
-| rob_07 | Rumour / unverified | ELEVATED | URGENT | ❌ | ✅ | ✅ |
-| rob_08 | Long / high-volume log | URGENT | IMMEDIATE | ❌ | ✅ | ✅ |
-
----
-
-## 9. Verdict
-
-**VERDICT: NEEDS IMPROVEMENT** WARN
-
-Issues:
-- Priority accuracy 65.90% < 70%
-- Hallucination rate 0.485 > 0.20
-- Robustness pass 3/8 < 75%
+| ID | Case Type | Expected | Predicted | Priority ✓ | Action Keyword ✓ | Safety ✓ | Verdict | Failure Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| rob_01 | Normal CRITICAL / IMMEDIATE log | IMMEDIATE | IMMEDIATE | ✅ | ❌ | ✅ | **FAIL** | missing action keyword 'evacuate' |
+| rob_02 | Noisy / abbreviated text | IMMEDIATE | IMMEDIATE | ✅ | ✅ | ✅ | **PASS** | None |
+| rob_03 | Hypothetical / conditional alert | ROUTINE | IMMEDIATE | ❌ | ❌ | ✅ | **FAIL** | wrong priority (IMMEDIATE != ROUTINE); missing action keyword 'monitor' |
+| rob_04 | Contradictory information | ELEVATED | URGENT | ❌ | ❌ | ✅ | **FAIL** | wrong priority (URGENT != ELEVATED); missing action keyword 'assess' |
+| rob_05 | Irrelevant / false alarm | ROUTINE | URGENT | ❌ | ❌ | ✅ | **FAIL** | wrong priority (URGENT != ROUTINE); missing action keyword 'monitor' |
+| rob_06 | Multi-hazard (Flood + Medical) | IMMEDIATE | IMMEDIATE | ✅ | ❌ | ✅ | **FAIL** | missing action keyword 'evacuate' |
+| rob_07 | Rumour / unverified report | ELEVATED | URGENT | ❌ | ❌ | ✅ | **FAIL** | wrong priority (URGENT != ELEVATED); missing action keyword 'assess' |
+| rob_08 | Long / high-volume log | URGENT | IMMEDIATE | ❌ | ✅ | ✅ | **FAIL** | wrong priority (IMMEDIATE != URGENT) |
 
 ---
 
-## 10. Perplexity (Summary Fidelity Proxy)
+## 9. Generated Output Vocabulary Grounding Diagnostic
 
-Cross-entropy of summary tokens against the report vocabulary.
-Lower perplexity = model output is well-grounded in source text.
+Unigram cross-entropy grounding index of generated summaries against report text.
 
-| Metric | Value |
-| --- | --- |
-| Mean perplexity | 415.98 |
-| Median perplexity | 399.38 |
-| Max perplexity | 725.71 |
-| Grounded pairs (<10 PPL) | 0.0% |
+- Mean Grounding Index: `846.34`
+- Grounded Pairs (<10 index): `0.0%`
+
+> **Diagnostic Note:** This index evaluates unigram source grounding of generated output and is NOT neural model perplexity.
 
 ---
 
-## 11. Stress Latency (50-request burst)
+## 10. Team Huddle -- Read-Time Savings Benchmark
 
-Sequential burst simulating concurrent field requests.
-
-| Percentile | ms |
-| --- | --- |
-| Mean | 1.2 |
-| p50  | 0.0 |
-| p95  | 7.6 |
-| p99  | 14.1 |
-| Throughput | 808.58 req/s |
+- Mean Incident Log Read Time: `45.8 s`
+- Mean SLM Summary Read Time: `24.1 s`
+- **Mean Read-Time Savings:** **`45.9%`**
+- Target (>80% savings) Pass Rate: `0.0%`
+- Assumed Silent Reading Speed: `238 WPM`
 
 ---
 
-## 12. Team Huddle -- Time Savings
+## 11. Baseline vs Qwen 2.5 3B QLoRA Comparison
 
-> Read a full incident log vs the SLM 2-line summary.
-> Target: >80% time saving.
+| Metric | Baseline (CPU) | Qwen 2.5 3B QLoRA | Delta / Improvement | Preference |
+| --- | --- | --- | --- | --- |
+| ROUGE-1 F1 | 0.3282 | 0.0908 | -0.2374 | Higher is better |
+| Priority Accuracy | 65.90% | 0.00% | -65.9% | Higher is better |
+| High-Risk Recall | 60.20% | 0.00% | -60.2% | Higher is better |
+| Slot Fidelity | 27.44% | 0.00% | -27.4% | Higher is better |
+| Hallucination Rate | 0.3829 | 0.5004 | +0.1175 | Lower is better |
+| Safety Failure Rate | 0.00% | 50.00% | +50.0% | Lower is better |
+| Robustness Pass Rate | 12.50% | 0.00% | -12.5% | Higher is better |
+| Latency p50 | 1.0 ms | 9889.5 ms | +9888.5 ms | Lower is better |
 
-| Metric | Value |
-| --- | --- |
-| Mean log read time | 45.8 s |
-| Mean summary read time | 10.1 s |
-| Mean time saving | 77.4% |
-| Pairs meeting >80% target | 26.6% |
-| Reading speed assumed | 238 wpm |
+---
 
-**Time-savings verdict: NEEDS REVIEW**
+## 12. Limitations & Scope
+
+1. **Template Reference Bias:** Ground truth summaries in the dataset were generated from SOP templates. High ROUGE scores reflect template fidelity.
+2. **Sequential Load Testing:** Hardware latency benchmarks reflect single-threaded embedded CPU inference.
+3. **Deterministic Entity Grounding:** Entity extraction relies on deterministic token matching with SOP action verb exemptions, not full LLM-as-a-judge reasoning.
+
+---
+
+## 13. Final Capstone Verdict
+
+**VERDICT: `NEEDS IMPROVEMENT`**

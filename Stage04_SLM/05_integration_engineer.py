@@ -96,8 +96,8 @@ class SLMIntegrationEngine:
             manifest_path = QWEN_DIR / "training_manifest.json"
             if manifest_path.exists():
                 try:
-                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                    base_id = manifest.get("model_id", "Qwen/Qwen2.5-3B-Instruct")
+                    local_base = BASE_DIR / "data" / "models" / "qwen_base"
+                    base_id = str(local_base) if local_base.exists() else "Qwen/Qwen2.5-3B-Instruct"
                     model = self._module.QwenSLM(QWEN_DIR, base_id)
                     return model, "qwen2.5-3b-instruct-qlora"
                 except Exception as exc:

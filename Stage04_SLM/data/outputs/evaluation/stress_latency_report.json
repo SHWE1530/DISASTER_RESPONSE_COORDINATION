@@ -1,10 +1,11 @@
 {
   "n_requests": 50,
-  "total_s": 0.06,
-  "throughput_rps": 808.58,
-  "mean_ms": 1.2,
-  "p50_ms": 0.0,
-  "p95_ms": 7.6,
-  "p99_ms": 14.1,
-  "max_ms": 14.2
+  "total_s": 0.08,
+  "throughput_rps": 645.32,
+  "concurrent_5workers_throughput_rps": 853.99,
+  "mean_ms": 1.5,
+  "p50_ms": 1.6,
+  "p95_ms": 2.2,
+  "p99_ms": 2.3,
+  "max_ms": 2.4
 }

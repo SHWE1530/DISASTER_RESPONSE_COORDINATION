@@ -1,482 +1,482 @@
-pair_id,true_priority,pred_priority,rouge1,rouge2,rougeL,latency_ms,hallucination_rate,hallucinated_tokens,zone_present,district_present,state_present,location_present,all_slots_present,safety_fail
-SLM-000014,ROUTINE,ELEVATED,0.1897,0.0,0.1897,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000020,IMMEDIATE,URGENT,0.2595,0.0,0.2595,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-000031,IMMEDIATE,IMMEDIATE,0.2074,0.0,0.2074,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000039,ROUTINE,ELEVATED,0.15,0.0,0.15,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000041,IMMEDIATE,IMMEDIATE,0.3429,0.0,0.3429,10.7,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000046,URGENT,URGENT,0.252,0.0,0.252,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000050,URGENT,IMMEDIATE,0.2222,0.0,0.2222,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000052,ROUTINE,ELEVATED,0.2203,0.0,0.2203,4.9,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000059,URGENT,URGENT,0.3101,0.0,0.3101,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-000069,ELEVATED,ELEVATED,0.1026,0.0,0.1026,0.0,0.556,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-000083,URGENT,IMMEDIATE,0.194,0.0,0.194,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000095,IMMEDIATE,IMMEDIATE,0.2319,0.0,0.2319,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-000100,IMMEDIATE,IMMEDIATE,0.2239,0.0,0.2239,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-000103,IMMEDIATE,IMMEDIATE,0.237,0.0,0.237,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000115,URGENT,URGENT,0.2812,0.0,0.2812,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000122,IMMEDIATE,IMMEDIATE,0.2353,0.0,0.2353,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000125,ROUTINE,ELEVATED,0.2353,0.0,0.2353,11.5,0.714,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000129,IMMEDIATE,IMMEDIATE,0.2628,0.0,0.2628,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000133,IMMEDIATE,IMMEDIATE,0.3111,0.0,0.3111,0.0,0.667,Full; Critical; Access; Every,True,True,True,False,False,False
-SLM-000144,ELEVATED,ELEVATED,0.2034,0.0,0.2034,7.3,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000149,IMMEDIATE,IMMEDIATE,0.2143,0.0,0.2143,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000158,ELEVATED,URGENT,0.1832,0.0,0.1832,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000170,ROUTINE,ELEVATED,0.2478,0.0,0.2478,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000187,ELEVATED,ELEVATED,0.1695,0.0,0.1695,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000199,IMMEDIATE,URGENT,0.2462,0.0,0.2462,1.8,0.4,High; Failure,True,True,True,True,True,False
-SLM-000206,ELEVATED,ELEVATED,0.1593,0.0,0.1593,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000212,URGENT,URGENT,0.3182,0.0,0.3182,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-000223,ELEVATED,ELEVATED,0.2479,0.0,0.2479,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000234,ROUTINE,ELEVATED,0.2051,0.0,0.2051,9.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000255,URGENT,IMMEDIATE,0.2206,0.0,0.2206,2.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000269,URGENT,URGENT,0.24,0.0,0.24,2.0,0.5,High; Access; Failure,True,True,True,False,False,False
-SLM-000287,URGENT,IMMEDIATE,0.1778,0.0,0.1778,2.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000291,ELEVATED,ELEVATED,0.1333,0.0,0.1333,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000297,ELEVATED,ELEVATED,0.2479,0.0,0.2479,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000303,ELEVATED,ELEVATED,0.1416,0.0,0.1416,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000306,IMMEDIATE,IMMEDIATE,0.2014,0.0,0.2014,7.4,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-000321,URGENT,URGENT,0.2903,0.0,0.2903,2.1,0.2,Failure,True,True,True,False,False,False
-SLM-000332,ELEVATED,IMMEDIATE,0.186,0.0,0.186,0.0,0.667,Full; Critical; Access; Every,True,True,True,True,True,False
-SLM-000334,URGENT,URGENT,0.2923,0.0,0.2923,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000336,ELEVATED,ELEVATED,0.2373,0.0,0.2373,6.7,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-000340,ELEVATED,ELEVATED,0.177,0.0,0.177,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000346,URGENT,ELEVATED,0.1667,0.0,0.1667,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000354,ROUTINE,ELEVATED,0.2222,0.0,0.2222,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000371,ELEVATED,ELEVATED,0.2742,0.0,0.2742,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000382,IMMEDIATE,URGENT,0.189,0.0,0.189,7.9,0.4,High; Failure,True,True,True,True,True,False
-SLM-000394,IMMEDIATE,URGENT,0.2698,0.0,0.2698,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-000397,ROUTINE,ELEVATED,0.1667,0.0,0.1667,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000400,IMMEDIATE,ELEVATED,0.2185,0.0,0.2185,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000402,IMMEDIATE,ELEVATED,0.2479,0.0,0.2479,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000409,IMMEDIATE,IMMEDIATE,0.2482,0.0,0.2482,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000414,IMMEDIATE,ELEVATED,0.2097,0.0,0.2097,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000426,ROUTINE,URGENT,0.1562,0.0,0.1562,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-000430,ELEVATED,ELEVATED,0.1217,0.0,0.1217,16.3,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000437,ELEVATED,ELEVATED,0.2632,0.0,0.2632,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000440,URGENT,ELEVATED,0.1653,0.0,0.1653,3.3,0.75,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000461,ELEVATED,ELEVATED,0.2906,0.0,0.2906,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000471,URGENT,URGENT,0.304,0.0,0.304,2.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-000477,URGENT,IMMEDIATE,0.219,0.0,0.219,2.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000479,ELEVATED,ELEVATED,0.2143,0.0,0.2143,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000497,URGENT,URGENT,0.2969,0.0,0.2969,2.0,0.167,Failure,True,True,True,False,False,False
-SLM-000499,URGENT,ELEVATED,0.2241,0.0,0.2241,2.6,0.667,Pre; Conduct; Triage; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000500,IMMEDIATE,IMMEDIATE,0.2029,0.0,0.2029,1.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000501,IMMEDIATE,IMMEDIATE,0.2424,0.0,0.2424,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000511,IMMEDIATE,IMMEDIATE,0.2794,0.0,0.2794,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-000517,ELEVATED,ELEVATED,0.2982,0.0,0.2982,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000535,ELEVATED,ELEVATED,0.2393,0.0,0.2393,13.8,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000540,ELEVATED,ELEVATED,0.2261,0.0,0.2261,1.8,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000541,ELEVATED,ELEVATED,0.2586,0.0,0.2586,2.0,0.667,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000545,ELEVATED,ELEVATED,0.2034,0.0,0.2034,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000546,ELEVATED,ELEVATED,0.3025,0.0,0.3025,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000560,URGENT,URGENT,0.1343,0.0,0.1343,2.0,0.2,Failure,True,True,True,False,False,False
-SLM-000571,URGENT,URGENT,0.1846,0.0,0.1846,2.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-000589,IMMEDIATE,IMMEDIATE,0.1765,0.0,0.1765,2.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000593,ELEVATED,ELEVATED,0.2203,0.0,0.2203,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000600,IMMEDIATE,IMMEDIATE,0.2443,0.0,0.2443,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000605,IMMEDIATE,IMMEDIATE,0.2754,0.0,0.2754,2.5,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000610,ELEVATED,ELEVATED,0.281,0.0,0.281,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000616,ELEVATED,ELEVATED,0.1724,0.0,0.1724,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000617,ELEVATED,ELEVATED,0.2906,0.0,0.2906,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000621,IMMEDIATE,IMMEDIATE,0.2143,0.0,0.2143,2.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000625,ELEVATED,ELEVATED,0.2459,0.0,0.2459,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000633,IMMEDIATE,URGENT,0.2462,0.0,0.2462,1.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000655,URGENT,URGENT,0.2188,0.0,0.2188,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000658,IMMEDIATE,URGENT,0.186,0.0,0.186,3.1,0.333,High; Failure,True,True,True,False,False,False
-SLM-000661,ELEVATED,ELEVATED,0.1739,0.0,0.1739,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000665,ELEVATED,ELEVATED,0.1368,0.0,0.1368,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000668,ELEVATED,ELEVATED,0.2833,0.0,0.2833,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000672,ROUTINE,ELEVATED,0.2051,0.0,0.2051,0.0,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,True,True,False
-SLM-000679,IMMEDIATE,URGENT,0.186,0.0,0.186,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000684,IMMEDIATE,URGENT,0.1746,0.0,0.1746,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-000686,IMMEDIATE,IMMEDIATE,0.2059,0.0,0.2059,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000691,IMMEDIATE,URGENT,0.1818,0.0,0.1818,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-000707,IMMEDIATE,URGENT,0.2595,0.0,0.2595,0.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-000728,URGENT,IMMEDIATE,0.2256,0.0,0.2256,13.2,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000734,IMMEDIATE,URGENT,0.224,0.0,0.224,0.5,0.5,High; Access; Failure,True,True,True,False,False,False
-SLM-000737,URGENT,URGENT,0.2927,0.0,0.2927,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000743,URGENT,ELEVATED,0.1653,0.0,0.1653,2.9,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000747,URGENT,ELEVATED,0.1709,0.0,0.1709,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000761,IMMEDIATE,URGENT,0.2308,0.0,0.2308,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-000774,IMMEDIATE,IMMEDIATE,0.3008,0.0,0.3008,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-000778,IMMEDIATE,IMMEDIATE,0.259,0.0,0.259,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000797,URGENT,IMMEDIATE,0.2326,0.0,0.2326,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000804,ELEVATED,ELEVATED,0.1565,0.0,0.1565,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000806,URGENT,URGENT,0.256,0.0,0.256,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-000821,URGENT,URGENT,0.2879,0.0,0.2879,12.1,0.2,Failure,True,True,True,False,False,False
-SLM-000824,IMMEDIATE,IMMEDIATE,0.1791,0.0,0.1791,0.0,0.429,Full; Critical; Every,True,True,True,True,True,False
-SLM-000829,ELEVATED,ELEVATED,0.3252,0.0,0.3252,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000834,IMMEDIATE,IMMEDIATE,0.1778,0.0,0.1778,4.7,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000845,IMMEDIATE,URGENT,0.1642,0.0,0.1642,2.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000848,IMMEDIATE,IMMEDIATE,0.2899,0.0,0.2899,2.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000849,URGENT,URGENT,0.2815,0.0,0.2815,2.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-000860,IMMEDIATE,IMMEDIATE,0.292,0.0,0.292,2.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000867,IMMEDIATE,IMMEDIATE,0.2336,0.0,0.2336,2.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000882,IMMEDIATE,IMMEDIATE,0.1739,0.0,0.1739,1.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-000886,URGENT,IMMEDIATE,0.219,0.0,0.219,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-000893,ELEVATED,ELEVATED,0.1207,0.0,0.1207,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000896,ELEVATED,ELEVATED,0.3051,0.0,0.3051,5.6,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000899,IMMEDIATE,IMMEDIATE,0.3231,0.0,0.3231,0.0,0.571,Full; Critical; Every; Triage,True,True,True,True,True,False
-SLM-000905,IMMEDIATE,URGENT,0.2239,0.0,0.2239,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-000915,URGENT,URGENT,0.2256,0.0,0.2256,0.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-000916,ROUTINE,ELEVATED,0.2,0.0,0.2,0.0,0.75,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000920,ROUTINE,ELEVATED,0.2222,0.0,0.2222,10.3,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000932,URGENT,URGENT,0.2769,0.0,0.2769,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-000935,ELEVATED,ELEVATED,0.2301,0.0,0.2301,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000936,URGENT,URGENT,0.3492,0.0,0.3492,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-000937,URGENT,URGENT,0.1805,0.0,0.1805,0.0,0.167,Failure,True,True,True,True,True,False
-SLM-000948,ELEVATED,ELEVATED,0.1695,0.0,0.1695,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000951,ROUTINE,ROUTINE,0.2804,0.0,0.2804,6.4,0.0,,True,True,True,False,False,False
-SLM-000954,IMMEDIATE,URGENT,0.1985,0.0,0.1985,2.7,0.2,Failure,True,True,True,False,False,False
-SLM-000956,IMMEDIATE,URGENT,0.1212,0.0,0.1212,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000961,IMMEDIATE,URGENT,0.2188,0.0,0.2188,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-000962,ELEVATED,ELEVATED,0.2479,0.0,0.2479,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-000963,ROUTINE,ELEVATED,0.1579,0.0,0.1579,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000967,URGENT,URGENT,0.2154,0.0,0.2154,1.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-000993,URGENT,IMMEDIATE,0.2979,0.0,0.2979,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-000995,ROUTINE,ELEVATED,0.1207,0.0,0.1207,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-000999,IMMEDIATE,IMMEDIATE,0.2326,0.0,0.2326,0.0,0.667,Full; Critical; Every; Triage,True,True,True,False,False,False
-SLM-001005,ELEVATED,ELEVATED,0.2333,0.0,0.2333,7.7,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001008,URGENT,ELEVATED,0.2069,0.0,0.2069,2.4,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001013,ELEVATED,ELEVATED,0.1176,0.0,0.1176,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001015,ELEVATED,ELEVATED,0.2167,0.0,0.2167,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001020,ELEVATED,ELEVATED,0.2185,0.0,0.2185,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001024,URGENT,ELEVATED,0.2542,0.0,0.2542,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001034,IMMEDIATE,URGENT,0.2205,0.0,0.2205,0.0,0.6,High; Access; Failure,True,True,True,False,False,False
-SLM-001036,URGENT,URGENT,0.1832,0.0,0.1832,2.0,0.2,Failure,True,True,True,False,False,False
-SLM-001043,ELEVATED,ELEVATED,0.2261,0.0,0.2261,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001055,URGENT,URGENT,0.2222,0.0,0.2222,1.5,0.167,Failure,True,True,True,False,False,False
-SLM-001056,IMMEDIATE,IMMEDIATE,0.2464,0.0,0.2464,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-001059,ELEVATED,ELEVATED,0.1455,0.0,0.1455,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001060,ELEVATED,ELEVATED,0.1034,0.0,0.1034,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001061,URGENT,IMMEDIATE,0.1705,0.0,0.1705,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-001062,ELEVATED,ELEVATED,0.2542,0.0,0.2542,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001066,ELEVATED,ELEVATED,0.2182,0.0,0.2182,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001070,ELEVATED,ELEVATED,0.2385,0.0,0.2385,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001073,ELEVATED,URGENT,0.2791,0.0,0.2791,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001078,ELEVATED,ELEVATED,0.2667,0.0,0.2667,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001082,ELEVATED,ELEVATED,0.1239,0.0,0.1239,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001083,ELEVATED,ELEVATED,0.2203,0.0,0.2203,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001085,IMMEDIATE,IMMEDIATE,0.2519,0.0,0.2519,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001096,IMMEDIATE,IMMEDIATE,0.2158,0.0,0.2158,16.9,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001097,IMMEDIATE,IMMEDIATE,0.292,0.0,0.292,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001099,IMMEDIATE,IMMEDIATE,0.2556,0.0,0.2556,3.5,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001103,ELEVATED,ELEVATED,0.2655,0.0,0.2655,0.0,0.75,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001114,IMMEDIATE,URGENT,0.2791,0.0,0.2791,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-001126,URGENT,ELEVATED,0.1732,0.0,0.1732,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001136,ELEVATED,ELEVATED,0.1724,0.0,0.1724,0.0,0.556,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-001147,URGENT,URGENT,0.2105,0.0,0.2105,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-001154,ROUTINE,URGENT,0.252,0.0,0.252,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-001155,IMMEDIATE,IMMEDIATE,0.2,0.0,0.2,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001156,URGENT,URGENT,0.2656,0.0,0.2656,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001161,ELEVATED,ELEVATED,0.208,0.0,0.208,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001176,URGENT,IMMEDIATE,0.2595,0.0,0.2595,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001187,ELEVATED,ELEVATED,0.2051,0.0,0.2051,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001201,ELEVATED,URGENT,0.16,0.0,0.16,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-001202,ELEVATED,ELEVATED,0.2456,0.0,0.2456,0.0,0.75,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001207,URGENT,URGENT,0.2791,0.0,0.2791,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001214,IMMEDIATE,URGENT,0.2656,0.0,0.2656,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-001217,IMMEDIATE,IMMEDIATE,0.3134,0.0,0.3134,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001219,URGENT,IMMEDIATE,0.2273,0.0,0.2273,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001238,ELEVATED,ELEVATED,0.1167,0.0,0.1167,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001261,IMMEDIATE,IMMEDIATE,0.2519,0.0,0.2519,15.8,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001277,ELEVATED,ELEVATED,0.2456,0.0,0.2456,1.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001279,URGENT,ELEVATED,0.1311,0.0,0.1311,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001283,ELEVATED,ELEVATED,0.1565,0.0,0.1565,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001284,IMMEDIATE,ELEVATED,0.193,0.0,0.193,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001293,ELEVATED,ELEVATED,0.25,0.0,0.25,0.0,0.667,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001304,IMMEDIATE,IMMEDIATE,0.25,0.0,0.25,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001306,URGENT,URGENT,0.3158,0.0,0.3158,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001313,IMMEDIATE,ELEVATED,0.2149,0.0,0.2149,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001314,URGENT,URGENT,0.2295,0.0,0.2295,9.3,0.4,High; Failure,True,True,True,False,False,False
-SLM-001317,URGENT,URGENT,0.189,0.0,0.189,1.7,0.4,High; Failure,True,True,True,False,False,False
-SLM-001332,URGENT,IMMEDIATE,0.2014,0.0,0.2014,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001334,IMMEDIATE,IMMEDIATE,0.2336,0.0,0.2336,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001341,IMMEDIATE,IMMEDIATE,0.2143,0.0,0.2143,3.1,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001351,URGENT,ELEVATED,0.1626,0.0,0.1626,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001353,URGENT,URGENT,0.3231,0.0,0.3231,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-001371,IMMEDIATE,IMMEDIATE,0.1765,0.0,0.1765,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001383,URGENT,ELEVATED,0.25,0.0,0.25,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001397,ELEVATED,ELEVATED,0.2689,0.0,0.2689,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001406,ELEVATED,ELEVATED,0.2667,0.0,0.2667,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001410,ELEVATED,ELEVATED,0.2333,0.0,0.2333,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001414,URGENT,URGENT,0.2969,0.0,0.2969,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-001430,URGENT,URGENT,0.254,0.0,0.254,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001438,ELEVATED,ELEVATED,0.192,0.0,0.192,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001445,IMMEDIATE,IMMEDIATE,0.2609,0.0,0.2609,12.9,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001452,URGENT,URGENT,0.2537,0.0,0.2537,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-001458,IMMEDIATE,IMMEDIATE,0.2158,0.0,0.2158,3.3,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001462,ELEVATED,ELEVATED,0.2281,0.0,0.2281,1.1,0.75,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001469,ELEVATED,ELEVATED,0.2712,0.0,0.2712,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001474,ROUTINE,ELEVATED,0.2167,0.0,0.2167,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001485,ROUTINE,ELEVATED,0.2105,0.0,0.2105,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001487,ELEVATED,ELEVATED,0.2321,0.0,0.2321,0.0,0.667,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001500,IMMEDIATE,IMMEDIATE,0.2687,0.0,0.2687,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-001509,ELEVATED,ELEVATED,0.2185,0.0,0.2185,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001510,IMMEDIATE,IMMEDIATE,0.2336,0.0,0.2336,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001514,URGENT,URGENT,0.252,0.0,0.252,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-001523,ROUTINE,ELEVATED,0.1897,0.0,0.1897,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001526,IMMEDIATE,URGENT,0.2727,0.0,0.2727,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-001529,IMMEDIATE,IMMEDIATE,0.2388,0.0,0.2388,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001551,URGENT,ELEVATED,0.2542,0.0,0.2542,4.5,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001556,URGENT,URGENT,0.229,0.0,0.229,2.4,0.2,Failure,True,True,True,True,True,False
-SLM-001559,IMMEDIATE,IMMEDIATE,0.2647,0.0,0.2647,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001560,ELEVATED,ELEVATED,0.1724,0.0,0.1724,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001562,ELEVATED,ELEVATED,0.2832,0.0,0.2832,0.0,0.75,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001564,URGENT,URGENT,0.3065,0.0,0.3065,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-001566,URGENT,ELEVATED,0.2017,0.0,0.2017,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001601,IMMEDIATE,IMMEDIATE,0.2206,0.0,0.2206,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001614,URGENT,ELEVATED,0.1803,0.0,0.1803,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001622,URGENT,URGENT,0.314,0.0,0.314,1.4,0.4,High; Failure,True,True,True,False,False,False
-SLM-001631,IMMEDIATE,URGENT,0.2462,0.0,0.2462,1.1,0.2,Failure,True,True,True,False,False,False
-SLM-001636,ELEVATED,IMMEDIATE,0.192,0.0,0.192,0.0,0.667,Full; Critical; Every; Triage,True,True,True,True,True,False
-SLM-001637,IMMEDIATE,IMMEDIATE,0.2222,0.0,0.2222,0.0,0.571,Full; Critical; Access; Every,True,True,True,False,False,False
-SLM-001642,IMMEDIATE,IMMEDIATE,0.2647,0.0,0.2647,3.8,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001643,URGENT,IMMEDIATE,0.2206,0.0,0.2206,0.0,0.429,Full; Critical; Every,True,True,True,True,True,False
-SLM-001644,URGENT,IMMEDIATE,0.1926,0.0,0.1926,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001649,ELEVATED,ELEVATED,0.1897,0.0,0.1897,0.0,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-001653,URGENT,URGENT,0.2969,0.0,0.2969,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001662,IMMEDIATE,ELEVATED,0.1034,0.0,0.1034,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001666,ELEVATED,ELEVATED,0.2373,0.0,0.2373,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001678,ELEVATED,ELEVATED,0.2439,0.0,0.2439,10.8,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001681,URGENT,URGENT,0.3101,0.0,0.3101,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-001685,ELEVATED,IMMEDIATE,0.1705,0.0,0.1705,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001692,IMMEDIATE,IMMEDIATE,0.2206,0.0,0.2206,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001694,ELEVATED,ELEVATED,0.2667,0.0,0.2667,2.1,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001698,URGENT,URGENT,0.2748,0.0,0.2748,2.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-001701,ELEVATED,URGENT,0.2636,0.0,0.2636,2.0,0.333,High; Failure,True,True,True,True,True,False
-SLM-001709,IMMEDIATE,ELEVATED,0.15,0.0,0.15,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001714,URGENT,URGENT,0.2748,0.0,0.2748,1.8,0.2,Failure,True,True,True,False,False,False
-SLM-001723,URGENT,ELEVATED,0.2185,0.0,0.2185,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001726,IMMEDIATE,URGENT,0.1406,0.0,0.1406,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001730,ELEVATED,ELEVATED,0.1803,0.0,0.1803,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001731,ROUTINE,ELEVATED,0.1897,0.0,0.1897,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001734,URGENT,URGENT,0.3125,0.0,0.3125,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001739,ELEVATED,ELEVATED,0.2478,0.0,0.2478,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001741,IMMEDIATE,IMMEDIATE,0.2482,0.0,0.2482,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-001758,URGENT,URGENT,0.3206,0.0,0.3206,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-001760,URGENT,URGENT,0.2171,0.0,0.2171,15.8,0.2,Failure,True,True,True,False,False,False
-SLM-001766,URGENT,URGENT,0.2677,0.0,0.2677,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-001778,URGENT,URGENT,0.2615,0.0,0.2615,0.0,0.333,High; Failure,True,True,True,True,True,False
-SLM-001779,IMMEDIATE,URGENT,0.209,0.0,0.209,0.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-001790,IMMEDIATE,URGENT,0.2308,0.0,0.2308,0.4,0.167,Failure,True,True,True,False,False,False
-SLM-001791,ROUTINE,ELEVATED,0.2185,0.0,0.2185,1.1,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-001795,ELEVATED,ELEVATED,0.2479,0.0,0.2479,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001800,ELEVATED,ELEVATED,0.2314,0.0,0.2314,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001809,URGENT,URGENT,0.2791,0.0,0.2791,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-001825,IMMEDIATE,IMMEDIATE,0.2714,0.0,0.2714,0.0,0.429,Full; Critical; Every,True,True,True,True,True,False
-SLM-001837,URGENT,ELEVATED,0.1802,0.0,0.1802,9.5,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,True,True,False
-SLM-001849,URGENT,ELEVATED,0.176,0.0,0.176,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001850,ELEVATED,ELEVATED,0.1849,0.0,0.1849,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001855,URGENT,URGENT,0.3256,0.0,0.3256,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-001858,ELEVATED,ELEVATED,0.1062,0.0,0.1062,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001864,URGENT,IMMEDIATE,0.2647,0.0,0.2647,10.8,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001867,URGENT,URGENT,0.3134,0.0,0.3134,2.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-001872,ELEVATED,ELEVATED,0.2314,0.0,0.2314,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001879,IMMEDIATE,IMMEDIATE,0.2029,0.0,0.2029,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001881,ROUTINE,ELEVATED,0.1724,0.0,0.1724,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001882,ROUTINE,ELEVATED,0.1186,0.0,0.1186,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001889,IMMEDIATE,IMMEDIATE,0.2857,0.0,0.2857,0.0,0.429,Full; Critical; Every,True,True,True,True,True,False
-SLM-001894,ROUTINE,ELEVATED,0.2479,0.0,0.2479,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-001909,ELEVATED,ELEVATED,0.2373,0.0,0.2373,0.9,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001921,ELEVATED,ELEVATED,0.2281,0.0,0.2281,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-001936,URGENT,URGENT,0.2923,0.0,0.2923,2.0,0.167,Failure,True,True,True,False,False,False
-SLM-001955,URGENT,ELEVATED,0.1463,0.0,0.1463,2.0,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,True,True,False
-SLM-001968,URGENT,IMMEDIATE,0.2667,0.0,0.2667,2.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-001971,URGENT,URGENT,0.3438,0.0,0.3438,2.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-001989,ELEVATED,ELEVATED,0.1754,0.0,0.1754,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002004,ROUTINE,ELEVATED,0.2203,0.0,0.2203,2.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002006,ELEVATED,ELEVATED,0.2333,0.0,0.2333,3.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002013,IMMEDIATE,IMMEDIATE,0.2206,0.0,0.2206,1.1,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-002014,ELEVATED,ELEVATED,0.1724,0.0,0.1724,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002017,IMMEDIATE,IMMEDIATE,0.219,0.0,0.219,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002018,IMMEDIATE,URGENT,0.2258,0.0,0.2258,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002023,URGENT,IMMEDIATE,0.1679,0.0,0.1679,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002026,URGENT,URGENT,0.3053,0.0,0.3053,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-002027,IMMEDIATE,IMMEDIATE,0.2206,0.0,0.2206,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002032,ELEVATED,ELEVATED,0.2479,0.0,0.2479,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002034,URGENT,URGENT,0.2222,0.0,0.2222,14.4,0.4,High; Failure,True,True,True,False,False,False
-SLM-002037,IMMEDIATE,URGENT,0.2074,0.0,0.2074,2.7,0.333,High; Failure,True,True,True,False,False,False
-SLM-002040,ELEVATED,ELEVATED,0.1983,0.0,0.1983,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002050,IMMEDIATE,URGENT,0.2121,0.0,0.2121,0.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-002071,URGENT,URGENT,0.2946,0.0,0.2946,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002077,ELEVATED,ELEVATED,0.2034,0.0,0.2034,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002082,IMMEDIATE,URGENT,0.1832,0.0,0.1832,2.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002085,URGENT,URGENT,0.288,0.0,0.288,2.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002093,IMMEDIATE,URGENT,0.2308,0.0,0.2308,2.0,0.167,Failure,True,True,True,True,True,False
-SLM-002098,ROUTINE,ELEVATED,0.1538,0.0,0.1538,1.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002101,ELEVATED,ELEVATED,0.1525,0.0,0.1525,3.6,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002106,IMMEDIATE,IMMEDIATE,0.2029,0.0,0.2029,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002116,ELEVATED,ELEVATED,0.2034,0.0,0.2034,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002131,URGENT,ELEVATED,0.2439,0.0,0.2439,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002132,IMMEDIATE,IMMEDIATE,0.229,0.0,0.229,0.0,0.667,Full; Critical; Access; Every,True,True,True,False,False,False
-SLM-002141,URGENT,URGENT,0.3008,0.0,0.3008,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-002148,IMMEDIATE,IMMEDIATE,0.2628,0.0,0.2628,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002153,ELEVATED,IMMEDIATE,0.2121,0.0,0.2121,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002161,ELEVATED,ELEVATED,0.2564,0.0,0.2564,12.6,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002170,URGENT,URGENT,0.3077,0.0,0.3077,2.5,0.4,High; Failure,True,True,True,False,False,False
-SLM-002177,IMMEDIATE,URGENT,0.2727,0.0,0.2727,2.5,0.333,High; Failure,True,True,True,False,False,False
-SLM-002186,IMMEDIATE,IMMEDIATE,0.2707,0.0,0.2707,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002189,ELEVATED,ELEVATED,0.1935,0.0,0.1935,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002209,URGENT,URGENT,0.2769,0.0,0.2769,0.0,0.333,High; Failure,True,True,True,True,True,False
-SLM-002214,URGENT,URGENT,0.229,0.0,0.229,2.0,0.2,Failure,True,True,True,True,True,False
-SLM-002216,ELEVATED,ELEVATED,0.1356,0.0,0.1356,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002221,URGENT,URGENT,0.2137,0.0,0.2137,1.6,0.333,High; Failure,True,True,True,False,False,False
-SLM-002230,URGENT,ELEVATED,0.2222,0.0,0.2222,1.5,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002243,IMMEDIATE,URGENT,0.2727,0.0,0.2727,2.5,0.333,High; Failure,True,True,True,True,True,False
-SLM-002260,ROUTINE,ELEVATED,0.177,0.0,0.177,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002273,ELEVATED,ELEVATED,0.2373,0.0,0.2373,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002275,IMMEDIATE,IMMEDIATE,0.2044,0.0,0.2044,2.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002284,IMMEDIATE,IMMEDIATE,0.2963,0.0,0.2963,2.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002285,ROUTINE,ELEVATED,0.1538,0.0,0.1538,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002286,IMMEDIATE,URGENT,0.1985,0.0,0.1985,2.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-002302,ROUTINE,ELEVATED,0.2087,0.0,0.2087,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002304,ELEVATED,ELEVATED,0.2542,0.0,0.2542,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002310,URGENT,URGENT,0.2424,0.0,0.2424,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002312,IMMEDIATE,URGENT,0.24,0.0,0.24,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-002334,ROUTINE,ELEVATED,0.1818,0.0,0.1818,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002335,ELEVATED,ELEVATED,0.2689,0.0,0.2689,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002338,ELEVATED,ELEVATED,0.1849,0.0,0.1849,0.0,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-002344,ELEVATED,ELEVATED,0.1724,0.0,0.1724,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002345,URGENT,URGENT,0.2836,0.0,0.2836,0.0,0.167,Failure,True,True,True,True,True,False
-SLM-002346,IMMEDIATE,IMMEDIATE,0.25,0.0,0.25,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-002347,IMMEDIATE,IMMEDIATE,0.2734,0.0,0.2734,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002349,IMMEDIATE,ELEVATED,0.1587,0.0,0.1587,15.9,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002350,IMMEDIATE,ELEVATED,0.1593,0.0,0.1593,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002353,URGENT,URGENT,0.2857,0.0,0.2857,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002360,ELEVATED,ELEVATED,0.1739,0.0,0.1739,4.9,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002388,ELEVATED,ELEVATED,0.2645,0.0,0.2645,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002391,URGENT,IMMEDIATE,0.219,0.0,0.219,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002394,ELEVATED,ELEVATED,0.2314,0.0,0.2314,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002399,IMMEDIATE,IMMEDIATE,0.2174,0.0,0.2174,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002413,ELEVATED,ELEVATED,0.2787,0.0,0.2787,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002431,URGENT,IMMEDIATE,0.2388,0.0,0.2388,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-002437,URGENT,URGENT,0.3438,0.0,0.3438,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002447,ROUTINE,ELEVATED,0.2314,0.0,0.2314,10.8,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002448,ELEVATED,ELEVATED,0.2034,0.0,0.2034,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002449,ELEVATED,ELEVATED,0.1739,0.0,0.1739,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002452,IMMEDIATE,URGENT,0.2016,0.0,0.2016,5.9,0.167,Failure,True,True,True,False,False,False
-SLM-002473,URGENT,URGENT,0.2406,0.0,0.2406,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002484,URGENT,URGENT,0.2171,0.0,0.2171,0.0,0.333,Access; Failure,True,True,True,False,False,False
-SLM-002491,URGENT,ELEVATED,0.1565,0.0,0.1565,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002495,URGENT,ELEVATED,0.1754,0.0,0.1754,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002502,ELEVATED,ELEVATED,0.1176,0.0,0.1176,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002503,IMMEDIATE,IMMEDIATE,0.2388,0.0,0.2388,10.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002514,URGENT,URGENT,0.2424,0.0,0.2424,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002528,ROUTINE,ROUTINE,0.22,0.0,0.22,0.0,0.25,Triage,True,True,True,False,False,False
-SLM-002534,ROUTINE,ELEVATED,0.1552,0.0,0.1552,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002541,ELEVATED,ELEVATED,0.2982,0.0,0.2982,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002544,ELEVATED,ELEVATED,0.2034,0.0,0.2034,6.7,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002557,URGENT,URGENT,0.2615,0.0,0.2615,0.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-002559,ROUTINE,ELEVATED,0.2087,0.0,0.2087,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002585,IMMEDIATE,ELEVATED,0.25,0.0,0.25,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002589,ELEVATED,ELEVATED,0.1754,0.0,0.1754,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002605,ELEVATED,ELEVATED,0.1789,0.0,0.1789,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002618,IMMEDIATE,URGENT,0.1417,0.0,0.1417,0.0,0.6,High; Access; Failure,True,True,True,True,True,False
-SLM-002620,URGENT,IMMEDIATE,0.1739,0.0,0.1739,9.1,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002626,IMMEDIATE,IMMEDIATE,0.25,0.0,0.25,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002638,IMMEDIATE,ELEVATED,0.1,0.0,0.1,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002654,URGENT,ELEVATED,0.2167,0.0,0.2167,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002655,ELEVATED,ELEVATED,0.2609,0.0,0.2609,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002660,URGENT,URGENT,0.303,0.0,0.303,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-002664,URGENT,URGENT,0.2748,0.0,0.2748,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-002669,URGENT,IMMEDIATE,0.2647,0.0,0.2647,10.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002673,IMMEDIATE,IMMEDIATE,0.2302,0.0,0.2302,2.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-002677,ELEVATED,ELEVATED,0.3103,0.0,0.3103,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002687,IMMEDIATE,IMMEDIATE,0.2519,0.0,0.2519,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002688,URGENT,URGENT,0.2105,0.0,0.2105,1.8,0.2,Failure,True,True,True,False,False,False
-SLM-002693,ELEVATED,ELEVATED,0.1167,0.0,0.1167,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002700,ELEVATED,ELEVATED,0.2131,0.0,0.2131,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002703,IMMEDIATE,URGENT,0.2519,0.0,0.2519,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-002705,IMMEDIATE,URGENT,0.1692,0.0,0.1692,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-002706,IMMEDIATE,IMMEDIATE,0.2419,0.0,0.2419,0.0,0.6,Full; Critical; Every,True,True,True,False,False,False
-SLM-002712,IMMEDIATE,IMMEDIATE,0.194,0.0,0.194,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002713,IMMEDIATE,IMMEDIATE,0.2791,0.0,0.2791,0.0,0.667,Full; Critical; Every; Triage,True,True,True,True,True,False
-SLM-002716,IMMEDIATE,IMMEDIATE,0.2628,0.0,0.2628,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002748,URGENT,IMMEDIATE,0.2647,0.0,0.2647,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002756,ELEVATED,ELEVATED,0.2087,0.0,0.2087,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002768,IMMEDIATE,IMMEDIATE,0.1912,0.0,0.1912,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002771,ELEVATED,ELEVATED,0.1667,0.0,0.1667,16.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002772,IMMEDIATE,IMMEDIATE,0.2707,0.0,0.2707,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-002775,IMMEDIATE,IMMEDIATE,0.2571,0.0,0.2571,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002781,IMMEDIATE,IMMEDIATE,0.2336,0.0,0.2336,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002787,URGENT,URGENT,0.2121,0.0,0.2121,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-002788,IMMEDIATE,URGENT,0.2344,0.0,0.2344,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002790,IMMEDIATE,IMMEDIATE,0.2222,0.0,0.2222,9.1,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002794,ELEVATED,ELEVATED,0.2602,0.0,0.2602,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002795,IMMEDIATE,IMMEDIATE,0.1778,0.0,0.1778,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002804,URGENT,URGENT,0.2901,0.0,0.2901,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002810,ELEVATED,ELEVATED,0.1754,0.0,0.1754,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002813,ELEVATED,ELEVATED,0.3774,0.0,0.3774,0.0,0.714,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002823,URGENT,URGENT,0.2769,0.0,0.2769,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-002830,URGENT,URGENT,0.194,0.0,0.194,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-002834,URGENT,URGENT,0.2656,0.0,0.2656,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002838,URGENT,URGENT,0.3077,0.0,0.3077,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-002844,ELEVATED,ELEVATED,0.2623,0.0,0.2623,16.6,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002845,URGENT,ELEVATED,0.1709,0.0,0.1709,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002847,ROUTINE,ROUTINE,0.2909,0.0,0.2909,0.0,0.0,,True,True,True,False,False,False
-SLM-002848,IMMEDIATE,IMMEDIATE,0.2941,0.0,0.2941,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002855,IMMEDIATE,URGENT,0.229,0.0,0.229,0.0,0.4,High; Failure,True,True,True,True,True,False
-SLM-002858,URGENT,ELEVATED,0.1818,0.0,0.1818,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002861,IMMEDIATE,IMMEDIATE,0.1884,0.0,0.1884,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002866,ELEVATED,ELEVATED,0.2667,0.0,0.2667,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002867,ELEVATED,ELEVATED,0.1864,0.0,0.1864,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002871,URGENT,ELEVATED,0.2167,0.0,0.2167,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002881,URGENT,URGENT,0.3206,0.0,0.3206,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-002889,IMMEDIATE,IMMEDIATE,0.292,0.0,0.292,15.6,0.429,Full; Critical; Every,True,True,True,True,True,False
-SLM-002893,URGENT,URGENT,0.2835,0.0,0.2835,1.0,0.2,Failure,True,True,True,False,False,False
-SLM-002897,IMMEDIATE,URGENT,0.254,0.0,0.254,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-002907,URGENT,ELEVATED,0.0847,0.0,0.0847,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002910,ELEVATED,ELEVATED,0.2295,0.0,0.2295,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002917,ROUTINE,ELEVATED,0.1739,0.0,0.1739,0.0,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-002922,ELEVATED,ELEVATED,0.1739,0.0,0.1739,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-002925,IMMEDIATE,URGENT,0.2188,0.0,0.2188,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002928,URGENT,ELEVATED,0.2097,0.0,0.2097,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002933,URGENT,URGENT,0.1926,0.0,0.1926,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002948,ROUTINE,URGENT,0.2222,0.0,0.2222,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-002949,ROUTINE,ELEVATED,0.1441,0.0,0.1441,14.5,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002952,ELEVATED,ELEVATED,0.2143,0.0,0.2143,2.2,0.75,Access; Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002958,ELEVATED,URGENT,0.2419,0.0,0.2419,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002959,IMMEDIATE,IMMEDIATE,0.2239,0.0,0.2239,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002968,IMMEDIATE,IMMEDIATE,0.2446,0.0,0.2446,0.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-002973,ELEVATED,ELEVATED,0.1724,0.0,0.1724,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002976,ELEVATED,ELEVATED,0.2203,0.0,0.2203,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002977,URGENT,URGENT,0.3008,0.0,0.3008,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-002978,IMMEDIATE,IMMEDIATE,0.2336,0.0,0.2336,0.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-002981,IMMEDIATE,URGENT,0.2794,0.0,0.2794,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-002985,URGENT,URGENT,0.304,0.0,0.304,0.0,0.167,Failure,True,True,True,False,False,False
-SLM-002986,ELEVATED,ELEVATED,0.2857,0.0,0.2857,10.9,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002988,IMMEDIATE,IMMEDIATE,0.2462,0.0,0.2462,0.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-002992,URGENT,URGENT,0.1985,0.0,0.1985,0.0,0.5,High; Access; Failure,True,True,True,False,False,False
-SLM-002995,ELEVATED,ELEVATED,0.2735,0.0,0.2735,4.6,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-002998,ELEVATED,ELEVATED,0.1653,0.0,0.1653,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003007,URGENT,IMMEDIATE,0.2174,0.0,0.2174,2.0,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-003008,URGENT,IMMEDIATE,0.2837,0.0,0.2837,2.0,0.429,Full; Critical; Every,True,True,True,True,True,False
-SLM-003010,ELEVATED,ELEVATED,0.2087,0.0,0.2087,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003016,IMMEDIATE,IMMEDIATE,0.2667,0.0,0.2667,2.0,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-003028,ELEVATED,ELEVATED,0.2281,0.0,0.2281,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003030,ELEVATED,ELEVATED,0.3443,0.0,0.3443,0.0,0.625,Pre; Hold; Conduct; Conditions; Moderate,True,True,True,False,False,False
-SLM-003035,URGENT,IMMEDIATE,0.2615,0.0,0.2615,2.0,0.5,Full; Critical; Every,True,True,True,True,True,False
-SLM-003038,IMMEDIATE,URGENT,0.1789,0.0,0.1789,2.0,0.4,Triage; Failure,True,True,True,False,False,False
-SLM-003047,URGENT,IMMEDIATE,0.2482,0.0,0.2482,1.8,0.5,Full; Critical; Every,True,True,True,False,False,False
-SLM-003053,IMMEDIATE,URGENT,0.2105,0.0,0.2105,0.0,0.333,High; Failure,True,True,True,False,False,False
-SLM-003057,ELEVATED,ELEVATED,0.2333,0.0,0.2333,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003063,ELEVATED,ELEVATED,0.2479,0.0,0.2479,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-003070,ELEVATED,ELEVATED,0.2,0.0,0.2,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003072,IMMEDIATE,URGENT,0.229,0.0,0.229,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-003077,URGENT,URGENT,0.2308,0.0,0.2308,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-003079,ELEVATED,ELEVATED,0.2105,0.0,0.2105,12.3,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-003082,URGENT,ELEVATED,0.1322,0.0,0.1322,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,True,True,False
-SLM-003085,IMMEDIATE,URGENT,0.2171,0.0,0.2171,0.0,0.2,Failure,True,True,True,False,False,False
-SLM-003095,ROUTINE,ELEVATED,0.1833,0.0,0.1833,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003104,ELEVATED,URGENT,0.304,0.0,0.304,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-003115,URGENT,URGENT,0.2687,0.0,0.2687,0.0,0.2,Failure,True,True,True,True,True,False
-SLM-003117,URGENT,IMMEDIATE,0.2817,0.0,0.2817,0.0,0.429,Full; Critical; Every,True,True,True,True,True,False
-SLM-003134,URGENT,ELEVATED,0.1333,0.0,0.1333,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003157,URGENT,URGENT,0.2992,0.0,0.2992,0.0,0.4,High; Failure,True,True,True,False,False,False
-SLM-003168,URGENT,IMMEDIATE,0.2687,0.0,0.2687,15.7,0.429,Full; Critical; Every,True,True,True,False,False,False
-SLM-003179,ELEVATED,ELEVATED,0.2521,0.0,0.2521,0.0,0.556,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003180,URGENT,URGENT,0.1618,0.0,0.1618,0.0,0.333,High; Failure,True,True,True,True,True,False
-SLM-003187,URGENT,URGENT,0.2963,0.0,0.2963,8.1,0.4,High; Failure,True,True,True,False,False,False
-SLM-003188,ROUTINE,ELEVATED,0.1538,0.0,0.1538,2.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
-SLM-003198,ELEVATED,ELEVATED,0.2131,0.0,0.2131,0.0,0.625,Pre; Conduct; Conditions; Moderate; Hold,True,True,True,False,False,False
+pair_id,zone_present,district_present,state_present,location_present,hazard_present,headcount_present,headcount_correct,content_slots_preserved,mismatches
+SLM-000014,True,True,True,True,True,True,True,True,None
+SLM-000020,True,True,True,False,True,True,True,False,None
+SLM-000031,True,True,True,False,True,True,True,False,None
+SLM-000039,True,True,True,False,True,True,True,False,None
+SLM-000041,True,True,True,False,True,True,True,False,None
+SLM-000046,True,True,True,False,True,True,True,False,None
+SLM-000050,True,True,True,False,True,True,True,False,None
+SLM-000052,True,True,True,False,True,True,True,False,None
+SLM-000059,True,True,True,False,True,True,True,False,None
+SLM-000069,True,True,True,False,True,True,True,False,None
+SLM-000083,True,True,True,False,True,True,True,False,None
+SLM-000095,True,True,True,True,True,True,True,True,None
+SLM-000100,True,True,True,True,True,True,True,True,None
+SLM-000103,True,True,True,False,True,True,True,False,None
+SLM-000115,True,True,True,False,True,True,True,False,None
+SLM-000122,True,True,True,False,True,True,True,False,None
+SLM-000125,True,True,True,False,False,True,True,False,None
+SLM-000129,True,True,True,False,True,True,True,False,None
+SLM-000133,True,True,True,False,True,True,True,False,None
+SLM-000144,True,True,True,True,True,True,True,True,None
+SLM-000149,True,True,True,False,True,True,True,False,None
+SLM-000158,True,True,True,False,True,True,True,False,None
+SLM-000170,True,True,True,False,True,True,True,False,None
+SLM-000187,True,True,True,False,True,True,True,False,None
+SLM-000199,True,True,True,True,True,True,True,True,None
+SLM-000206,True,True,True,True,True,True,True,True,None
+SLM-000212,True,True,True,False,True,True,True,False,None
+SLM-000223,True,True,True,False,True,True,True,False,None
+SLM-000234,True,True,True,False,True,True,True,False,None
+SLM-000255,True,True,True,False,True,True,True,False,None
+SLM-000269,True,True,True,False,True,True,True,False,None
+SLM-000287,True,True,True,False,True,True,True,False,None
+SLM-000291,True,True,True,True,True,True,True,True,None
+SLM-000297,True,True,True,True,True,True,True,True,None
+SLM-000303,True,True,True,False,True,True,True,False,None
+SLM-000306,True,True,True,True,True,True,True,True,None
+SLM-000321,True,True,True,False,True,True,True,False,None
+SLM-000332,True,True,True,True,True,True,True,True,None
+SLM-000334,True,True,True,False,True,True,True,False,None
+SLM-000336,True,True,True,False,True,True,True,False,None
+SLM-000340,True,True,True,True,True,True,True,True,None
+SLM-000346,True,True,True,False,True,True,True,False,None
+SLM-000354,True,True,True,False,True,True,True,False,None
+SLM-000371,True,True,True,True,True,True,True,True,None
+SLM-000382,True,True,True,True,True,True,True,True,None
+SLM-000394,True,True,True,False,True,True,True,False,None
+SLM-000397,True,True,True,True,True,True,True,True,None
+SLM-000400,True,True,True,True,True,True,True,True,None
+SLM-000402,True,True,True,True,True,True,True,True,None
+SLM-000409,True,True,True,False,True,True,True,False,None
+SLM-000414,True,True,True,True,True,True,True,True,None
+SLM-000426,True,True,True,True,True,True,True,True,None
+SLM-000430,True,True,True,False,True,True,True,False,None
+SLM-000437,True,True,True,False,True,True,True,False,None
+SLM-000440,True,True,True,False,True,True,True,False,None
+SLM-000461,True,True,True,False,True,True,True,False,None
+SLM-000471,True,True,True,True,True,True,True,True,None
+SLM-000477,True,True,True,False,True,True,True,False,None
+SLM-000479,True,True,True,False,True,True,True,False,None
+SLM-000497,True,True,True,False,True,True,True,False,None
+SLM-000499,True,True,True,False,True,True,True,False,None
+SLM-000500,True,True,True,False,True,True,True,False,None
+SLM-000501,True,True,True,False,True,True,True,False,None
+SLM-000511,True,True,True,True,True,True,True,True,None
+SLM-000517,True,True,True,False,True,True,True,False,None
+SLM-000535,True,True,True,True,True,True,True,True,None
+SLM-000540,True,True,True,False,True,True,True,False,None
+SLM-000541,True,True,True,False,True,True,True,False,None
+SLM-000545,True,True,True,False,True,True,True,False,None
+SLM-000546,True,True,True,False,True,True,True,False,None
+SLM-000560,True,True,True,False,True,True,True,False,None
+SLM-000571,True,True,True,True,True,True,True,True,None
+SLM-000589,True,True,True,False,True,True,True,False,None
+SLM-000593,True,True,True,True,True,True,True,True,None
+SLM-000600,True,True,True,False,True,True,True,False,None
+SLM-000605,True,True,True,False,True,True,True,False,None
+SLM-000610,True,True,True,True,True,True,True,True,None
+SLM-000616,True,True,True,True,True,True,True,True,None
+SLM-000617,True,True,True,False,True,True,True,False,None
+SLM-000621,True,True,True,False,True,True,True,False,None
+SLM-000625,True,True,True,False,True,True,True,False,None
+SLM-000633,True,True,True,False,True,True,True,False,None
+SLM-000655,True,True,True,False,True,True,True,False,None
+SLM-000658,True,True,True,False,True,True,True,False,None
+SLM-000661,True,True,True,True,True,True,True,True,None
+SLM-000665,True,True,True,False,True,True,True,False,None
+SLM-000668,True,True,True,False,True,True,True,False,None
+SLM-000672,True,True,True,True,True,True,True,True,None
+SLM-000679,True,True,True,False,True,True,True,False,None
+SLM-000684,True,True,True,False,True,True,True,False,None
+SLM-000686,True,True,True,False,True,True,True,False,None
+SLM-000691,True,True,True,False,True,True,True,False,None
+SLM-000707,True,True,True,True,True,True,True,True,None
+SLM-000728,True,True,True,False,True,True,True,False,None
+SLM-000734,True,True,True,False,True,True,True,False,None
+SLM-000737,True,True,True,False,True,True,True,False,None
+SLM-000743,True,True,True,True,True,True,True,True,None
+SLM-000747,True,True,True,False,True,True,True,False,None
+SLM-000761,True,True,True,False,True,True,True,False,None
+SLM-000774,True,True,True,True,True,True,True,True,None
+SLM-000778,True,True,True,False,True,True,True,False,None
+SLM-000797,True,True,True,False,True,True,True,False,None
+SLM-000804,True,True,True,False,True,True,True,False,None
+SLM-000806,True,True,True,False,True,True,True,False,None
+SLM-000821,True,True,True,False,True,True,True,False,None
+SLM-000824,True,True,True,True,True,True,True,True,None
+SLM-000829,True,True,True,False,True,True,True,False,None
+SLM-000834,True,True,True,False,True,True,True,False,None
+SLM-000845,True,True,True,False,True,True,True,False,None
+SLM-000848,True,True,True,False,True,True,True,False,None
+SLM-000849,True,True,True,False,True,True,True,False,None
+SLM-000860,True,True,True,False,True,True,True,False,None
+SLM-000867,True,True,True,False,True,True,True,False,None
+SLM-000882,True,True,True,False,True,True,True,False,None
+SLM-000886,True,True,True,True,True,True,True,True,None
+SLM-000893,True,True,True,True,True,True,True,True,None
+SLM-000896,True,True,True,False,True,True,True,False,None
+SLM-000899,True,True,True,True,True,True,True,True,None
+SLM-000905,True,True,True,False,True,True,True,False,None
+SLM-000915,True,True,True,True,True,True,True,True,None
+SLM-000916,True,True,True,False,True,True,True,False,None
+SLM-000920,True,True,True,True,True,True,True,True,None
+SLM-000932,True,True,True,False,True,True,True,False,None
+SLM-000935,True,True,True,True,True,True,True,True,None
+SLM-000936,True,True,True,False,True,True,True,False,None
+SLM-000937,True,True,True,True,True,True,True,True,None
+SLM-000948,True,True,True,False,True,True,True,False,None
+SLM-000951,True,True,True,False,True,True,True,False,None
+SLM-000954,True,True,True,False,True,True,True,False,None
+SLM-000956,True,True,True,False,True,True,True,False,None
+SLM-000961,True,True,True,True,True,True,True,True,None
+SLM-000962,True,True,True,True,True,True,True,True,None
+SLM-000963,True,True,True,False,True,True,True,False,None
+SLM-000967,True,True,True,False,True,True,True,False,None
+SLM-000993,True,True,True,False,True,True,True,False,None
+SLM-000995,True,True,True,False,True,True,True,False,None
+SLM-000999,True,True,True,False,True,True,True,False,None
+SLM-001005,True,True,True,False,True,True,True,False,None
+SLM-001008,True,True,True,False,True,True,True,False,None
+SLM-001013,True,True,True,True,True,True,True,True,None
+SLM-001015,True,True,True,False,True,True,True,False,None
+SLM-001020,True,True,True,False,True,True,True,False,None
+SLM-001024,True,True,True,False,True,True,True,False,None
+SLM-001034,True,True,True,False,True,True,True,False,None
+SLM-001036,True,True,True,False,True,True,True,False,None
+SLM-001043,True,True,True,True,True,True,True,True,None
+SLM-001055,True,True,True,False,True,True,True,False,None
+SLM-001056,True,True,True,True,True,True,True,True,None
+SLM-001059,True,True,True,False,True,True,True,False,None
+SLM-001060,True,True,True,False,True,True,True,False,None
+SLM-001061,True,True,True,True,True,True,True,True,None
+SLM-001062,True,True,True,True,True,True,True,True,None
+SLM-001066,True,True,True,False,True,True,True,False,None
+SLM-001070,True,True,True,False,True,True,True,False,None
+SLM-001073,True,True,True,False,True,True,True,False,None
+SLM-001078,True,True,True,False,True,True,True,False,None
+SLM-001082,True,True,True,False,True,True,True,False,None
+SLM-001083,True,True,True,False,True,True,True,False,None
+SLM-001085,True,True,True,False,True,True,True,False,None
+SLM-001096,True,True,True,False,True,True,True,False,None
+SLM-001097,True,True,True,False,True,True,True,False,None
+SLM-001099,True,True,True,False,True,True,True,False,None
+SLM-001103,True,True,True,False,True,True,True,False,None
+SLM-001114,True,True,True,False,True,True,True,False,None
+SLM-001126,True,True,True,False,True,True,True,False,None
+SLM-001136,True,True,True,False,True,True,True,False,None
+SLM-001147,True,True,True,True,True,True,True,True,None
+SLM-001154,True,True,True,False,True,True,True,False,None
+SLM-001155,True,True,True,False,True,True,True,False,None
+SLM-001156,True,True,True,False,True,True,True,False,None
+SLM-001161,True,True,True,False,True,True,True,False,None
+SLM-001176,True,True,True,False,True,True,True,False,None
+SLM-001187,True,True,True,False,True,True,True,False,None
+SLM-001201,True,True,True,True,True,True,True,True,None
+SLM-001202,True,True,True,False,True,True,True,False,None
+SLM-001207,True,True,True,False,True,True,True,False,None
+SLM-001214,True,True,True,False,True,True,True,False,None
+SLM-001217,True,True,True,False,True,True,True,False,None
+SLM-001219,True,True,True,False,True,True,True,False,None
+SLM-001238,True,True,True,True,True,True,True,True,None
+SLM-001261,True,True,True,False,True,True,True,False,None
+SLM-001277,True,True,True,True,True,True,True,True,None
+SLM-001279,True,True,True,False,True,True,True,False,None
+SLM-001283,True,True,True,True,True,True,True,True,None
+SLM-001284,True,True,True,False,True,True,True,False,None
+SLM-001293,True,True,True,True,True,True,True,True,None
+SLM-001304,True,True,True,False,True,True,True,False,None
+SLM-001306,True,True,True,False,True,True,True,False,None
+SLM-001313,True,True,True,False,True,True,True,False,None
+SLM-001314,True,True,True,False,True,True,True,False,None
+SLM-001317,True,True,True,False,True,True,True,False,None
+SLM-001332,True,True,True,False,True,True,True,False,None
+SLM-001334,True,True,True,False,True,True,True,False,None
+SLM-001341,True,True,True,False,True,True,True,False,None
+SLM-001351,True,True,True,False,True,True,True,False,None
+SLM-001353,True,True,True,True,True,True,True,True,None
+SLM-001371,True,True,True,False,True,True,True,False,None
+SLM-001383,True,True,True,True,True,True,True,True,None
+SLM-001397,True,True,True,False,True,True,True,False,None
+SLM-001406,True,True,True,True,True,True,True,True,None
+SLM-001410,True,True,True,False,True,True,True,False,None
+SLM-001414,True,True,True,False,True,True,True,False,None
+SLM-001430,True,True,True,False,True,True,True,False,None
+SLM-001438,True,True,True,True,True,True,True,True,None
+SLM-001445,True,True,True,False,True,True,True,False,None
+SLM-001452,True,True,True,False,True,True,True,False,None
+SLM-001458,True,True,True,False,True,True,True,False,None
+SLM-001462,True,True,True,True,True,True,True,True,None
+SLM-001469,True,True,True,False,True,True,True,False,None
+SLM-001474,True,True,True,False,True,True,True,False,None
+SLM-001485,True,True,True,False,True,True,True,False,None
+SLM-001487,True,True,True,False,True,True,True,False,None
+SLM-001500,True,True,True,True,True,True,True,True,None
+SLM-001509,True,True,True,False,True,True,True,False,None
+SLM-001510,True,True,True,False,True,True,True,False,None
+SLM-001514,True,True,True,False,True,True,True,False,None
+SLM-001523,True,True,True,False,True,True,True,False,None
+SLM-001526,True,True,True,True,True,True,True,True,None
+SLM-001529,True,True,True,False,True,True,True,False,None
+SLM-001551,True,True,True,True,True,True,True,True,None
+SLM-001556,True,True,True,True,True,True,True,True,None
+SLM-001559,True,True,True,False,True,True,True,False,None
+SLM-001560,True,True,True,False,True,True,True,False,None
+SLM-001562,True,True,True,False,True,True,True,False,None
+SLM-001564,True,True,True,False,True,True,True,False,None
+SLM-001566,True,True,True,False,True,True,True,False,None
+SLM-001601,True,True,True,False,True,True,True,False,None
+SLM-001614,True,True,True,False,True,True,True,False,None
+SLM-001622,True,True,True,False,True,True,True,False,None
+SLM-001631,True,True,True,False,True,True,True,False,None
+SLM-001636,True,True,True,True,True,True,True,True,None
+SLM-001637,True,True,True,False,True,True,True,False,None
+SLM-001642,True,True,True,False,True,True,True,False,None
+SLM-001643,True,True,True,True,True,True,True,True,None
+SLM-001644,True,True,True,False,True,True,True,False,None
+SLM-001649,True,True,True,False,True,True,True,False,None
+SLM-001653,True,True,True,False,True,True,True,False,None
+SLM-001662,True,True,True,False,True,True,True,False,None
+SLM-001666,True,True,True,False,True,True,True,False,None
+SLM-001678,True,True,True,False,True,True,True,False,None
+SLM-001681,True,True,True,False,True,True,True,False,None
+SLM-001685,True,True,True,False,True,True,True,False,None
+SLM-001692,True,True,True,False,True,True,True,False,None
+SLM-001694,True,True,True,True,True,True,True,True,None
+SLM-001698,True,True,True,True,True,True,True,True,None
+SLM-001701,True,True,True,True,True,True,True,True,None
+SLM-001709,True,True,True,False,True,True,True,False,None
+SLM-001714,True,True,True,False,True,True,True,False,None
+SLM-001723,True,True,True,True,True,True,True,True,None
+SLM-001726,True,True,True,False,True,True,True,False,None
+SLM-001730,True,True,True,False,True,True,True,False,None
+SLM-001731,True,True,True,False,True,True,True,False,None
+SLM-001734,True,True,True,False,True,True,True,False,None
+SLM-001739,True,True,True,False,True,True,True,False,None
+SLM-001741,True,True,True,False,True,True,True,False,None
+SLM-001758,True,True,True,False,True,True,True,False,None
+SLM-001760,True,True,True,False,True,True,True,False,None
+SLM-001766,True,True,True,True,True,True,True,True,None
+SLM-001778,True,True,True,True,True,True,True,True,None
+SLM-001779,True,True,True,True,True,True,True,True,None
+SLM-001790,True,True,True,False,True,True,True,False,None
+SLM-001791,True,True,True,False,True,True,True,False,None
+SLM-001795,True,True,True,True,True,True,True,True,None
+SLM-001800,True,True,True,True,True,True,True,True,None
+SLM-001809,True,True,True,False,True,True,True,False,None
+SLM-001825,True,True,True,True,True,True,True,True,None
+SLM-001837,True,True,True,True,True,True,True,True,None
+SLM-001849,True,True,True,True,True,True,True,True,None
+SLM-001850,True,True,True,True,True,True,True,True,None
+SLM-001855,True,True,True,False,True,True,True,False,None
+SLM-001858,True,True,True,False,True,True,True,False,None
+SLM-001864,True,True,True,False,True,True,True,False,None
+SLM-001867,True,True,True,False,True,True,True,False,None
+SLM-001872,True,True,True,False,True,True,True,False,None
+SLM-001879,True,True,True,False,True,True,True,False,None
+SLM-001881,True,True,True,False,True,True,True,False,None
+SLM-001882,True,True,True,True,True,True,True,True,None
+SLM-001889,True,True,True,True,True,True,True,True,None
+SLM-001894,True,True,True,False,True,True,True,False,None
+SLM-001909,True,True,True,True,True,True,True,True,None
+SLM-001921,True,True,True,True,True,True,True,True,None
+SLM-001936,True,True,True,False,True,True,True,False,None
+SLM-001955,True,True,True,True,True,True,True,True,None
+SLM-001968,True,True,True,False,True,True,True,False,None
+SLM-001971,True,True,True,False,True,True,True,False,None
+SLM-001989,True,True,True,False,True,True,True,False,None
+SLM-002004,True,True,True,False,True,True,True,False,None
+SLM-002006,True,True,True,True,True,True,True,True,None
+SLM-002013,True,True,True,False,True,True,True,False,None
+SLM-002014,True,True,True,False,True,True,True,False,None
+SLM-002017,True,True,True,False,True,True,True,False,None
+SLM-002018,True,True,True,False,True,True,True,False,None
+SLM-002023,True,True,True,False,True,True,True,False,None
+SLM-002026,True,True,True,False,True,True,True,False,None
+SLM-002027,True,True,True,False,True,True,True,False,None
+SLM-002032,True,True,True,True,True,True,True,True,None
+SLM-002034,True,True,True,False,True,True,True,False,None
+SLM-002037,True,True,True,False,True,True,True,False,None
+SLM-002040,True,True,True,False,True,True,True,False,None
+SLM-002050,True,True,True,True,True,True,True,True,None
+SLM-002071,True,True,True,False,True,True,True,False,None
+SLM-002077,True,True,True,True,True,True,True,True,None
+SLM-002082,True,True,True,False,True,True,True,False,None
+SLM-002085,True,True,True,False,True,True,True,False,None
+SLM-002093,True,True,True,True,True,True,True,True,None
+SLM-002098,True,True,True,False,True,True,True,False,None
+SLM-002101,True,True,True,False,True,True,True,False,None
+SLM-002106,True,True,True,True,True,True,True,True,None
+SLM-002116,True,True,True,True,True,True,True,True,None
+SLM-002131,True,True,True,False,True,True,True,False,None
+SLM-002132,True,True,True,False,True,True,True,False,None
+SLM-002141,True,True,True,False,True,True,True,False,None
+SLM-002148,True,True,True,False,True,True,True,False,None
+SLM-002153,True,True,True,False,True,True,True,False,None
+SLM-002161,True,True,True,True,True,True,True,True,None
+SLM-002170,True,True,True,False,True,True,True,False,None
+SLM-002177,True,True,True,False,True,True,True,False,None
+SLM-002186,True,True,True,False,True,True,True,False,None
+SLM-002189,True,True,True,False,True,True,True,False,None
+SLM-002209,True,True,True,True,True,True,True,True,None
+SLM-002214,True,True,True,True,True,True,True,True,None
+SLM-002216,True,True,True,False,True,True,True,False,None
+SLM-002221,True,True,True,False,True,True,True,False,None
+SLM-002230,True,True,True,False,True,True,True,False,None
+SLM-002243,True,True,True,True,True,True,True,True,None
+SLM-002260,True,True,True,False,True,True,True,False,None
+SLM-002273,True,True,True,True,True,True,True,True,None
+SLM-002275,True,True,True,False,True,True,True,False,None
+SLM-002284,True,True,True,True,True,True,True,True,None
+SLM-002285,True,True,True,False,True,True,True,False,None
+SLM-002286,True,True,True,False,True,True,True,False,None
+SLM-002302,True,True,True,False,True,True,True,False,None
+SLM-002304,True,True,True,False,True,True,True,False,None
+SLM-002310,True,True,True,False,True,True,True,False,None
+SLM-002312,True,True,True,True,True,True,True,True,None
+SLM-002334,True,True,True,False,True,True,True,False,None
+SLM-002335,True,True,True,False,True,True,True,False,None
+SLM-002338,True,True,True,False,True,True,True,False,None
+SLM-002344,True,True,True,False,True,True,True,False,None
+SLM-002345,True,True,True,True,True,True,True,True,None
+SLM-002346,True,True,True,False,True,True,True,False,None
+SLM-002347,True,True,True,False,True,True,True,False,None
+SLM-002349,True,True,True,True,True,True,True,True,None
+SLM-002350,True,True,True,False,True,True,True,False,None
+SLM-002353,True,True,True,False,True,True,True,False,None
+SLM-002360,True,True,True,False,True,True,True,False,None
+SLM-002388,True,True,True,False,True,True,True,False,None
+SLM-002391,True,True,True,True,True,True,True,True,None
+SLM-002394,True,True,True,True,True,True,True,True,None
+SLM-002399,True,True,True,False,True,True,True,False,None
+SLM-002413,True,True,True,False,True,True,True,False,None
+SLM-002431,True,True,True,False,True,True,True,False,None
+SLM-002437,True,True,True,False,True,True,True,False,None
+SLM-002447,True,True,True,True,True,True,True,True,None
+SLM-002448,True,True,True,True,True,True,True,True,None
+SLM-002449,True,True,True,False,True,True,True,False,None
+SLM-002452,True,True,True,False,True,True,True,False,None
+SLM-002473,True,True,True,False,True,True,True,False,None
+SLM-002484,True,True,True,False,True,True,True,False,None
+SLM-002491,True,True,True,False,True,True,True,False,None
+SLM-002495,True,True,True,False,True,True,True,False,None
+SLM-002502,True,True,True,False,True,True,True,False,None
+SLM-002503,True,True,True,False,True,True,True,False,None
+SLM-002514,True,True,True,False,True,True,True,False,None
+SLM-002528,True,True,True,False,True,True,True,False,None
+SLM-002534,True,True,True,True,True,True,True,True,None
+SLM-002541,True,True,True,False,True,True,True,False,None
+SLM-002544,True,True,True,False,True,True,True,False,None
+SLM-002557,True,True,True,True,True,True,True,True,None
+SLM-002559,True,True,True,False,True,True,True,False,None
+SLM-002585,True,True,True,True,True,True,True,True,None
+SLM-002589,True,True,True,False,True,True,True,False,None
+SLM-002605,True,True,True,True,True,True,True,True,None
+SLM-002618,True,True,True,True,True,True,True,True,None
+SLM-002620,True,True,True,True,True,True,True,True,None
+SLM-002626,True,True,True,False,True,True,True,False,None
+SLM-002638,True,True,True,False,True,True,True,False,None
+SLM-002654,True,True,True,False,True,True,True,False,None
+SLM-002655,True,True,True,False,True,True,True,False,None
+SLM-002660,True,True,True,False,True,True,True,False,None
+SLM-002664,True,True,True,False,True,True,True,False,None
+SLM-002669,True,True,True,False,True,True,True,False,None
+SLM-002673,True,True,True,False,True,True,True,False,None
+SLM-002677,True,True,True,False,True,True,True,False,None
+SLM-002687,True,True,True,True,True,True,True,True,None
+SLM-002688,True,True,True,False,True,True,True,False,None
+SLM-002693,True,True,True,False,True,True,True,False,None
+SLM-002700,True,True,True,False,True,True,True,False,None
+SLM-002703,True,True,True,False,True,True,True,False,None
+SLM-002705,True,True,True,True,True,True,True,True,None
+SLM-002706,True,True,True,False,False,True,True,False,None
+SLM-002712,True,True,True,False,True,True,True,False,None
+SLM-002713,True,True,True,True,True,True,True,True,None
+SLM-002716,True,True,True,False,True,True,True,False,None
+SLM-002748,True,True,True,True,True,True,True,True,None
+SLM-002756,True,True,True,False,True,True,True,False,None
+SLM-002768,True,True,True,False,True,True,True,False,None
+SLM-002771,True,True,True,False,True,True,True,False,None
+SLM-002772,True,True,True,False,True,True,True,False,None
+SLM-002775,True,True,True,True,True,True,True,True,None
+SLM-002781,True,True,True,False,True,True,True,False,None
+SLM-002787,True,True,True,True,True,True,True,True,None
+SLM-002788,True,True,True,False,True,True,True,False,None
+SLM-002790,True,True,True,False,True,True,True,False,None
+SLM-002794,True,True,True,True,True,True,True,True,None
+SLM-002795,True,True,True,False,True,True,True,False,None
+SLM-002804,True,True,True,False,True,True,True,False,None
+SLM-002810,True,True,True,True,True,True,True,True,None
+SLM-002813,True,True,True,False,False,True,True,False,None
+SLM-002823,True,True,True,False,True,True,True,False,None
+SLM-002830,True,True,True,True,True,True,True,True,None
+SLM-002834,True,True,True,False,True,True,True,False,None
+SLM-002838,True,True,True,True,True,True,True,True,None
+SLM-002844,True,True,True,False,True,True,True,False,None
+SLM-002845,True,True,True,False,True,True,True,False,None
+SLM-002847,True,True,True,False,True,True,True,False,None
+SLM-002848,True,True,True,False,True,True,True,False,None
+SLM-002855,True,True,True,True,True,True,True,True,None
+SLM-002858,True,True,True,False,True,True,True,False,None
+SLM-002861,True,True,True,False,True,True,True,False,None
+SLM-002866,True,True,True,False,True,True,True,False,None
+SLM-002867,True,True,True,True,True,True,True,True,None
+SLM-002871,True,True,True,True,True,True,True,True,None
+SLM-002881,True,True,True,False,True,True,True,False,None
+SLM-002889,True,True,True,True,True,True,True,True,None
+SLM-002893,True,True,True,False,True,True,True,False,None
+SLM-002897,True,True,True,False,True,True,True,False,None
+SLM-002907,True,True,True,False,True,True,True,False,None
+SLM-002910,True,True,True,False,True,True,True,False,None
+SLM-002917,True,True,True,False,True,True,True,False,None
+SLM-002922,True,True,True,True,True,True,True,True,None
+SLM-002925,True,True,True,False,True,True,True,False,None
+SLM-002928,True,True,True,False,True,True,True,False,None
+SLM-002933,True,True,True,False,True,True,True,False,None
+SLM-002948,True,True,True,False,True,True,True,False,None
+SLM-002949,True,True,True,False,True,True,True,False,None
+SLM-002952,True,True,True,False,True,True,True,False,None
+SLM-002958,True,True,True,False,True,True,True,False,None
+SLM-002959,True,True,True,False,True,True,True,False,None
+SLM-002968,True,True,True,True,True,True,True,True,None
+SLM-002973,True,True,True,False,True,True,True,False,None
+SLM-002976,True,True,True,False,True,True,True,False,None
+SLM-002977,True,True,True,False,True,True,True,False,None
+SLM-002978,True,True,True,False,True,True,True,False,None
+SLM-002981,True,True,True,False,True,True,True,False,None
+SLM-002985,True,True,True,False,True,True,True,False,None
+SLM-002986,True,True,True,False,True,True,True,False,None
+SLM-002988,True,True,True,False,True,True,True,False,None
+SLM-002992,True,True,True,False,True,True,True,False,None
+SLM-002995,True,True,True,False,True,True,True,False,None
+SLM-002998,True,True,True,False,True,True,True,False,None
+SLM-003007,True,True,True,False,True,True,True,False,None
+SLM-003008,True,True,True,True,True,True,True,True,None
+SLM-003010,True,True,True,False,True,True,True,False,None
+SLM-003016,True,True,True,False,True,True,True,False,None
+SLM-003028,True,True,True,False,True,True,True,False,None
+SLM-003030,True,True,True,False,True,True,True,False,None
+SLM-003035,True,True,True,True,True,True,True,True,None
+SLM-003038,True,True,True,False,True,True,True,False,None
+SLM-003047,True,True,True,False,True,True,True,False,None
+SLM-003053,True,True,True,False,True,True,True,False,None
+SLM-003057,True,True,True,False,True,True,True,False,None
+SLM-003063,True,True,True,True,True,True,True,True,None
+SLM-003070,True,True,True,False,True,True,True,False,None
+SLM-003072,True,True,True,True,True,True,True,True,None
+SLM-003077,True,True,True,False,True,True,True,False,None
+SLM-003079,True,True,True,True,True,True,True,True,None
+SLM-003082,True,True,True,True,True,True,True,True,None
+SLM-003085,True,True,True,False,True,True,True,False,None
+SLM-003095,True,True,True,False,True,True,True,False,None
+SLM-003104,True,True,True,True,True,True,True,True,None
+SLM-003115,True,True,True,True,True,True,True,True,None
+SLM-003117,True,True,True,True,True,True,True,True,None
+SLM-003134,True,True,True,False,True,True,True,False,None
+SLM-003157,True,True,True,False,True,True,True,False,None
+SLM-003168,True,True,True,False,True,True,True,False,None
+SLM-003179,True,True,True,False,True,True,True,False,None
+SLM-003180,True,True,True,True,True,True,True,True,None
+SLM-003187,True,True,True,False,True,True,True,False,None
+SLM-003188,True,True,True,False,True,True,True,False,None
+SLM-003198,True,True,True,False,True,True,True,False,None
