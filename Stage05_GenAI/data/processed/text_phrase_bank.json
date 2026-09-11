@@ -1,0 +1,350 @@
+{
+  "source": "Stage03_NLP/data/processed/Dispatcher_Log_Master_60000_Processed.csv",
+  "rows_sampled": 20000,
+  "rows_parsed": 20000,
+  "template_parse_rate": 1.0,
+  "hazards": {
+    "Flood": {
+      "leads": {
+        "Flooding reported": 7008,
+        "Waterlogging reported": 3599
+      },
+      "locations": {
+        "railway crossing": 747,
+        "main bridge": 746,
+        "village school": 740,
+        "industrial area": 739,
+        "old town area": 732,
+        "river bank": 732,
+        "riverside settlement": 710,
+        "residential colony": 704,
+        "government hospital": 701,
+        "local market": 699,
+        "bus stand": 694,
+        "low-lying area": 671,
+        "highway junction": 666,
+        "national highway": 664,
+        "hilly terrain": 662
+      },
+      "resources": {
+        "water pump": 3213,
+        "relief supplies": 1916,
+        "NDRF flood rescue team": 1876,
+        "rescue boat": 1859,
+        "life jackets": 1812,
+        "road clearance team": 1203,
+        "sandbags": 1178,
+        "drainage team": 1174
+      },
+      "requests": {
+        "Response team requested:  {resources}.": 3624,
+        "Dispatch requested for {resources}.": 3505,
+        "Please dispatch {resources}.": 3478
+      }
+    },
+    "Medical Emergency": {
+      "leads": {
+        "Medical emergency reported": 1947
+      },
+      "locations": {
+        "national highway": 154,
+        "government hospital": 151,
+        "railway crossing": 145,
+        "old town area": 136,
+        "main bridge": 135,
+        "village school": 132,
+        "industrial area": 131,
+        "highway junction": 128,
+        "residential colony": 127,
+        "river bank": 127,
+        "low-lying area": 126,
+        "bus stand": 120,
+        "local market": 116,
+        "hilly terrain": 116,
+        "riverside settlement": 103
+      },
+      "resources": {
+        "emergency medical team": 681,
+        "ambulance": 641,
+        "paramedic team": 634,
+        "medical first-aid kit": 624
+      },
+      "requests": {
+        "Please dispatch {resources}.": 670,
+        "Dispatch requested for {resources}.": 645,
+        "Response team requested:  {resources}.": 632
+      }
+    },
+    "Rescue Emergency": {
+      "leads": {
+        "Rescue operation required": 5052
+      },
+      "locations": {
+        "bus stand": 369,
+        "hilly terrain": 357,
+        "riverside settlement": 351,
+        "river bank": 341,
+        "old town area": 339,
+        "residential colony": 336,
+        "industrial area": 336,
+        "highway junction": 336,
+        "railway crossing": 336,
+        "national highway": 332,
+        "low-lying area": 331,
+        "village school": 330,
+        "main bridge": 325,
+        "local market": 320,
+        "government hospital": 313
+      },
+      "resources": {
+        "NDRF rescue team": 1725,
+        "rescue rope and ladder": 1710,
+        "fire and rescue unit": 1675,
+        "ambulance": 1674
+      },
+      "requests": {
+        "Dispatch requested for {resources}.": 1719,
+        "Please dispatch {resources}.": 1676,
+        "Response team requested:  {resources}.": 1657
+      }
+    },
+    "Road Blockage": {
+      "leads": {
+        "Road blockage reported": 2394
+      },
+      "locations": {
+        "industrial area": 186,
+        "local market": 169,
+        "village school": 169,
+        "residential colony": 168,
+        "riverside settlement": 166,
+        "main bridge": 160,
+        "government hospital": 159,
+        "bus stand": 158,
+        "national highway": 155,
+        "railway crossing": 154,
+        "hilly terrain": 154,
+        "old town area": 153,
+        "highway junction": 153,
+        "river bank": 145,
+        "low-lying area": 145
+      },
+      "resources": {
+        "traffic police team": 826,
+        "tow truck": 799,
+        "road clearance crew": 782,
+        "earthmover (JCB)": 769
+      },
+      "requests": {
+        "Response team requested:  {resources}.": 820,
+        "Please dispatch {resources}.": 806,
+        "Dispatch requested for {resources}.": 768
+      }
+    }
+  },
+  "statuses": {
+    "Situation update": 6731,
+    "Emergency report received": 6655,
+    "Incident reported": 6614
+  },
+  "preps": {
+    "near the": 8098,
+    "in the": 5252,
+    "at the": 2665,
+    "close to the": 1345,
+    "in a": 1335,
+    "on the": 1305
+  },
+  "people_nouns": {
+    "persons": 5030,
+    "people": 5020,
+    "residents": 5011,
+    "individuals": 4939
+  },
+  "injury_by_severity": {
+    "LOW": {
+      "no injuries reported": 851,
+      "minor injuries reported": 593,
+      "situation being monitored": 554,
+      "no further details available": 341,
+      "some injuries reported": 281,
+      "residents moved to safer ground": 132,
+      "medical assistance requested": 79,
+      "evacuation assistance requested": 75,
+      "multiple injuries reported": 74,
+      "casualties reported": 30
+    },
+    "HIGH": {
+      "some injuries reported": 1452,
+      "multiple injuries reported": 1072,
+      "minor injuries reported": 953,
+      "residents moved to safer ground": 868,
+      "evacuation assistance requested": 841,
+      "medical assistance requested": 830,
+      "situation being monitored": 545,
+      "no further details available": 489,
+      "casualties reported": 474,
+      "no injuries reported": 443
+    },
+    "MEDIUM": {
+      "minor injuries reported": 1299,
+      "some injuries reported": 919,
+      "no injuries reported": 913,
+      "situation being monitored": 798,
+      "no further details available": 517,
+      "medical assistance requested": 420,
+      "residents moved to safer ground": 401,
+      "multiple injuries reported": 349,
+      "evacuation assistance requested": 320,
+      "casualties reported": 106
+    },
+    "CRITICAL": {
+      "multiple injuries reported": 549,
+      "evacuation assistance requested": 479,
+      "casualties reported": 404,
+      "some injuries reported": 377,
+      "medical assistance requested": 376,
+      "residents moved to safer ground": 345,
+      "minor injuries reported": 176,
+      "no further details available": 110,
+      "situation being monitored": 85,
+      "no injuries reported": 80
+    }
+  },
+  "headcount_by_severity": {
+    "CRITICAL": {
+      "mean": 64.9251,
+      "std": 32.1776,
+      "min": 10.0,
+      "max": 120.0,
+      "q01": 11.0,
+      "q05": 15.0,
+      "q10": 20.0,
+      "q25": 37.0,
+      "q50": 65.0,
+      "q75": 93.0,
+      "q90": 110.0,
+      "q95": 115.0,
+      "q99": 119.0
+    },
+    "HIGH": {
+      "mean": 22.4689,
+      "std": 10.3878,
+      "min": 5.0,
+      "max": 40.0,
+      "q01": 5.0,
+      "q05": 6.0,
+      "q10": 8.0,
+      "q25": 13.0,
+      "q50": 22.0,
+      "q75": 32.0,
+      "q90": 37.0,
+      "q95": 39.0,
+      "q99": 40.0
+    },
+    "LOW": {
+      "mean": 3.511,
+      "std": 1.7071,
+      "min": 1.0,
+      "max": 6.0,
+      "q01": 1.0,
+      "q05": 1.0,
+      "q10": 1.0,
+      "q25": 2.0,
+      "q50": 4.0,
+      "q75": 5.0,
+      "q90": 6.0,
+      "q95": 6.0,
+      "q99": 6.0
+    },
+    "MEDIUM": {
+      "mean": 8.4616,
+      "std": 4.0478,
+      "min": 2.0,
+      "max": 15.0,
+      "q01": 2.0,
+      "q05": 2.0,
+      "q10": 3.0,
+      "q25": 5.0,
+      "q50": 8.0,
+      "q75": 12.0,
+      "q90": 14.0,
+      "q95": 15.0,
+      "q99": 15.0
+    }
+  },
+  "hazard_severity_counts": {
+    "Flood": {
+      "CRITICAL": 4801,
+      "HIGH": 12675,
+      "LOW": 4780,
+      "MEDIUM": 9571
+    },
+    "Medical Emergency": {
+      "CRITICAL": 887,
+      "HIGH": 2382,
+      "LOW": 889,
+      "MEDIUM": 1801
+    },
+    "Rescue Emergency": {
+      "CRITICAL": 2257,
+      "HIGH": 6015,
+      "LOW": 2248,
+      "MEDIUM": 4505
+    },
+    "Road Blockage": {
+      "CRITICAL": 1089,
+      "HIGH": 2867,
+      "LOW": 1060,
+      "MEDIUM": 2173
+    }
+  },
+  "social_templates": {
+    "Cyclone": [
+      "Heavy winds and rain affecting {district}. Please avoid travelling and stay indoors.",
+      "Strong cyclone conditions reported in {district}. People are requesting emergency shelter.",
+      "Several families in {district} need food, water and shelter.",
+      "Cyclone impact reported around {district}. Emergency teams are needed."
+    ],
+    "Earthquake": [
+      "Strong tremors reported in {district}. Residents are requesting emergency assistance.",
+      "Emergency support requested from {district} after earthquake tremors.",
+      "Buildings have been affected by an earthquake in {district}. Rescue teams are needed.",
+      "People in {district} are reporting earthquake damage. Medical assistance may be required."
+    ],
+    "Flood": [
+      "{district} is severely flooded after continuous rainfall. People are trapped and need immediate rescue.",
+      "Flood situation is getting worse in {district}. Families need drinking water and food.",
+      "Residents near {district} are requesting emergency assistance. Roads are under water.",
+      "Water has entered houses in {district}. Please send rescue teams and boats."
+    ],
+    "Forest Fire": [
+      "Fire is spreading near forest areas around {district}. Please send fire and rescue teams.",
+      "Forest fire reported near {district}. Fire and rescue teams are urgently needed.",
+      "Wildfire situation reported around {district}. Emergency response is required.",
+      "Smoke and fire spreading near {district}. Residents may need evacuation support."
+    ],
+    "Heavy Rainfall": [
+      "Several areas around {district} are affected by heavy rain.",
+      "Rainfall situation is worsening in {district}. Please send rescue support if required.",
+      "Continuous heavy rainfall reported in {district}. Roads are becoming difficult to use.",
+      "Heavy rain is causing waterlogging in {district}. Residents need emergency assistance."
+    ],
+    "Landslide": [
+      "Debris is blocking the road in {district}. People are requesting immediate assistance.",
+      "Landslide reported near {district}. Road access is blocked and people need help.",
+      "A landslide has affected roads near {district}. Emergency rescue support is required.",
+      "Residents near {district} are reporting a major landslide. Please send emergency teams."
+    ],
+    "Lightning": [
+      "Lightning activity reported around {district}. Residents are advised to stay indoors.",
+      "Severe lightning reported in {district}. Emergency assistance may be required.",
+      "Lightning incident reported near {district}. Please avoid open areas."
+    ],
+    "Tsunami": [
+      "Tsunami warning situation reported near {district}. Residents should move to safer areas.",
+      "Tsunami-related emergency reported near {district}. Evacuation assistance may be required.",
+      "Coastal residents near {district} are requesting emergency support."
+    ]
+  }
+}

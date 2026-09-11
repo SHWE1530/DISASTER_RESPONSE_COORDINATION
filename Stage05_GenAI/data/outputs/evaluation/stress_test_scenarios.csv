@@ -1,0 +1,21 @@
+scenario_id,name,archetype,passed,ranking_tau,zones,zones_passed
+S01,Baseline river overflow,baseline_river_overflow,True,1.0,3,3
+S02,The 2 AM mission,night_flash_flood,True,0.816,3,3
+S03,Cyclonic coastal landfall,cyclonic_rain,True,0.913,4,4
+S04,Urban cloudburst waterlogging,urban_waterlogging,True,1.0,2,2
+S05,Negated flood rumour,negation_false_alarm,False,,2,1
+S06,Silent rise while residents sleep,silent_rise,True,,2,2
+S07,Telemetry dropout,sensor_dropout,True,0.333,3,3
+S08,Gauge logger malfunction,gauge_malfunction,True,1.0,2,2
+S09,People versus sensors,text_sensor_conflict,False,1.0,2,1
+S10,Camera versus gauge,visual_sensor_conflict,True,1.0,2,2
+S11,Receding but still flooded,receding_flood,True,1.0,2,2
+S12,Bridge collapse isolation,bridge_collapse,True,1.0,2,2
+S13,Hospital ground floor flooding,mass_casualty,True,1.0,2,2
+S14,Night dam spillway release,dam_release,True,0.0,3,3
+S15,Five-state monsoon cascade,multi_state_ranking,True,0.738,5,5
+S16,Out-of-season cloudburst,dry_season_anomaly,True,1.0,2,2
+S17,Garbled panic messages,comms_noise,True,1.0,3,3
+S18,All quiet (do not cry wolf),low_class_cluster,False,,3,1
+S19,"Four hazards, one district",multi_hazard_zone,True,1.0,2,2
+S20,"Slow onset, pre-position now",slow_onset,True,1.0,2,2

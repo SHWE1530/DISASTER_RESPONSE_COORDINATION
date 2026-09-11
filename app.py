@@ -67,6 +67,9 @@ stage03_engine, stage03_status, stage03_error = load_stage(
 stage04_engine, stage04_status, stage04_error = load_stage(
     "Stage04", BASE_DIR / "Stage04_SLM" / "05_integration_engineer.py", "slm_integration_engine"
 )
+stage05_engine, stage05_status, stage05_error = load_stage(
+    "Stage05", BASE_DIR / "Stage05_GenAI" / "05_integration_engineer.py", "genai_integration_engine"
+)
 
 # Cross-stage fusion. Degrades gracefully: it uses whichever stages loaded.
 try:
@@ -86,6 +89,14 @@ except Exception as exc:
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = BASE_DIR / "Stage02_DL" / "data" / "raw"
 app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_BYTES
+
+if stage05_engine is not None:
+    try:
+        stage05_module = load_module("stage05_api", BASE_DIR / "Stage05_GenAI" / "05_integration_engineer.py")
+        app.register_blueprint(stage05_module.create_blueprint(stage05_engine))
+        logger.info("Registered Stage 05 blueprint under /genai")
+    except Exception as exc:
+        logger.exception("Failed to register Stage 05 blueprint")
 
 
 def fail(message, status_code=400, exc=None):
@@ -183,6 +194,7 @@ HTML_TEMPLATE = """
         <a class="nav-item" data-target="view-dl"><div class="nav-icon" style="color: var(--accent-blue)">⚡</div> DL (Stage 02)</a>
         <a class="nav-item" data-target="view-nlp"><div class="nav-icon" style="color: var(--accent-purple)">💬</div> NLP (Stage 03)</a>
         <a class="nav-item" data-target="view-slm"><div class="nav-icon" style="color: #F97316">📋</div> SLM Briefing (Stage 04)</a>
+        <a class="nav-item" data-target="view-genai"><div class="nav-icon" style="color: #EC4899">🧪</div> GenAI Stress Test (Stage 05)</a>
     </div>
 
     <!-- Main Content -->
@@ -210,7 +222,8 @@ HTML_TEMPLATE = """
                 <p><strong>Stage 02 API (DL):</strong> {{ stage02 }}</p>
                 <p><strong>Stage 03 API (NLP):</strong> {{ stage03 }}</p>
                 <p><strong>Stage 04 API (SLM):</strong> {{ stage04 }}</p>
-                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, NLP emergency text analysis, and the SLM tactical briefing generator.</p>
+                <p><strong>Stage 05 API (GenAI):</strong> {{ stage05 }}</p>
+                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, NLP emergency text analysis, SLM tactical briefing generator, and the Stage 05 GenAI stress-testing dashboard.</p>
             </div>
         </div>
 
@@ -445,6 +458,11 @@ HTML_TEMPLATE = """
             </div>
         </div>
 
+        <!-- VIEW: GENAI STRESS TEST (STAGE 05) -->
+        <div id="view-genai" class="view-section" style="padding: 0; height: calc(100vh - 72px);">
+            <iframe src="/genai" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+
     </div>
 
     <!-- Interactivity Script -->
@@ -452,11 +470,12 @@ HTML_TEMPLATE = """
         // Tab switching logic
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', event => {
+                const targetId = item.getAttribute('data-target');
+                if (!targetId) return;
                 event.preventDefault();
                 document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
                 item.classList.add('active');
                 
-                const targetId = item.getAttribute('data-target');
                 document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
                 
                 const targetView = document.getElementById(targetId);
@@ -816,7 +835,14 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def dashboard():
-    return render_template_string(HTML_TEMPLATE, stage01=stage01_status, stage02=stage02_status, stage03=stage03_status, stage04=stage04_status)
+    return render_template_string(
+        HTML_TEMPLATE,
+        stage01=stage01_status,
+        stage02=stage02_status,
+        stage03=stage03_status,
+        stage04=stage04_status,
+        stage05=stage05_status,
+    )
 
 @app.route('/health')
 def health():
@@ -827,6 +853,7 @@ def health():
         ("stage02_dl", stage02_engine),
         ("stage03_nlp", stage03_engine),
         ("stage04_slm", stage04_engine),
+        ("stage05_genai", stage05_engine),
     ):
         if engine is None:
             report[name] = {"status": "unavailable", "error": "adapter failed to load"}

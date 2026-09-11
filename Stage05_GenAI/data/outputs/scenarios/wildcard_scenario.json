@@ -1,0 +1,501 @@
+{
+  "scenario_id": "W01",
+  "name": "Flash flood + municipal blackout",
+  "archetype": "wildcard_blackout",
+  "prompt": "At 2 AM a flash flood hits an Assam district at the same moment the municipal grid fails. Gauges, street cameras and cell towers go dark; only battery- and generator-backed equipment survives. Four neighbourhoods -- one goes completely silent. Silence must never be read as safety.",
+  "blind_spots": [
+    "BS10",
+    "BS09",
+    "BS11",
+    "BS02",
+    "BS08"
+  ],
+  "start_time": "14-08-2026 02:00",
+  "global_modifiers": [
+    "night",
+    "power_outage"
+  ],
+  "resources": {
+    "ambulances": 1,
+    "rescue_boats": 1,
+    "shelter_beds": 40
+  },
+  "demand": {
+    "total_headcount_reported": 363,
+    "shelter_beds": 40,
+    "shelter_gap": 323
+  },
+  "generator": {
+    "model": "SensorCVAE",
+    "bundle": "data/models/sensor_cvae.pt",
+    "seed": 142
+  },
+  "zones": [
+    {
+      "zone_id": "ZONE-1",
+      "label": "Riverside settlement (battery gauge)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "location": "riverside settlement",
+      "true_severity": "CRITICAL",
+      "hazards": [
+        "Flood",
+        "Rescue Emergency"
+      ],
+      "modifiers": [
+        "battery_backup",
+        "flash_flood"
+      ],
+      "inputs": {
+        "sensors": {
+          "timestamp": "14-08-2026 02:12",
+          "state": "Assam",
+          "district": "Barpeta",
+          "rainfall_mm": 21.697,
+          "river_level_m": 7.564,
+          "river_level_threshold_m": 5.613,
+          "emergency_calls": 16,
+          "road_closures": 3,
+          "bridge_closures": 1,
+          "flood_history_count": 4,
+          "population_affected": 1656,
+          "water_level_change_m": 1.623
+        },
+        "text": "Rescue operation required (Incident reported) in the riverside settlement in Barpeta, Assam. 54 individuals affected, some injuries reported. Please dispatch NDRF rescue team. Power supply is down; street lights and mobile towers are offline.",
+        "image_path": null,
+        "water_levels": [
+          6.043,
+          6.039,
+          6.041,
+          6.059,
+          6.025,
+          6.029,
+          6.058,
+          6.039,
+          6.038,
+          6.057,
+          6.052,
+          6.029,
+          6.028,
+          6.024,
+          6.043,
+          6.042,
+          6.052,
+          6.046,
+          6.047,
+          6.045,
+          6.04,
+          6.065,
+          6.047,
+          6.036,
+          6.049,
+          6.035,
+          6.057,
+          6.036,
+          6.039,
+          6.059,
+          6.034,
+          6.05,
+          6.039,
+          6.045,
+          6.044,
+          6.045,
+          6.031,
+          6.069,
+          6.031,
+          6.02,
+          6.025,
+          6.031,
+          6.037,
+          6.054,
+          6.06,
+          6.083,
+          6.063,
+          6.037,
+          6.05,
+          6.03,
+          6.048,
+          6.037,
+          6.019,
+          6.047,
+          6.053,
+          6.05,
+          6.019,
+          6.054,
+          6.049,
+          6.071,
+          6.023,
+          6.045,
+          6.079,
+          6.196,
+          6.284,
+          6.413,
+          6.591,
+          6.755,
+          6.929,
+          7.148,
+          7.359,
+          7.564
+        ],
+        "incident_log": "INCIDENT LOG | Assam / Barpeta / ZONE-1 | 2 entries\n[14-08-2026 02:14] ERSS-914200 | Waterlogging reported (Situation update) in the riverside settlement in Barpeta, Assam. 92 people affected, multiple injuries reported. Response team requested:  water pump and relief supplies. Power supply is down; street lights and mobile towers are offline.\n[14-08-2026 02:34] ERSS-914201 | Rescue operation required (Incident reported) in the riverside settlement in Barpeta, Assam. 54 individuals affected, some injuries reported. Please dispatch NDRF rescue team. Power supply is down; street lights and mobile towers are offline."
+      },
+      "text_entries": [
+        {
+          "timestamp": "14-08-2026 02:14",
+          "incident_id": "ERSS-914200",
+          "severity": "CRITICAL",
+          "hazard": "Flood",
+          "style": "dispatcher",
+          "headcount": 92,
+          "text": "Waterlogging reported (Situation update) in the riverside settlement in Barpeta, Assam. 92 people affected, multiple injuries reported. Response team requested:  water pump and relief supplies. Power supply is down; street lights and mobile towers are offline."
+        },
+        {
+          "timestamp": "14-08-2026 02:34",
+          "incident_id": "ERSS-914201",
+          "severity": "CRITICAL",
+          "hazard": "Rescue Emergency",
+          "style": "dispatcher",
+          "headcount": 54,
+          "text": "Rescue operation required (Incident reported) in the riverside settlement in Barpeta, Assam. 54 individuals affected, some injuries reported. Please dispatch NDRF rescue team. Power supply is down; street lights and mobile towers are offline."
+        }
+      ],
+      "headcount_reported": 146,
+      "provenance": {
+        "sensor_class": "Severe",
+        "sensor_adjustments": [
+          "rainfall_mm: 13.21 -> 21.70 (flash flood)",
+          "water_level_change_m: 0.44 -> 1.62 (flash flood)",
+          "river_level_m: 7.10 -> 7.56 (flash flood)",
+          "emergency_calls: 33.00 -> 16.50 (phones dying in outage)"
+        ],
+        "beyond_record_fields": [
+          "water_level_change_m"
+        ],
+        "evidence_lost": [
+          "image"
+        ],
+        "evidence_available": {
+          "sensors": true,
+          "text": true,
+          "image": false,
+          "water_history": true
+        },
+        "image_label": null,
+        "water_history_shape": "sharp_rise"
+      },
+      "expected": {
+        "status": "ok",
+        "min_priority": "URGENT",
+        "max_priority": null,
+        "human_review": true,
+        "conflict": null
+      }
+    },
+    {
+      "zone_id": "ZONE-2",
+      "label": "Low-lying colony (grid down)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "location": "low-lying area",
+      "true_severity": "CRITICAL",
+      "hazards": [
+        "Flood",
+        "Rescue Emergency"
+      ],
+      "modifiers": [
+        "flash_flood",
+        "implicit_urgency"
+      ],
+      "inputs": {
+        "sensors": null,
+        "text": "NO ELECTRICITY AND NO LIGHT AT THE LOW-LYING AREA, BARPETA. WE CAN HEAR PAANI BUT CANNOT SEE HOW HIGH IT IS. 85 LOG H",
+        "image_path": null,
+        "water_levels": null,
+        "incident_log": "INCIDENT LOG | Assam / Barpeta / ZONE-2 | 2 entries\n[14-08-2026 02:07] ERSS-914210 | No electricity and no light at the low-lying area, Barpeta. We can hear paani but cannot see h\n[14-08-2026 02:18] ERSS-914211 | NO ELECTRICITY AND NO LIGHT AT THE LOW-LYING AREA, BARPETA. WE CAN HEAR PAANI BUT CANNOT SEE HOW HIGH IT IS. 85 LOG H"
+      },
+      "text_entries": [
+        {
+          "timestamp": "14-08-2026 02:07",
+          "incident_id": "ERSS-914210",
+          "severity": "CRITICAL",
+          "hazard": "Flood",
+          "style": "social",
+          "headcount": 64,
+          "text": "No electricity and no light at the low-lying area, Barpeta. We can hear paani but cannot see h"
+        },
+        {
+          "timestamp": "14-08-2026 02:18",
+          "incident_id": "ERSS-914211",
+          "severity": "CRITICAL",
+          "hazard": "Rescue Emergency",
+          "style": "social",
+          "headcount": 85,
+          "text": "NO ELECTRICITY AND NO LIGHT AT THE LOW-LYING AREA, BARPETA. WE CAN HEAR PAANI BUT CANNOT SEE HOW HIGH IT IS. 85 LOG H"
+        }
+      ],
+      "headcount_reported": 149,
+      "provenance": {
+        "sensor_class": "Severe",
+        "sensor_adjustments": [
+          "rainfall_mm: 36.44 -> 68.82 (flash flood)",
+          "water_level_change_m: 0.03 -> 2.01 (flash flood)",
+          "river_level_m: 6.13 -> 6.69 (flash flood)",
+          "emergency_calls: 37.00 -> 18.50 (phones dying in outage)"
+        ],
+        "beyond_record_fields": [
+          "water_level_change_m"
+        ],
+        "evidence_lost": [
+          "image",
+          "sensors",
+          "water_history"
+        ],
+        "evidence_available": {
+          "sensors": false,
+          "text": true,
+          "image": false,
+          "water_history": false
+        },
+        "image_label": null,
+        "water_history_shape": null
+      },
+      "expected": {
+        "status": "ok",
+        "min_priority": "URGENT",
+        "max_priority": null,
+        "human_review": true,
+        "conflict": null
+      }
+    },
+    {
+      "zone_id": "ZONE-3",
+      "label": "District hospital (generator)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "location": "government hospital",
+      "true_severity": "URGENT",
+      "hazards": [
+        "Medical Emergency",
+        "Flood"
+      ],
+      "modifiers": [
+        "generator_backup",
+        "river_overflow"
+      ],
+      "inputs": {
+        "sensors": {
+          "timestamp": "14-08-2026 02:18",
+          "state": "Assam",
+          "district": "Barpeta",
+          "rainfall_mm": 14.749,
+          "river_level_m": 7.398,
+          "river_level_threshold_m": 6.119,
+          "emergency_calls": 27,
+          "road_closures": 2,
+          "bridge_closures": 0,
+          "flood_history_count": 6,
+          "population_affected": 2789,
+          "water_level_change_m": 1.008
+        },
+        "text": "Waterlogging reported (Incident reported) in the government hospital in Barpeta, Assam. 27 persons affected, no injuries reported. Please dispatch NDRF flood rescue team.",
+        "image_path": "data/raw/imagery/unflooded_178.jpg",
+        "water_levels": [
+          5.543,
+          5.544,
+          5.577,
+          5.618,
+          5.623,
+          5.652,
+          5.694,
+          5.707,
+          5.748,
+          5.784,
+          5.799,
+          5.832,
+          5.829,
+          5.875,
+          5.9,
+          5.92,
+          5.957,
+          5.982,
+          6.012,
+          6.043,
+          6.06,
+          6.081,
+          6.128,
+          6.125,
+          6.146,
+          6.185,
+          6.222,
+          6.254,
+          6.276,
+          6.293,
+          6.32,
+          6.351,
+          6.397,
+          6.39,
+          6.425,
+          6.456,
+          6.491,
+          6.494,
+          6.525,
+          6.554,
+          6.586,
+          6.589,
+          6.655,
+          6.673,
+          6.688,
+          6.731,
+          6.731,
+          6.786,
+          6.782,
+          6.815,
+          6.841,
+          6.881,
+          6.896,
+          6.938,
+          6.968,
+          6.981,
+          6.994,
+          7.022,
+          7.057,
+          7.072,
+          7.095,
+          7.119,
+          7.15,
+          7.195,
+          7.216,
+          7.238,
+          7.29,
+          7.287,
+          7.323,
+          7.342,
+          7.387,
+          7.398
+        ],
+        "incident_log": "INCIDENT LOG | Assam / Barpeta / ZONE-3 | 4 entries\n[14-08-2026 02:12] ERSS-914220 | Medical emergency reported (Incident reported) in the government hospital in Barpeta, Assam. 11 residents affected, no injuries reported. Please dispatch emergency medical team and ambulance.\n[14-08-2026 02:33] ERSS-914221 | Flooding reported (Emergency report received) near the government hospital in Barpeta, Assam. 5 people affected, some injuries reported. Dispatch requested for water pump.\n[14-08-2026 02:47] ERSS-914222 | Medical emergency reported (Incident reported) near the government hospital in Barpeta, Assam. 25 residents affected, multiple injuries reported. Please dispatch paramedic team.\n[14-08-2026 03:03] ERSS-914223 | Waterlogging reported (Incident reported) in the government hospital in Barpeta, Assam. 27 persons affected, no injuries reported. Please dispatch NDRF flood rescue team."
+      },
+      "text_entries": [
+        {
+          "timestamp": "14-08-2026 02:12",
+          "incident_id": "ERSS-914220",
+          "severity": "MEDIUM",
+          "hazard": "Medical Emergency",
+          "style": "dispatcher",
+          "headcount": 11,
+          "text": "Medical emergency reported (Incident reported) in the government hospital in Barpeta, Assam. 11 residents affected, no injuries reported. Please dispatch emergency medical team and ambulance."
+        },
+        {
+          "timestamp": "14-08-2026 02:33",
+          "incident_id": "ERSS-914221",
+          "severity": "MEDIUM",
+          "hazard": "Flood",
+          "style": "dispatcher",
+          "headcount": 5,
+          "text": "Flooding reported (Emergency report received) near the government hospital in Barpeta, Assam. 5 people affected, some injuries reported. Dispatch requested for water pump."
+        },
+        {
+          "timestamp": "14-08-2026 02:47",
+          "incident_id": "ERSS-914222",
+          "severity": "HIGH",
+          "hazard": "Medical Emergency",
+          "style": "dispatcher",
+          "headcount": 25,
+          "text": "Medical emergency reported (Incident reported) near the government hospital in Barpeta, Assam. 25 residents affected, multiple injuries reported. Please dispatch paramedic team."
+        },
+        {
+          "timestamp": "14-08-2026 03:03",
+          "incident_id": "ERSS-914223",
+          "severity": "HIGH",
+          "hazard": "Flood",
+          "style": "dispatcher",
+          "headcount": 27,
+          "text": "Waterlogging reported (Incident reported) in the government hospital in Barpeta, Assam. 27 persons affected, no injuries reported. Please dispatch NDRF flood rescue team."
+        }
+      ],
+      "headcount_reported": 68,
+      "provenance": {
+        "sensor_class": "Severe",
+        "sensor_adjustments": [
+          "river_level_m: 6.83 -> 7.40 (river overflow)",
+          "water_level_change_m: 0.52 -> 1.01 (river overflow)",
+          "emergency_calls: 38.00 -> 26.60 (night: fewer callers awake)"
+        ],
+        "beyond_record_fields": [],
+        "evidence_lost": [],
+        "evidence_available": {
+          "sensors": true,
+          "text": true,
+          "image": true,
+          "water_history": true
+        },
+        "image_label": "unflooded",
+        "water_history_shape": "steady_rise"
+      },
+      "expected": {
+        "status": "ok",
+        "min_priority": "ELEVATED",
+        "max_priority": null,
+        "human_review": true,
+        "conflict": null
+      }
+    },
+    {
+      "zone_id": "ZONE-4",
+      "label": "Char island (no signal)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "location": "riverside settlement",
+      "true_severity": "CRITICAL",
+      "hazards": [
+        "Flood"
+      ],
+      "modifiers": [
+        "flash_flood",
+        "total_blackout"
+      ],
+      "inputs": {
+        "sensors": null,
+        "text": null,
+        "image_path": null,
+        "water_levels": null,
+        "incident_log": null
+      },
+      "text_entries": [],
+      "headcount_reported": 0,
+      "provenance": {
+        "sensor_class": "Severe",
+        "sensor_adjustments": [
+          "rainfall_mm: 30.52 -> 54.51 (flash flood)",
+          "water_level_change_m: 0.34 -> 1.87 (flash flood)",
+          "river_level_m: 6.58 -> 7.25 (flash flood)",
+          "emergency_calls: 34.00 -> 17.00 (phones dying in outage)"
+        ],
+        "beyond_record_fields": [
+          "water_level_change_m"
+        ],
+        "evidence_lost": [
+          "sensors",
+          "text",
+          "image",
+          "water_history"
+        ],
+        "evidence_available": {
+          "sensors": false,
+          "text": false,
+          "image": false,
+          "water_history": false
+        },
+        "image_label": null,
+        "water_history_shape": null
+      },
+      "expected": {
+        "status": "insufficient_evidence",
+        "min_priority": null,
+        "max_priority": null,
+        "human_review": true,
+        "conflict": null
+      }
+    }
+  ]
+}
