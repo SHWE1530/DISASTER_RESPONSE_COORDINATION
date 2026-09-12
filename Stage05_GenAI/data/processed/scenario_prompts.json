@@ -1,0 +1,1376 @@
+{
+  "generated_at": "2026-09-11T11:20:51+00:00",
+  "blind_spot_report": "data/outputs/eda/blind_spot_report.json",
+  "prompts": [
+    {
+      "id": "S01",
+      "name": "Baseline river overflow",
+      "archetype": "baseline_river_overflow",
+      "blind_spots": [
+        "BS08"
+      ],
+      "prompt": "Generate a textbook monsoon river-overflow event across three Bihar districts at staggered severities, with full sensor, text, imagery and gauge evidence, as a sanity baseline the pipeline should handle cleanly.",
+      "state": "Bihar",
+      "start_time": "20-08-2026 14:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 4,
+        "rescue_boats": 3,
+        "shelter_beds": 200
+      },
+      "zones": [
+        {
+          "label": "Riverside ward",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Market ward",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Upland ward",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "name": "The 2 AM mission",
+      "archetype": "night_flash_flood",
+      "blind_spots": [
+        "BS02",
+        "BS08",
+        "BS14"
+      ],
+      "prompt": "It is 2:00 AM. A river gauge spikes and water rises rapidly toward three densely populated neighbourhoods of one Assam district. One ambulance fleet, one 40-bed shelter. Generate the sensor surge, the 72 h gauge trace, and the dispatcher and citizen messages as they would arrive.",
+      "state": "Assam",
+      "same_district": true,
+      "start_time": "14-08-2026 02:00",
+      "global_modifiers": [
+        "night"
+      ],
+      "resources": {
+        "ambulances": 1,
+        "rescue_boats": 1,
+        "shelter_beds": 40
+      },
+      "zones": [
+        {
+          "label": "Riverside settlement",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "flash_flood"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "sharp_rise"
+          },
+          "location": "riverside settlement"
+        },
+        {
+          "label": "Low-lying colony",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "flash_flood",
+            "implicit_urgency"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "social",
+            "image": null,
+            "water_history": "sharp_rise"
+          },
+          "location": "low-lying area"
+        },
+        {
+          "label": "Old town",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood",
+            "Medical Emergency"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          },
+          "location": "old town area"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "name": "Cyclonic coastal landfall",
+      "archetype": "cyclonic_rain",
+      "blind_spots": [
+        "BS02",
+        "BS08"
+      ],
+      "prompt": "A landfalling cyclone drives extreme rain across four Odisha coastal districts; rescue, medical and road-access demands arrive together.",
+      "state": "Odisha",
+      "start_time": "22-10-2026 18:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 3,
+        "rescue_boats": 4,
+        "shelter_beds": 150
+      },
+      "zones": [
+        {
+          "label": "Coastal block",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "cyclonic_rain"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Fishing villages",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Rescue Emergency",
+            "Medical Emergency"
+          ],
+          "modifiers": [
+            "cyclonic_rain"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "mixed",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Highway corridor",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Road Blockage",
+            "Flood"
+          ],
+          "modifiers": [
+            "cyclonic_rain"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Inland town",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "unflooded",
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "name": "Urban cloudburst waterlogging",
+      "archetype": "urban_waterlogging",
+      "blind_spots": [
+        "BS03"
+      ],
+      "prompt": "An intense cloudburst floods city streets in two Maharashtra districts while the river stays well below its danger level.",
+      "state": "Maharashtra",
+      "start_time": "05-07-2026 09:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 3,
+        "rescue_boats": 1,
+        "shelter_beds": 120
+      },
+      "zones": [
+        {
+          "label": "Central wards",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood",
+            "Road Blockage"
+          ],
+          "modifiers": [
+            "urban_waterlogging"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "flat"
+          }
+        },
+        {
+          "label": "Suburban junctions",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Road Blockage"
+          ],
+          "modifiers": [
+            "urban_waterlogging"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "name": "Negated flood rumour",
+      "archetype": "negation_false_alarm",
+      "blind_spots": [
+        "BS13",
+        "BS01"
+      ],
+      "prompt": "Calm conditions in two Kerala districts, but one receives a message that explicitly denies a flood rumour -- full of flood vocabulary, yet negated.",
+      "state": "Kerala",
+      "start_time": "11-09-2026 16:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 1,
+        "shelter_beds": 80
+      },
+      "zones": [
+        {
+          "label": "Backwater ward",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "calm",
+            "negation_text"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "unflooded",
+            "water_history": "flat"
+          },
+          "expect": {
+            "max_priority": "ELEVATED"
+          }
+        },
+        {
+          "label": "Hill ward",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "calm"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          },
+          "expect": {
+            "max_priority": "ELEVATED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "name": "Silent rise while residents sleep",
+      "archetype": "silent_rise",
+      "blind_spots": [
+        "BS04"
+      ],
+      "prompt": "The river crosses its danger level at 3 AM while residents sleep: sensors scream, but almost nobody calls and no messages arrive.",
+      "state": "Uttar Pradesh",
+      "start_time": "03-08-2026 03:00",
+      "global_modifiers": [
+        "night"
+      ],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 2,
+        "shelter_beds": 100
+      },
+      "zones": [
+        {
+          "label": "Floodplain village",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "silent_rise"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": null,
+            "image": null,
+            "water_history": "sharp_rise"
+          }
+        },
+        {
+          "label": "Riverside hamlet",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "silent_rise"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": null,
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "name": "Telemetry dropout",
+      "archetype": "sensor_dropout",
+      "blind_spots": [
+        "BS09"
+      ],
+      "prompt": "Gauge telemetry for two West Bengal districts drops out mid-event; responders must rely on dispatcher and citizen text alone.",
+      "state": "West Bengal",
+      "start_time": "27-07-2026 11:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 3,
+        "rescue_boats": 2,
+        "shelter_beds": 120
+      },
+      "zones": [
+        {
+          "label": "Char lands",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": false,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": null
+          }
+        },
+        {
+          "label": "Canal colony",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "river_overflow",
+            "implicit_urgency"
+          ],
+          "evidence": {
+            "sensors": false,
+            "text": "social",
+            "image": null,
+            "water_history": null
+          }
+        },
+        {
+          "label": "Town centre",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "name": "Gauge logger malfunction",
+      "archetype": "gauge_malfunction",
+      "blind_spots": [
+        "BS09"
+      ],
+      "prompt": "A gauge logger fails and reports an impossible 25 m spike, while an honest neighbouring gauge shows a genuine steady rise.",
+      "state": "Gujarat",
+      "start_time": "16-08-2026 07:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 1,
+        "shelter_beds": 90
+      },
+      "zones": [
+        {
+          "label": "Faulty-gauge reach",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "gauge_malfunction"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "ood_spike"
+          },
+          "expect": {
+            "max_priority": "URGENT"
+          }
+        },
+        {
+          "label": "Downstream reach",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "name": "People versus sensors",
+      "archetype": "text_sensor_conflict",
+      "blind_spots": [
+        "BS11"
+      ],
+      "prompt": "Sensors and people disagree. In one Karnataka district the gauges lag a real flash flood people are already trapped in; in another, a prank message claims mass casualties under calm skies.",
+      "state": "Karnataka",
+      "start_time": "09-08-2026 21:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 1,
+        "shelter_beds": 80
+      },
+      "zones": [
+        {
+          "label": "Lagging-gauge valley",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Rescue Emergency",
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          },
+          "sensor_class": "Low",
+          "expect": {
+            "min_priority": "URGENT",
+            "conflict": true,
+            "human_review": true
+          }
+        },
+        {
+          "label": "Prank-message town",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "calm",
+            "false_alarm_text"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          },
+          "expect": {
+            "conflict": true,
+            "human_review": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "name": "Camera versus gauge",
+      "archetype": "visual_sensor_conflict",
+      "blind_spots": [
+        "BS11",
+        "BS06"
+      ],
+      "prompt": "Camera evidence contradicts sensors in two Tamil Nadu districts during the north-east monsoon: one camera shows a flooded street under a 'moderate' gauge, another gauge reads severe beside a dry street.",
+      "state": "Tamil Nadu",
+      "start_time": "02-12-2026 10:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 3,
+        "rescue_boats": 2,
+        "shelter_beds": 120
+      },
+      "zones": [
+        {
+          "label": "Flooded-camera ward",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "flat"
+          },
+          "sensor_class": "Moderate"
+        },
+        {
+          "label": "Dry-camera ward",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "unflooded",
+            "water_history": "flat"
+          },
+          "sensor_class": "Severe",
+          "text_severity": "MEDIUM",
+          "expect": {
+            "conflict": true,
+            "human_review": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "name": "Receding but still flooded",
+      "archetype": "receding_flood",
+      "blind_spots": [
+        "BS05"
+      ],
+      "prompt": "The river has peaked and is falling, but neighbourhoods remain under water: the falling forecast must not talk the present-tense emergency down.",
+      "state": "Bihar",
+      "start_time": "30-08-2026 15:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 3,
+        "rescue_boats": 3,
+        "shelter_beds": 150
+      },
+      "zones": [
+        {
+          "label": "Inundated colony",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "receding"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "falling"
+          },
+          "expect": {
+            "min_priority": "URGENT"
+          }
+        },
+        {
+          "label": "Drying fringe",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "receding"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "falling"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "name": "Bridge collapse isolation",
+      "archetype": "bridge_collapse",
+      "blind_spots": [
+        "BS10"
+      ],
+      "prompt": "A bridge collapses under flood load, cutting a Karnataka hill district's only access road; casualties need medical evacuation.",
+      "state": "Karnataka",
+      "start_time": "12-07-2026 13:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 1,
+        "shelter_beds": 60
+      },
+      "zones": [
+        {
+          "label": "Cut-off valley",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Road Blockage",
+            "Rescue Emergency",
+            "Medical Emergency"
+          ],
+          "modifiers": [
+            "bridge_collapse",
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Approach road",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Road Blockage"
+          ],
+          "modifiers": [
+            "bridge_collapse"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "name": "Hospital ground floor flooding",
+      "archetype": "mass_casualty",
+      "blind_spots": [
+        "BS15"
+      ],
+      "prompt": "Floodwater enters a district government hospital's ground floor before dawn; hundreds of patients and staff need evacuation.",
+      "state": "Maharashtra",
+      "start_time": "25-07-2026 05:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 4,
+        "rescue_boats": 2,
+        "shelter_beds": 200
+      },
+      "zones": [
+        {
+          "label": "Hospital campus",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Medical Emergency"
+          ],
+          "modifiers": [
+            "river_overflow",
+            "mass_casualty"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "steady_rise"
+          },
+          "location": "government hospital"
+        },
+        {
+          "label": "Clinic district",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Medical Emergency"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "name": "Night dam spillway release",
+      "archetype": "dam_release",
+      "blind_spots": [
+        "BS14",
+        "BS02"
+      ],
+      "prompt": "An upstream dam opens its spillway gates at night; downstream Kerala districts see a step jump in river level within hours.",
+      "state": "Kerala",
+      "start_time": "16-08-2026 01:00",
+      "global_modifiers": [
+        "night"
+      ],
+      "resources": {
+        "ambulances": 3,
+        "rescue_boats": 3,
+        "shelter_beds": 150
+      },
+      "zones": [
+        {
+          "label": "Spillway reach",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "dam_release"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "step_jump"
+          }
+        },
+        {
+          "label": "Island ward",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "dam_release"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "mixed",
+            "image": null,
+            "water_history": "step_jump"
+          }
+        },
+        {
+          "label": "Lower reach",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "name": "Five-state monsoon cascade",
+      "archetype": "multi_state_ranking",
+      "blind_spots": [
+        "BS08"
+      ],
+      "prompt": "A monsoon trough floods five districts in five states at once, each at a different severity: can the system rank them correctly?",
+      "state": null,
+      "start_time": "18-08-2026 12:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 6,
+        "rescue_boats": 6,
+        "shelter_beds": 500
+      },
+      "zones": [
+        {
+          "label": "Brahmaputra plain",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "flooded",
+            "water_history": "steady_rise"
+          },
+          "state": "Assam"
+        },
+        {
+          "label": "Kosi basin",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          },
+          "state": "Bihar"
+        },
+        {
+          "label": "Delta towns",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood",
+            "Road Blockage"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          },
+          "state": "West Bengal"
+        },
+        {
+          "label": "Mahanadi upland",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          },
+          "state": "Odisha"
+        },
+        {
+          "label": "Doab farmland",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "calm"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "unflooded",
+            "water_history": "flat"
+          },
+          "state": "Uttar Pradesh"
+        }
+      ]
+    },
+    {
+      "id": "S16",
+      "name": "Out-of-season cloudburst",
+      "archetype": "dry_season_anomaly",
+      "blind_spots": [
+        "BS06"
+      ],
+      "prompt": "An out-of-season February cloudburst triggers a flash flood where no monsoon is expected.",
+      "state": "Tamil Nadu",
+      "start_time": "18-02-2026 14:00",
+      "global_modifiers": [
+        "dry_season"
+      ],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 1,
+        "shelter_beds": 80
+      },
+      "zones": [
+        {
+          "label": "Cloudburst catchment",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "flash_flood"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "sharp_rise"
+          }
+        },
+        {
+          "label": "Neighbouring taluk",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S17",
+      "name": "Garbled panic messages",
+      "archetype": "comms_noise",
+      "blind_spots": [
+        "BS12"
+      ],
+      "prompt": "Messages arrive garbled: typos, all caps, Hinglish, truncated SMS -- the language of real panic, not of templates.",
+      "state": "Assam",
+      "start_time": "19-08-2026 20:00",
+      "global_modifiers": [
+        "comms_noise"
+      ],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 2,
+        "shelter_beds": 100
+      },
+      "zones": [
+        {
+          "label": "Embankment breach",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "river_overflow",
+            "implicit_urgency"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "social",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Tea-garden lines",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Market town",
+          "true_severity": "ELEVATED",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S18",
+      "name": "All quiet (do not cry wolf)",
+      "archetype": "low_class_cluster",
+      "blind_spots": [
+        "BS01"
+      ],
+      "prompt": "Three genuinely calm Gujarat districts with routine reports -- the rare Low class. A good system does not cry wolf.",
+      "state": "Gujarat",
+      "start_time": "10-03-2026 11:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 1,
+        "shelter_beds": 80
+      },
+      "zones": [
+        {
+          "label": "Coastal ward",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "calm"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": "unflooded",
+            "water_history": "flat"
+          },
+          "expect": {
+            "max_priority": "ELEVATED"
+          }
+        },
+        {
+          "label": "Industrial belt",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Road Blockage"
+          ],
+          "modifiers": [
+            "calm"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          },
+          "expect": {
+            "max_priority": "ELEVATED"
+          }
+        },
+        {
+          "label": "Old city",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Medical Emergency"
+          ],
+          "modifiers": [
+            "calm"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          },
+          "expect": {
+            "max_priority": "ELEVATED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S19",
+      "name": "Four hazards, one district",
+      "archetype": "multi_hazard_zone",
+      "blind_spots": [
+        "BS16"
+      ],
+      "prompt": "One Uttar Pradesh district faces flood, road blockage, medical emergency and rescue at once; reports mix hazards in a single message.",
+      "state": "Uttar Pradesh",
+      "start_time": "28-07-2026 16:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 3,
+        "rescue_boats": 2,
+        "shelter_beds": 120
+      },
+      "zones": [
+        {
+          "label": "Compound-hazard ward",
+          "true_severity": "CRITICAL",
+          "hazards": [
+            "Flood",
+            "Road Blockage",
+            "Medical Emergency",
+            "Rescue Emergency"
+          ],
+          "modifiers": [
+            "river_overflow"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "mixed",
+            "image": "flooded",
+            "water_history": "steady_rise"
+          }
+        },
+        {
+          "label": "Adjacent ward",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood",
+            "Medical Emergency"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "steady_rise"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S20",
+      "name": "Slow onset, pre-position now",
+      "archetype": "slow_onset",
+      "blind_spots": [
+        "BS17"
+      ],
+      "prompt": "Conditions in a West Bengal district are only moderate now, but the river is climbing fast: the right call is to pre-position before it becomes an emergency.",
+      "state": "West Bengal",
+      "start_time": "06-08-2026 10:00",
+      "global_modifiers": [],
+      "resources": {
+        "ambulances": 2,
+        "rescue_boats": 2,
+        "shelter_beds": 100
+      },
+      "zones": [
+        {
+          "label": "Rising-river ward",
+          "true_severity": "URGENT",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "sharp_rise"
+          },
+          "sensor_class": "Moderate",
+          "text_severity": "MEDIUM",
+          "expect": {
+            "min_priority": "URGENT"
+          }
+        },
+        {
+          "label": "Quiet ward",
+          "true_severity": "ROUTINE",
+          "hazards": [
+            "Flood"
+          ],
+          "modifiers": [
+            "calm"
+          ],
+          "evidence": {
+            "sensors": true,
+            "text": "dispatcher",
+            "image": null,
+            "water_history": "flat"
+          }
+        }
+      ]
+    }
+  ],
+  "wildcard": {
+    "id": "W01",
+    "name": "Flash flood + municipal blackout",
+    "archetype": "wildcard_blackout",
+    "blind_spots": [
+      "BS10",
+      "BS09",
+      "BS11",
+      "BS02",
+      "BS08"
+    ],
+    "prompt": "At 2 AM a flash flood hits an Assam district at the same moment the municipal grid fails. Gauges, street cameras and cell towers go dark; only battery- and generator-backed equipment survives. Four neighbourhoods -- one goes completely silent. Silence must never be read as safety.",
+    "state": "Assam",
+    "same_district": true,
+    "start_time": "14-08-2026 02:00",
+    "global_modifiers": [
+      "night",
+      "power_outage"
+    ],
+    "resources": {
+      "ambulances": 1,
+      "rescue_boats": 1,
+      "shelter_beds": 40
+    },
+    "zones": [
+      {
+        "label": "Riverside settlement (battery gauge)",
+        "true_severity": "CRITICAL",
+        "hazards": [
+          "Flood",
+          "Rescue Emergency"
+        ],
+        "modifiers": [
+          "flash_flood",
+          "battery_backup"
+        ],
+        "evidence": {
+          "sensors": true,
+          "text": "dispatcher",
+          "image": "flooded",
+          "water_history": "sharp_rise"
+        },
+        "location": "riverside settlement"
+      },
+      {
+        "label": "Low-lying colony (grid down)",
+        "true_severity": "CRITICAL",
+        "hazards": [
+          "Flood",
+          "Rescue Emergency"
+        ],
+        "modifiers": [
+          "flash_flood",
+          "implicit_urgency"
+        ],
+        "evidence": {
+          "sensors": true,
+          "text": "social",
+          "image": "flooded",
+          "water_history": "sharp_rise"
+        },
+        "location": "low-lying area"
+      },
+      {
+        "label": "District hospital (generator)",
+        "true_severity": "URGENT",
+        "hazards": [
+          "Medical Emergency",
+          "Flood"
+        ],
+        "modifiers": [
+          "river_overflow",
+          "generator_backup"
+        ],
+        "evidence": {
+          "sensors": true,
+          "text": "dispatcher",
+          "image": "unflooded",
+          "water_history": "steady_rise"
+        },
+        "location": "government hospital"
+      },
+      {
+        "label": "Char island (no signal)",
+        "true_severity": "CRITICAL",
+        "hazards": [
+          "Flood"
+        ],
+        "modifiers": [
+          "flash_flood",
+          "total_blackout"
+        ],
+        "evidence": {
+          "sensors": true,
+          "text": "dispatcher",
+          "image": "flooded",
+          "water_history": "sharp_rise"
+        },
+        "location": "riverside settlement"
+      }
+    ]
+  }
+}

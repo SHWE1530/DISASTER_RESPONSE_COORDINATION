@@ -1,0 +1,61 @@
+rain_bin,margin_bin,zone_risk,count,share
+<q25,< -2 m,Low,125,0.0125
+<q25,< -2 m,Moderate,576,0.0576
+<q25,< -2 m,Severe,92,0.0092
+<q25,-2..0 m,Low,2,0.0002
+<q25,-2..0 m,Moderate,279,0.0279
+<q25,-2..0 m,Severe,312,0.0312
+<q25,0..2 m,Low,0,0.0
+<q25,0..2 m,Moderate,17,0.0017
+<q25,0..2 m,Severe,592,0.0592
+<q25,> 2 m,Low,0,0.0
+<q25,> 2 m,Moderate,0,0.0
+<q25,> 2 m,Severe,509,0.0509
+q25-q50,< -2 m,Low,36,0.0036
+q25-q50,< -2 m,Moderate,590,0.059
+q25-q50,< -2 m,Severe,167,0.0167
+q25-q50,-2..0 m,Low,1,0.0001
+q25-q50,-2..0 m,Moderate,209,0.0209
+q25-q50,-2..0 m,Severe,432,0.0432
+q25-q50,0..2 m,Low,0,0.0
+q25-q50,0..2 m,Moderate,7,0.0007
+q25-q50,0..2 m,Severe,603,0.0603
+q25-q50,> 2 m,Low,0,0.0
+q25-q50,> 2 m,Moderate,0,0.0
+q25-q50,> 2 m,Severe,454,0.0454
+q50-q75,< -2 m,Low,15,0.0015
+q50-q75,< -2 m,Moderate,464,0.0464
+q50-q75,< -2 m,Severe,306,0.0306
+q50-q75,-2..0 m,Low,0,0.0
+q50-q75,-2..0 m,Moderate,89,0.0089
+q50-q75,-2..0 m,Severe,526,0.0526
+q50-q75,0..2 m,Low,0,0.0
+q50-q75,0..2 m,Moderate,1,0.0001
+q50-q75,0..2 m,Severe,617,0.0617
+q50-q75,> 2 m,Low,0,0.0
+q50-q75,> 2 m,Moderate,0,0.0
+q50-q75,> 2 m,Severe,479,0.0479
+q75-q95,< -2 m,Low,0,0.0
+q75-q95,< -2 m,Moderate,135,0.0135
+q75-q95,< -2 m,Severe,534,0.0534
+q75-q95,-2..0 m,Low,0,0.0
+q75-q95,-2..0 m,Moderate,10,0.001
+q75-q95,-2..0 m,Severe,508,0.0508
+q75-q95,0..2 m,Low,0,0.0
+q75-q95,0..2 m,Moderate,0,0.0
+q75-q95,0..2 m,Severe,476,0.0476
+q75-q95,> 2 m,Low,0,0.0
+q75-q95,> 2 m,Moderate,0,0.0
+q75-q95,> 2 m,Severe,338,0.0338
+>q95,< -2 m,Low,0,0.0
+>q95,< -2 m,Moderate,0,0.0
+>q95,< -2 m,Severe,171,0.0171
+>q95,-2..0 m,Low,0,0.0
+>q95,-2..0 m,Moderate,0,0.0
+>q95,-2..0 m,Severe,105,0.0105
+>q95,0..2 m,Low,0,0.0
+>q95,0..2 m,Moderate,0,0.0
+>q95,0..2 m,Severe,128,0.0128
+>q95,> 2 m,Low,0,0.0
+>q95,> 2 m,Moderate,0,0.0
+>q95,> 2 m,Severe,95,0.0095

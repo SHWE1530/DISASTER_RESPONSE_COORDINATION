@@ -1,0 +1,25 @@
+image_path,label,water_fraction,source_index,source_file_name,caveat
+data/raw/imagery/flooded_013.jpg,flooded,0.6446,13,anomaly-1-KS_3.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_020.jpg,flooded,0.3815,20,anomaly-1-MO_1.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_021.jpg,flooded,0.1558,21,anomaly-1-MO_10.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_022.jpg,flooded,0.7886,22,anomaly-1-MO_2.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_028.jpg,flooded,0.3777,28,anomaly-1-MO_8.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_038.jpg,flooded,0.1889,38,anomaly-1-NE_8.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_057.jpg,flooded,0.1222,57,anomaly-2-IA_7.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_059.jpg,flooded,0.926,59,anomaly-2-IA_9.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_067.jpg,flooded,0.4216,67,anomaly-2-KS_7.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_080.jpg,flooded,0.9094,80,anomaly-2-NE_1.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_089.jpg,flooded,0.4719,89,anomaly-2-NE_9.png,likely in Stage 02 CNN training pool
+data/raw/imagery/flooded_094.jpg,flooded,0.2656,94,anomaly-2-SD_4.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_157.jpg,unflooded,0.0,157,normal-2-IA_7.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_175.jpg,unflooded,0.0,175,normal-2-MO_5.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_178.jpg,unflooded,0.0,178,normal-2-MO_8.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_214.jpg,unflooded,0.0,214,normal-3-KS_4.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_221.jpg,unflooded,0.0,221,normal-3-MO_10.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_251.jpg,unflooded,0.0,251,normal-4-IA_10.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_304.jpg,unflooded,0.0,304,normal-5-IA_4.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_323.jpg,unflooded,0.0,323,normal-5-MO_3.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_355.jpg,unflooded,0.0,355,normal-6-IA_5.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_360.jpg,unflooded,0.0,360,normal-6-KS_1.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_418.jpg,unflooded,0.0,418,normal-7-KS_8.png,likely in Stage 02 CNN training pool
+data/raw/imagery/unflooded_471.jpg,unflooded,0.0,471,normal-8-MO_10.png,likely in Stage 02 CNN training pool

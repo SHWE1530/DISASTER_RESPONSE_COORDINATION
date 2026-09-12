@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-09-11T10:44:09+00:00",
+  "seed": 42,
+  "inputs": [
+    "Stage01_ML/data/processed/Master_Dataset.csv",
+    "Stage01_ML/data/raw/raw_historical_flood_log.csv",
+    "Stage03_NLP/data/processed/Dispatcher_Log_Master_60000_Processed.csv",
+    "Stage03_NLP/data/processed/Social_Feeds_India_Processed.csv",
+    "Stage02_DL/data/raw/03_RIVER_WATER_LEVEL_DATASET",
+    "Stage02_DL/data/raw/01_SATELLITE_FLOOD_DATASET/dataset"
+  ],
+  "sensor_rows": 10000,
+  "class_counts": {
+    "Severe": 7444,
+    "Moderate": 2377,
+    "Low": 179
+  },
+  "dispatcher_template_parse_rate": 1.0,
+  "gauge_stations": 101,
+  "imagery_scenes": 24
+}

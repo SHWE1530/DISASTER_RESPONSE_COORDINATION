@@ -1,0 +1,36 @@
+{
+  "source": "Stage02_DL/data/raw/03_RIVER_WATER_LEVEL_DATASET",
+  "stations": 101,
+  "hourly_readings": 653120,
+  "abs_change_1h_m": {
+    "q50": 0.0,
+    "q90": 0.024,
+    "q99": 0.397,
+    "q999": 1.8773,
+    "max": 3.0
+  },
+  "rise_6h_m": {
+    "q50": 0.017,
+    "q90": 0.23,
+    "q99": 1.55,
+    "q999": 9.6731,
+    "max": 35.705
+  },
+  "fall_6h_m": {
+    "q50": 0.02,
+    "q90": 0.166,
+    "q99": 1.1662,
+    "q999": 6.6437,
+    "max": 37.241
+  },
+  "range_72h_m": {
+    "q50": 0.019,
+    "q90": 0.919,
+    "q99": 2.71,
+    "q999": 4.22,
+    "max": 5.876
+  },
+  "readings_dropped_as_sentinel_or_outlier": 155173,
+  "max_plausible_change_1h_m": 3.0,
+  "note": "Changes only, per station; station datums differ so absolute levels are not used."
+}

@@ -1,0 +1,195 @@
+{
+  "n_real": 10000,
+  "n_synthetic": 10000,
+  "ks_statistic": {
+    "rainfall_mm": {
+      "overall": 0.056,
+      "per_class": {
+        "Low": 0.1117,
+        "Moderate": 0.0854,
+        "Severe": 0.0498
+      }
+    },
+    "river_level_m": {
+      "overall": 0.0668,
+      "per_class": {
+        "Low": 0.2682,
+        "Moderate": 0.0972,
+        "Severe": 0.0775
+      }
+    },
+    "river_level_threshold_m": {
+      "overall": 0.0962,
+      "per_class": {
+        "Low": 0.1397,
+        "Moderate": 0.0997,
+        "Severe": 0.0951
+      }
+    },
+    "emergency_calls": {
+      "overall": 0.0317,
+      "per_class": {
+        "Low": 0.0894,
+        "Moderate": 0.0509,
+        "Severe": 0.0371
+      }
+    },
+    "road_closures": {
+      "overall": 0.0611,
+      "per_class": {
+        "Low": 0.1397,
+        "Moderate": 0.0808,
+        "Severe": 0.0529
+      }
+    },
+    "bridge_closures": {
+      "overall": 0.0455,
+      "per_class": {
+        "Low": 0.0726,
+        "Moderate": 0.0475,
+        "Severe": 0.0442
+      }
+    },
+    "flood_history_count": {
+      "overall": 0.0517,
+      "per_class": {
+        "Low": 0.067,
+        "Moderate": 0.0425,
+        "Severe": 0.057
+      }
+    },
+    "population_affected": {
+      "overall": 0.0252,
+      "per_class": {
+        "Low": 0.0559,
+        "Moderate": 0.0404,
+        "Severe": 0.0336
+      }
+    },
+    "water_level_change_m": {
+      "overall": 0.0459,
+      "per_class": {
+        "Low": 0.067,
+        "Moderate": 0.0471,
+        "Severe": 0.0477
+      }
+    }
+  },
+  "mean_ks_overall": 0.0533,
+  "moments": {
+    "rainfall_mm": {
+      "real_mean": 39.305,
+      "synthetic_mean": 39.592,
+      "real_std": 24.878,
+      "synthetic_std": 22.777
+    },
+    "river_level_m": {
+      "real_mean": 4.976,
+      "synthetic_mean": 5.077,
+      "real_std": 2.321,
+      "synthetic_std": 2.105
+    },
+    "river_level_threshold_m": {
+      "real_mean": 5.508,
+      "synthetic_mean": 5.536,
+      "real_std": 0.862,
+      "synthetic_std": 0.709
+    },
+    "emergency_calls": {
+      "real_mean": 38.871,
+      "synthetic_mean": 39.203,
+      "real_std": 10.735,
+      "synthetic_std": 10.096
+    },
+    "road_closures": {
+      "real_mean": 1.356,
+      "synthetic_mean": 1.36,
+      "real_std": 1.257,
+      "synthetic_std": 1.111
+    },
+    "bridge_closures": {
+      "real_mean": 0.613,
+      "synthetic_mean": 0.61,
+      "real_std": 0.759,
+      "synthetic_std": 0.675
+    },
+    "flood_history_count": {
+      "real_mean": 3.977,
+      "synthetic_mean": 3.87,
+      "real_std": 1.917,
+      "synthetic_std": 1.663
+    },
+    "population_affected": {
+      "real_mean": 2241.296,
+      "synthetic_mean": 2204.534,
+      "real_std": 878.908,
+      "synthetic_std": 824.508
+    },
+    "water_level_change_m": {
+      "real_mean": 0.35,
+      "synthetic_mean": 0.339,
+      "real_std": 0.452,
+      "synthetic_std": 0.396
+    }
+  },
+  "correlation": {
+    "max_abs_delta": 0.072,
+    "rainfall_calls_real": 0.8239,
+    "rainfall_calls_synthetic": 0.7971,
+    "rainfall_calls_naive_baseline": 0.0882
+  },
+  "c2st": {
+    "cvae": {
+      "auc_mean": 0.7625,
+      "auc_std": 0.0065,
+      "classifier": "xgboost"
+    },
+    "naive_baseline": {
+      "auc_mean": 0.8309,
+      "auc_std": 0.004,
+      "classifier": "xgboost"
+    }
+  },
+  "label_fidelity": {
+    "cvae": {
+      "macro_f1": 0.7843,
+      "recall_by_class": {
+        "Low": 0.5084,
+        "Moderate": 0.8002,
+        "Severe": 0.9844
+      }
+    },
+    "naive_baseline": {
+      "macro_f1": 0.7563,
+      "recall_by_class": {
+        "Low": 0.6816,
+        "Moderate": 0.7766,
+        "Severe": 0.9185
+      }
+    }
+  },
+  "text_fidelity": {
+    "clean": {
+      "n": 160,
+      "hazard_accuracy": 1.0,
+      "urgency_accuracy": 0.8688,
+      "urgency_macro_f1": 0.8698,
+      "headcount_exact": 1.0
+    },
+    "degraded_comms_noise": {
+      "n": 160,
+      "hazard_accuracy": 0.9875,
+      "urgency_accuracy": 0.8688,
+      "urgency_macro_f1": 0.8698,
+      "headcount_exact": 0.8063
+    },
+    "implicit_urgency_recall": 1.0,
+    "implicit_urgency_labels": [
+      "HIGH",
+      "HIGH",
+      "HIGH",
+      "CRITICAL",
+      "HIGH"
+    ]
+  }
+}

@@ -1,0 +1,383 @@
+{
+  "generated_at": "2026-09-11T11:20:51+00:00",
+  "rare_share_threshold": 0.02,
+  "sparse_cell_threshold": 0.005,
+  "summary": {
+    "absent": 11,
+    "rare": 2,
+    "covered": 4
+  },
+  "blind_spots": [
+    {
+      "id": "BS01",
+      "name": "minority_low_class",
+      "kind": "statistical",
+      "status": "rare",
+      "count": 179,
+      "share": 0.0179,
+      "evidence": "Only 179 of 10000 zone rows are Low risk; Stage 01's Low recall is its weakest (0.71). Calm conditions are the least rehearsed."
+    },
+    {
+      "id": "BS02",
+      "name": "beyond_record_rainfall",
+      "kind": "statistical",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "ceiling": 104.0212,
+      "rows_pinned_at_ceiling": 295,
+      "evidence": "No value exceeds the recorded ceiling of 104, and 295 rows (2.95%) sit exactly on it: the upper tail was capped during cleaning, so true extremes are censored. IMD classes >= 204.5 mm/day as 'extremely heavy'; if rainfall_mm is a daily total, the most extreme real events lie wholly outside the record."
+    },
+    {
+      "id": "BS03",
+      "name": "urban_waterlogging",
+      "kind": "statistical",
+      "status": "rare",
+      "count": 171,
+      "share": 0.0171,
+      "evidence": "Top-5% rainfall while the river sits > 2 m below its danger mark: streets flood from rain alone, a pattern a river-gauge-centred model rarely sees."
+    },
+    {
+      "id": "BS04",
+      "name": "silent_rise",
+      "kind": "statistical",
+      "status": "covered",
+      "count": 202,
+      "share": 0.0202,
+      "evidence": "River > 2 m above danger while calls are in the bottom decile -- a night-time rise while residents sleep."
+    },
+    {
+      "id": "BS05",
+      "name": "receding_but_severe",
+      "kind": "statistical",
+      "status": "covered",
+      "count": 735,
+      "share": 0.0735,
+      "evidence": "Severe zones with a clearly falling river: the forecast says 'calming', the present says 'emergency'."
+    },
+    {
+      "id": "BS06",
+      "name": "dry_season_severe",
+      "kind": "statistical",
+      "status": "covered",
+      "count": 5276,
+      "share": 0.5276,
+      "evidence": "Severe events outside June-September. Stage 01 uses an is_monsoon feature, so an out-of-season flood tests whether that prior over-rides the sensors."
+    },
+    {
+      "id": "BS07",
+      "name": "night_onset",
+      "kind": "statistical",
+      "status": "covered",
+      "count": 2502,
+      "share": 0.2502,
+      "evidence": "Events recorded between 00:00 and 05:59 (the mission's 2 AM window)."
+    },
+    {
+      "id": "BS08",
+      "name": "multi_zone_simultaneity",
+      "kind": "statistical",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "Of 10,000 distinct timestamps, 0 have >= 3 Severe zones at once (max concurrent: 1). Every row is one zone in isolation; competing zones are not represented."
+    },
+    {
+      "id": "BS09",
+      "name": "missing_or_faulty_telemetry",
+      "kind": "structural",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "The labelled sensor data has 0 missing values: gauges never go offline, freeze, or report impossible readings in the record."
+    },
+    {
+      "id": "BS10",
+      "name": "infrastructure_failure",
+      "kind": "structural",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "No field describes power, telecom or bridge integrity as a failing system. A grid outage that blinds cameras and gauges is unrepresentable."
+    },
+    {
+      "id": "BS11",
+      "name": "cross_modal_conflict",
+      "kind": "structural",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "No joint dataset links sensors, imagery and text for the same event, so modality disagreement (a calm gauge beside people trapped) has never been exercised."
+    },
+    {
+      "id": "BS12",
+      "name": "noisy_or_code_mixed_text",
+      "kind": "statistical",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "100.0% of sampled dispatcher messages fit one fixed template. Typos, all-caps panic, Hinglish and truncated SMS are absent."
+    },
+    {
+      "id": "BS13",
+      "name": "negated_hazard_language",
+      "kind": "statistical",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "Messages that mention a hazard only to deny it ('no flooding here'). Stage 03 has no negation handling (documented limitation)."
+    },
+    {
+      "id": "BS14",
+      "name": "beyond_record_water_change",
+      "kind": "statistical",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "ceiling": 1.575,
+      "rows_pinned_at_ceiling": 30,
+      "evidence": "No value exceeds the recorded ceiling of 1.575, and 30 rows (0.30%) sit exactly on it: the upper tail was capped during cleaning, so true extremes are censored. Real CWC gauges (Stage 02 raw) show 6 h rises of 1.55 m at the 99th percentile; dam-release step changes sit beyond the labelled record."
+    },
+    {
+      "id": "BS15",
+      "name": "mass_casualty_headcount",
+      "kind": "statistical",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "Largest dispatcher headcount is 120; hospital-scale evacuations (hundreds of people) never appear."
+    },
+    {
+      "id": "BS16",
+      "name": "multi_hazard_message",
+      "kind": "statistical",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "Every one of 60,000 dispatcher messages carries exactly one hazard label; compound flood + road + medical reports are absent."
+    },
+    {
+      "id": "BS17",
+      "name": "forward_looking_labels",
+      "kind": "structural",
+      "status": "absent",
+      "count": 0,
+      "share": 0.0,
+      "evidence": "zone_risk labels describe the present. Nothing marks a zone that is Moderate now but will be Severe in 6 h, so pre-positioning decisions are never supervised."
+    }
+  ],
+  "sparse_cells": [
+    {
+      "rain_bin": "<q25",
+      "margin_bin": "-2..0 m",
+      "zone_risk": "Low",
+      "count": 2
+    },
+    {
+      "rain_bin": "<q25",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "<q25",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Moderate",
+      "count": 17
+    },
+    {
+      "rain_bin": "<q25",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "<q25",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": "q25-q50",
+      "margin_bin": "< -2 m",
+      "zone_risk": "Low",
+      "count": 36
+    },
+    {
+      "rain_bin": "q25-q50",
+      "margin_bin": "-2..0 m",
+      "zone_risk": "Low",
+      "count": 1
+    },
+    {
+      "rain_bin": "q25-q50",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q25-q50",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Moderate",
+      "count": 7
+    },
+    {
+      "rain_bin": "q25-q50",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q25-q50",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": "q50-q75",
+      "margin_bin": "< -2 m",
+      "zone_risk": "Low",
+      "count": 15
+    },
+    {
+      "rain_bin": "q50-q75",
+      "margin_bin": "-2..0 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q50-q75",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q50-q75",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Moderate",
+      "count": 1
+    },
+    {
+      "rain_bin": "q50-q75",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q50-q75",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": "q75-q95",
+      "margin_bin": "< -2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q75-q95",
+      "margin_bin": "-2..0 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q75-q95",
+      "margin_bin": "-2..0 m",
+      "zone_risk": "Moderate",
+      "count": 10
+    },
+    {
+      "rain_bin": "q75-q95",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q75-q95",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": "q75-q95",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": "q75-q95",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "< -2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "< -2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "-2..0 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "-2..0 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "0..2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Low",
+      "count": 0
+    },
+    {
+      "rain_bin": ">q95",
+      "margin_bin": "> 2 m",
+      "zone_risk": "Moderate",
+      "count": 0
+    }
+  ],
+  "uncovered_blind_spots": [],
+  "prompts_per_blind_spot": {
+    "BS01": 2,
+    "BS02": 4,
+    "BS03": 1,
+    "BS04": 1,
+    "BS05": 1,
+    "BS06": 2,
+    "BS07": 0,
+    "BS08": 5,
+    "BS09": 3,
+    "BS10": 2,
+    "BS11": 3,
+    "BS12": 1,
+    "BS13": 1,
+    "BS14": 2,
+    "BS15": 1,
+    "BS16": 1,
+    "BS17": 1
+  }
+}
