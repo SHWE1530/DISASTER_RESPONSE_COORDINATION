@@ -1,0 +1,282 @@
+{
+  "realism_score": {
+    "mean": 0.9843,
+    "min": 0.65,
+    "zones_scored": 51,
+    "zones_unscored": 4,
+    "fully_plausible_zones": 48,
+    "fully_plausible_rate": 0.9412,
+    "violations_by_rule": {
+      "severity_unsupported": 2,
+      "change_vs_history": 1
+    }
+  },
+  "overconfidence": {
+    "zones": 2,
+    "rate": 0.0392,
+    "exempt_by_design": 3,
+    "exempt_detail": [
+      {
+        "scenario_id": "S09",
+        "zone_id": "ZONE-1",
+        "label": "Lagging-gauge valley",
+        "true_severity": "CRITICAL"
+      },
+      {
+        "scenario_id": "S10",
+        "zone_id": "ZONE-1",
+        "label": "Flooded-camera ward",
+        "true_severity": "URGENT"
+      },
+      {
+        "scenario_id": "S11",
+        "zone_id": "ZONE-1",
+        "label": "Inundated colony",
+        "true_severity": "URGENT"
+      }
+    ],
+    "detail": [
+      {
+        "scenario_id": "S03",
+        "zone_id": "ZONE-3",
+        "label": "Highway corridor",
+        "true_severity": "URGENT",
+        "violations": [
+          "severity_unsupported"
+        ]
+      },
+      {
+        "scenario_id": "S20",
+        "zone_id": "ZONE-1",
+        "label": "Rising-river ward",
+        "true_severity": "URGENT",
+        "violations": [
+          "severity_unsupported"
+        ]
+      }
+    ]
+  },
+  "diversity_coverage": {
+    "scenarios": 21,
+    "zones_with_sensors": 51,
+    "distinct_archetypes": 21,
+    "archetypes": [
+      "baseline_river_overflow",
+      "bridge_collapse",
+      "comms_noise",
+      "cyclonic_rain",
+      "dam_release",
+      "dry_season_anomaly",
+      "gauge_malfunction",
+      "low_class_cluster",
+      "mass_casualty",
+      "multi_hazard_zone",
+      "multi_state_ranking",
+      "negation_false_alarm",
+      "night_flash_flood",
+      "receding_flood",
+      "sensor_dropout",
+      "silent_rise",
+      "slow_onset",
+      "text_sensor_conflict",
+      "urban_waterlogging",
+      "visual_sensor_conflict",
+      "wildcard_blackout"
+    ],
+    "distinct_severities": 4,
+    "severities": [
+      "CRITICAL",
+      "ELEVATED",
+      "ROUTINE",
+      "URGENT"
+    ],
+    "distinct_hazards": 4,
+    "hazards": [
+      "Flood",
+      "Medical Emergency",
+      "Rescue Emergency",
+      "Road Blockage"
+    ],
+    "distinct_modifiers": 21,
+    "modifiers": [
+      "battery_backup",
+      "bridge_collapse",
+      "calm",
+      "comms_noise",
+      "cyclonic_rain",
+      "dam_release",
+      "dry_season",
+      "false_alarm_text",
+      "flash_flood",
+      "gauge_malfunction",
+      "generator_backup",
+      "implicit_urgency",
+      "mass_casualty",
+      "negation_text",
+      "night",
+      "power_outage",
+      "receding",
+      "river_overflow",
+      "silent_rise",
+      "total_blackout",
+      "urban_waterlogging"
+    ],
+    "blind_spots_targeted": 16,
+    "blind_spots_rare_or_absent": 13,
+    "blind_spots_covered": 13,
+    "blind_spot_coverage": 1.0,
+    "uncovered_blind_spots": [],
+    "sensor_grid_cells_occupied": 16,
+    "sensor_grid_cells_total": 16,
+    "sensor_grid_coverage": 1.0
+  },
+  "per_scenario": [
+    {
+      "scenario_id": "S01",
+      "name": "Baseline river overflow",
+      "realism_score": 1.0,
+      "zones_scored": 3,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S02",
+      "name": "The 2 AM mission",
+      "realism_score": 1.0,
+      "zones_scored": 3,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S03",
+      "name": "Cyclonic coastal landfall",
+      "realism_score": 0.9125,
+      "zones_scored": 4,
+      "overconfident_zones": 1
+    },
+    {
+      "scenario_id": "S04",
+      "name": "Urban cloudburst waterlogging",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S05",
+      "name": "Negated flood rumour",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S06",
+      "name": "Silent rise while residents sleep",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S07",
+      "name": "Telemetry dropout",
+      "realism_score": 1.0,
+      "zones_scored": 1,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S08",
+      "name": "Gauge logger malfunction",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S09",
+      "name": "People versus sensors",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S10",
+      "name": "Camera versus gauge",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S11",
+      "name": "Receding but still flooded",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S12",
+      "name": "Bridge collapse isolation",
+      "realism_score": 0.95,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S13",
+      "name": "Hospital ground floor flooding",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S14",
+      "name": "Night dam spillway release",
+      "realism_score": 1.0,
+      "zones_scored": 3,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S15",
+      "name": "Five-state monsoon cascade",
+      "realism_score": 1.0,
+      "zones_scored": 5,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S16",
+      "name": "Out-of-season cloudburst",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S17",
+      "name": "Garbled panic messages",
+      "realism_score": 1.0,
+      "zones_scored": 3,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S18",
+      "name": "All quiet (do not cry wolf)",
+      "realism_score": 1.0,
+      "zones_scored": 3,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S19",
+      "name": "Four hazards, one district",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    },
+    {
+      "scenario_id": "S20",
+      "name": "Slow onset, pre-position now",
+      "realism_score": 0.825,
+      "zones_scored": 2,
+      "overconfident_zones": 1
+    },
+    {
+      "scenario_id": "W01",
+      "name": "Flash flood + municipal blackout",
+      "realism_score": 1.0,
+      "zones_scored": 2,
+      "overconfident_zones": 0
+    }
+  ]
+}

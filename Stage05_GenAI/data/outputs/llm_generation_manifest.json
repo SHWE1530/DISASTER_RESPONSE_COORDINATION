@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-09-12T08:13:30.744932+00:00",
+  "family": "sequence_llm",
+  "model": "unavailable (CVAE fallback)",
+  "techniques": [
+    "autoregressive_llm",
+    "prompt_engineering",
+    "few_shot",
+    "retrieval_augmented",
+    "chain_of_thought",
+    "constrained_decoding",
+    "sampling_temperature"
+  ],
+  "temperature": 0.85,
+  "top_p": 0.92,
+  "few_shot_k": 3,
+  "max_retries": 2,
+  "seed": 42,
+  "scenarios": 2,
+  "summary": {
+    "zones": 7,
+    "llm_generated_zones": 0,
+    "fallback_zones": 6,
+    "fallback_rate": 1.0,
+    "repair_retries": 0,
+    "clamped_fields": 0,
+    "latency_ms": {
+      "p50": null,
+      "p95": null
+    }
+  }
+}

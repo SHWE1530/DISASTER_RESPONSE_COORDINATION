@@ -27,6 +27,7 @@ import argparse
 import importlib.util
 import json
 import logging
+import os
 import threading
 from pathlib import Path
 from typing import Any
@@ -67,6 +68,10 @@ EVAL = _load_module("stage05_evaluation_engineer", BASE_DIR / "04_evaluation_eng
 GENAI = EVAL.GENAI
 
 
+LLM = _load_module("stage05_llm_generator", BASE_DIR / "03b_llm_scenario_generator.py")
+SLM = _load_module("stage05_slm_generator", BASE_DIR / "03c_slm_sequence_generator.py")
+
+
 class GenAIIntegrationEngine:
     """App-facing wrapper around the Stage 05 generator and stress tester.
 
@@ -76,6 +81,10 @@ class GenAIIntegrationEngine:
 
     def __init__(self) -> None:
         self._generator = None
+        self._llm_generator = None
+        self._slm_generator = None
+        self.llm_error: str | None = None
+        self.slm_error: str | None = None
         self._tester = None
         self.stage_status: dict[str, str] = {}
         self.load_error: str | None = None
@@ -92,6 +101,48 @@ class GenAIIntegrationEngine:
                 self.load_error = f"{type(exc).__name__}: {exc}"
                 raise RuntimeError(self.load_error) from exc
         return self._generator
+
+    @property
+    def llm_generator(self):
+        """The LLM path, loaded on first request.
+
+        Qwen2.5-3B takes tens of seconds to load and holds GPU memory, so the
+        dashboard only pays that cost if someone actually asks for an LLM
+        scenario. A load failure is recorded and the caller falls back to the
+        CVAE path rather than losing the request.
+
+        Which backend serves the request is an environment decision, not a code
+        one: STAGE05_LLM_BACKEND=gemini (with GEMINI_API_KEY set) routes the
+        dashboard at the hosted model instead, which is how this runs on a box
+        with no GPU and no room for a 6 GB checkpoint. The default stays local.
+        """
+        if self._llm_generator is None:
+            backend = None
+            kind = os.environ.get("STAGE05_LLM_BACKEND", "qwen").strip().lower()
+            try:
+                backend = LLM.build_backend(
+                    kind if kind in {"qwen", "gemini"} else "qwen",
+                    gemini_model=os.environ.get("STAGE05_GEMINI_MODEL",
+                                                LLM.DEFAULT_GEMINI_MODEL))
+            except Exception as exc:
+                self.llm_error = f"{type(exc).__name__}: {exc}"
+            self._llm_generator = LLM.LLMScenarioGenerator(backend)
+        return self._llm_generator
+
+    @property
+    def slm_generator(self):
+        """The domain SLM path: 3.6M params, loads in well under a second."""
+        if self._slm_generator is None:
+            sampler = None
+            try:
+                if SLM.SLM_PATH.is_file():
+                    sampler = SLM.SLMSampler()
+                else:
+                    self.slm_error = f"{SLM.SLM_PATH.name} not found (run 03c --train)"
+            except Exception as exc:
+                self.slm_error = f"{type(exc).__name__}: {exc}"
+            self._slm_generator = SLM.SLMScenarioGenerator(sampler)
+        return self._slm_generator
 
     def health_check(self) -> dict[str, Any]:
         """Report readiness by generating a real probe scenario."""
@@ -118,6 +169,20 @@ class GenAIIntegrationEngine:
             "status": "healthy",
             "generator_ok": True,
             "cvae_bundle": bundle_label,
+            "generators": {
+                "llm": {"available": LLM.QWEN_BASE_DIR.is_dir(),
+                        "model": "Qwen2.5-3B", "techniques": LLM.TECHNIQUES,
+                        "loaded": self._llm_generator is not None,
+                        "error": self.llm_error},
+                "slm": {"available": SLM.SLM_PATH.is_file(),
+                        "model": "ScenarioSLM (trained on this project's corpus)",
+                        "techniques": SLM.TECHNIQUES,
+                        "techniques_not_claimed": SLM.TECHNIQUES_NOT_CLAIMED,
+                        "loaded": self._slm_generator is not None,
+                        "error": self.slm_error},
+                "cvae": {"available": True, "model": "SensorCVAE",
+                         "role": "fallback for any zone a sequence model cannot produce validly"},
+            },
             "prompts": len(self.list_prompts()),
             "latest_report_at": report.get("generated_at") if report else None,
             "latest_scenario_pass_rate": report["summary"]["scenario_pass_rate"] if report else None,
@@ -127,7 +192,11 @@ class GenAIIntegrationEngine:
     def list_prompts(self) -> list[dict[str, Any]]:
         library = GENAI.load_prompts()
         return [{"id": p["id"], "name": p["name"], "archetype": p["archetype"],
-                 "prompt": p["prompt"], "blind_spots": p["blind_spots"], "zones": len(p["zones"])}
+                 "prompt": p["prompt"], "blind_spots": p["blind_spots"], "zones": len(p["zones"]),
+                 # Seed conditions shown in the dashboard's first panel.
+                 "state": p.get("state"),
+                 "severities": [z.get("true_severity") for z in p["zones"]],
+                 "hazards": sorted({h for z in p["zones"] for h in z.get("hazards", [])})}
                 for p in library["prompts"] + [library["wildcard"]]]
 
     def _prompt_spec(self, prompt_id: str) -> dict[str, Any]:
@@ -138,13 +207,26 @@ class GenAIIntegrationEngine:
         raise ValueError(f"Unknown prompt_id {prompt_id!r}")
 
     def generate(self, prompt_id: str | None = None, spec: dict | None = None,
-                 seed: int = SEED) -> dict[str, Any]:
+                 seed: int = SEED, generator: str = "cvae") -> dict[str, Any]:
+        """Realise one scenario.
+
+        `generator="llm"` is the project's headline path -- sensors and
+        narrative decoded together by Qwen2.5-3B. It costs seconds per zone, so
+        the default stays on the CVAE path for interactive use and for the API
+        contract that existed before.
+        """
         if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed <= MAX_SEED:
             raise ValueError(f"seed must be an integer between 0 and {MAX_SEED}")
+        if generator not in {"cvae", "llm", "slm"}:
+            raise ValueError("generator must be 'cvae', 'llm' or 'slm'")
         if spec is None:
             if not isinstance(prompt_id, str):
                 raise ValueError("Provide either 'prompt_id' or 'spec'")
             spec = self._prompt_spec(prompt_id)
+        if generator == "llm":
+            return self.llm_generator.generate(spec, seed=seed)
+        if generator == "slm":
+            return self.slm_generator.generate(spec, seed=seed)
         return self.generator.generate(spec, seed=seed)
 
     # ---- stress test ---------------------------------------------------------
@@ -213,14 +295,17 @@ def create_blueprint(engine: GenAIIntegrationEngine | None = None):
             logger.exception("Stage 05 request failed: %s", message)
         return jsonify({"error": message}), status_code
 
-    def parse(payload: Any) -> tuple[str | None, dict | None, int]:
+    def parse(payload: Any) -> tuple[str | None, dict | None, int, str]:
         if not isinstance(payload, dict):
             raise ValueError("Request body must be a JSON object")
         seed = payload.get("seed", SEED)
         spec = payload.get("spec")
         if spec is not None and not isinstance(spec, dict):
             raise ValueError("'spec' must be a JSON object")
-        return payload.get("prompt_id"), spec, seed
+        generator = payload.get("generator", "cvae")
+        if generator not in {"cvae", "llm", "slm"}:
+            raise ValueError("'generator' must be 'cvae', 'llm' or 'slm'")
+        return payload.get("prompt_id"), spec, seed, generator
 
     @blueprint.route("/genai")
     def dashboard():
@@ -244,8 +329,9 @@ def create_blueprint(engine: GenAIIntegrationEngine | None = None):
     @blueprint.route("/api/genai/scenario", methods=["POST"])
     def scenario():
         try:
-            prompt_id, spec, seed = parse(request.get_json(silent=True))
-            return jsonify(engine.generate(prompt_id=prompt_id, spec=spec, seed=seed))
+            prompt_id, spec, seed, family = parse(request.get_json(silent=True))
+            return jsonify(engine.generate(prompt_id=prompt_id, spec=spec, seed=seed,
+                                           generator=family))
         except ValueError as exc:
             # Validation messages are written for the caller and safe to show.
             return fail(str(exc), 400)
@@ -255,8 +341,9 @@ def create_blueprint(engine: GenAIIntegrationEngine | None = None):
     @blueprint.route("/api/genai/stress-test", methods=["POST"])
     def stress_test():
         try:
-            prompt_id, spec, seed = parse(request.get_json(silent=True))
-            generated = engine.generate(prompt_id=prompt_id, spec=spec, seed=seed)
+            prompt_id, spec, seed, family = parse(request.get_json(silent=True))
+            generated = engine.generate(prompt_id=prompt_id, spec=spec, seed=seed,
+                                        generator=family)
         except ValueError as exc:
             return fail(str(exc), 400)
         except Exception as exc:
@@ -292,87 +379,197 @@ DASHBOARD_TEMPLATE = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stage 05 Stress Test</title>
+<title>Stage 05 GenAI Scenario Studio</title>
 <style>
-  :root { --bg:#0B1120; --panel:#0F172A; --card:rgba(30,41,59,.7); --line:#1E293B; --text:#F8FAFC;
-          --muted:#94A3B8; --blue:#3B82F6; --green:#10B981; --amber:#F59E0B; --orange:#F97316; --red:#EF4444; }
+  /* Same palette as the main dashboard (app.py). */
+  :root { --bg:#0B1120; --card:rgba(30,41,59,.7); --line:#1E293B; --soft:#0F172A; --text:#F8FAFC; --muted:#94A3B8;
+          --chip:#1E293B; --chip-text:#CBD5E1; --blue:#3B82F6; --blue-soft:rgba(59,130,246,.12); --green:#10B981;
+          --green-soft:rgba(16,185,129,.12); --amber:#F59E0B; --amber-soft:rgba(245,158,11,.12); --red:#EF4444;
+          --tint-blue:rgba(59,130,246,.06); --tint-green:rgba(16,185,129,.05); --hover:rgba(59,130,246,.08); --shadow:none; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:var(--bg); color:var(--text); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
-  header { padding:24px 32px; border-bottom:1px solid var(--line); background:var(--panel); }
-  header h1 { font-size:22px; } header p { color:var(--muted); font-size:13px; margin-top:4px; }
-  main { padding:24px 32px; max-width:1400px; margin:0 auto; }
-  h2 { font-size:16px; margin:28px 0 12px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr)); gap:14px; }
-  .kpi, .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
-  .kpi .label { color:var(--muted); font-size:12px; } .kpi .value { font-size:24px; font-weight:700; margin-top:4px; }
-  .kpi .hint { color:var(--muted); font-size:11px; margin-top:2px; }
+  .topbar { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); padding:14px 24px 0; }
+  .topbar .title { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
+  .topbar h1 { font-size:18px; }
+  .pills { display:flex; flex-wrap:wrap; gap:6px; }
+  .pill { font-size:11px; color:var(--muted); background:var(--card); border:1px solid var(--line); border-radius:999px; padding:2px 10px; }
+  .pill.ok { color:var(--green); }
+  .tabs { display:flex; gap:4px; margin-top:10px; overflow-x:auto; }
+  .tabs button { background:none; border:0; border-bottom:2px solid transparent; color:var(--muted); font:inherit; font-weight:600; padding:8px 14px; cursor:pointer; white-space:nowrap; }
+  .tabs button.active { color:var(--text); border-bottom-color:var(--blue); }
+  main { padding:18px 24px 40px; max-width:1360px; margin:0 auto; }
+  .row2 { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:16px; margin-bottom:16px; }
+  .row-gen { display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px; }  /* scenario on top, validation below */
+  @media (max-width:980px) { .row2, .row-gen { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:var(--shadow); min-width:0; }
+  .card.tint { background:linear-gradient(180deg,var(--tint-blue),var(--card) 60%); }
+  .card.tint-green { background:linear-gradient(180deg,var(--tint-green),var(--card) 60%); }
+  .head { display:flex; gap:12px; align-items:center; margin-bottom:14px; }
+  .step, .icon-circle { width:34px; height:34px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex:none; }
+  .icon-circle.green { background:var(--green); }
+  .head h2 { font-size:14px; letter-spacing:.05em; text-transform:uppercase; }
+  .head p { color:var(--muted); font-size:12px; }
+  .form-grid { display:grid; grid-template-columns:minmax(0,1fr) 120px; gap:12px; }
+  .form-grid .wide { grid-column:1 / -1; }
+  .f { display:flex; flex-direction:column; gap:5px; font-size:12px; font-weight:600; color:var(--muted); min-width:0; }
+  select, input { width:100%; min-width:0; background:var(--soft); border:1px solid var(--line); color:var(--text); padding:9px 10px; border-radius:8px; font:inherit; font-size:13px; }
+  .seed-summary { display:grid; grid-template-columns:max-content minmax(0,1fr); gap:8px 14px; margin-top:14px; padding:12px; background:var(--soft); border:1px solid var(--line); border-radius:10px; font-size:12px; align-items:center; }
+  .seed-summary dt { color:var(--muted); font-weight:600; white-space:nowrap; }
+  .chips { display:flex; flex-wrap:wrap; gap:4px; }
+  .chips span { padding:1px 9px; border-radius:10px; background:var(--chip); color:var(--chip-text); font-size:11px; display:inline-flex; align-items:center; gap:5px; }
+  .chips span i { width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .prompt-text { margin-top:10px; font-size:12px; color:var(--muted); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .gen-card { display:flex; flex-direction:column; }
+  .btn { display:flex; gap:10px; align-items:center; justify-content:center; width:100%; border:0; border-radius:10px; font:inherit; font-weight:700; cursor:pointer; }
+  .btn.primary { background:var(--blue); color:#fff; font-size:17px; padding:15px; box-shadow:0 6px 16px rgba(29,111,216,.25); margin:6px 0 10px; }
+  .btn.secondary { background:transparent; color:var(--blue); border:1.5px solid var(--blue); font-size:13px; padding:10px; }
+  .btn:disabled { opacity:.55; cursor:not-allowed; }
+  .hint { display:flex; gap:10px; background:var(--blue-soft); border-radius:10px; padding:10px 12px; margin-top:auto; font-size:12px; color:var(--muted); }
+  .status { font-size:12px; margin:8px 0 12px; min-height:18px; }
+  .empty-card { text-align:center; padding:30px 18px; color:var(--muted); margin-bottom:16px; border-style:dashed; }
+  .empty-card b { color:var(--text); }
+  .kv { display:grid; grid-template-columns:120px minmax(0,1fr); gap:5px 12px; font-size:13px; }
+  .kv dt { color:var(--muted); font-weight:600; } .kv dd { min-width:0; overflow-wrap:anywhere; }
+  .gen-body { display:flex; flex-direction:column; gap:12px; }
+  @media (max-width:640px) { .gen-body { grid-template-columns:1fr; } .form-grid { grid-template-columns:1fr; } main, .topbar { padding-left:14px; padding-right:14px; } }
+  .badges { display:flex; flex-wrap:wrap; gap:6px; }
+  .badges span { font-size:11px; color:var(--chip-text); background:var(--chip); border-radius:999px; padding:2px 10px; }
+  .empty { color:var(--muted); padding:12px 0; font-size:13px; }
+  .vrow { display:grid; grid-template-columns:minmax(120px,160px) minmax(0,1fr) 44px 22px; align-items:center; gap:10px; padding:6px 0; }
+  .vrow .name { font-weight:600; font-size:13px; line-height:1.25; } .vrow .sub { color:var(--muted); font-size:11px; font-weight:400; }
+  .bar { height:9px; background:var(--chip); border-radius:6px; overflow:hidden; } .bar i { display:block; height:100%; border-radius:6px; }
+  .vrow .val { font-weight:700; font-size:13px; text-align:right; }
+  .tick { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:700; }
+  .verdict { margin-top:12px; border-radius:10px; padding:12px; display:flex; gap:10px; align-items:center; font-weight:800; letter-spacing:.04em; }
+  .verdict.ok { background:var(--green-soft); color:var(--green); } .verdict.warn { background:var(--amber-soft); color:var(--amber); }
+  .verdict small { display:block; font-weight:500; letter-spacing:0; font-size:11px; color:var(--muted); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .stat { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  .stat .top { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:12px; }
+  .stat .num { font-size:24px; font-weight:800; margin:4px 0 0; } .stat .note { color:var(--muted); font-size:11px; }
+  .donut-card { grid-column:span 2; display:flex; gap:16px; align-items:center; background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  @media (max-width:520px) { .donut-card { grid-column:auto; flex-direction:column; } }
+  .donut-card h3 { font-size:13px; margin-bottom:6px; }
+  .legend { font-size:12px; display:grid; grid-template-columns:12px auto auto auto; gap:4px 10px; align-items:center; }
+  .legend i { width:10px; height:10px; border-radius:50%; display:block; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr)); gap:12px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; min-width:0; }
+  .kpi .label { color:var(--muted); font-size:12px; } .kpi .value { font-size:22px; font-weight:800; margin-top:2px; } .kpi .hint { color:var(--muted); font-size:11px; }
   .table-wrap { overflow-x:auto; background:var(--card); border:1px solid var(--line); border-radius:12px; }
   table { width:100%; border-collapse:collapse; font-size:13px; }
-  th, td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { color:var(--muted); font-weight:600; background:rgba(15,23,42,.6); }
-  tr.clickable { cursor:pointer; } tr.clickable:hover { background:rgba(59,130,246,.08); }
-  tr.detail td { background:rgba(2,6,23,.5); }
-  .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; border:1px solid; }
-  .ROUTINE { color:var(--green); } .ELEVATED { color:var(--amber); } .URGENT { color:var(--orange); } .CRITICAL { color:var(--red); }
-  .pass { color:var(--green); } .fail { color:var(--red); } .muted { color:var(--muted); }
-  .chips span { display:inline-block; margin:2px 4px 2px 0; padding:1px 8px; border-radius:10px; background:#1E293B; font-size:11px; color:var(--muted); }
-  .zone-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr)); gap:14px; }
-  @media (max-width:600px) { header, main { padding-left:16px; padding-right:16px; } }
+  th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; background:var(--soft); white-space:nowrap; }
+  tr.clickable { cursor:pointer; } tr.clickable:hover, tr.detail td { background:var(--hover); }
+  .badge { display:inline-block; padding:1px 9px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; white-space:nowrap; }
+  .pass { color:var(--green); font-weight:700; } .fail { color:var(--red); font-weight:700; } .muted { color:var(--muted); }
+  .zone-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr)); gap:12px; }
   .zone-cards ul { margin:6px 0 0 18px; color:var(--muted); font-size:12px; }
-  .live { display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
-  .live label { display:flex; flex-direction:column; font-size:12px; color:var(--muted); gap:4px; }
-  select, input { background:#1E293B; border:1px solid #334155; color:var(--text); padding:8px 10px; border-radius:6px; }
-  button { background:var(--blue); color:white; border:0; padding:9px 18px; border-radius:6px; font-weight:600; cursor:pointer; }
-  button:disabled { opacity:.5; cursor:wait; }
+  h3.sub { font-size:14px; margin:20px 0 8px; } h3.sub:first-child { margin-top:0; }
   svg text { fill:var(--muted); font-size:10px; }
-  .empty { color:var(--muted); padding:16px; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Stage 05 &middot; Generative Scenario Stress Test</h1>
-  <p id="meta"></p>
+<header class="topbar">
+  <div class="title"><h1>&#10024; GenAI Scenario Studio</h1><div class="pills" id="meta"></div></div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="studio" class="active">Studio</button>
+    <button data-tab="results">Stress-test results</button>
+    <button data-tab="audit">Audits</button>
+    <button data-tab="history">History</button>
+  </nav>
 </header>
 <main>
-  <div id="live-section" hidden>
-    <h2>Run a scenario live</h2>
-    <div class="card">
-      <div class="live">
-        <label>Scenario prompt <select id="prompt-select"></select></label>
-        <label>Seed <input id="seed-input" type="number" value="42" min="0" style="width:110px"></label>
-        <button id="run-btn">Generate &amp; stress-test</button>
+  <section data-view="studio">
+    <div class="row2">
+      <div class="card">
+        <div class="head"><div class="step">1</div><div><h2>Seed conditions</h2><p>Choose the scenario prompt and how it is generated</p></div></div>
+        <div class="form-grid">
+          <label class="f wide">&#128203; Scenario prompt<select id="prompt-select"></select></label>
+          <label class="f">&#129504; Generator
+            <select id="generator-select">
+              <option value="slm">Domain SLM (sensors + narrative together)</option>
+              <option value="cvae">CVAE + phrase bank (statistical)</option>
+              <option value="llm">LLM (Qwen2.5-3B or Gemini backend)</option>
+            </select></label>
+          <label class="f">&#127922; Seed<input id="seed-input" type="number" value="42" min="0"></label>
+        </div>
+        <dl class="seed-summary">
+          <dt>&#128205; Region</dt><dd id="seed-state">-</dd>
+          <dt>&#9888;&#65039; Severity mix</dt><dd id="seed-severity" class="chips"></dd>
+          <dt>&#127754; Hazards</dt><dd id="seed-hazards" class="chips"></dd>
+          <dt>&#127919; Blind spots</dt><dd id="seed-blind" class="chips"></dd>
+        </dl>
+        <p class="prompt-text" id="prompt-text"></p>
       </div>
-      <p id="prompt-text" class="muted" style="margin-top:10px;font-size:12px"></p>
-      <div id="live-result" style="margin-top:14px"></div>
+      <div class="card gen-card">
+        <div class="head"><div class="step">2</div><div><h2>Generate</h2><p>Create a synthetic multi-zone disaster scenario</p></div></div>
+        <button class="btn primary" id="generate-btn">&#10022; Generate Scenario</button>
+        <button class="btn secondary" id="stress-btn">&#129514; Generate &amp; stress-test through Stages 01&ndash;04</button>
+        <p class="status" id="gen-status"></p>
+        <div class="hint"><span>&#128161;</span><span>Generates sensor readings, a 72&nbsp;h gauge history, dispatcher messages and an incident log for every zone. The stress test then runs the scenario through the real Stage 01&ndash;04 models and the fusion layer (the first run loads the models, about 20&nbsp;s).</span></div>
+      </div>
     </div>
-  </div>
 
-  <h2>Headline results</h2>
-  <div class="grid" id="kpis"></div>
+    <div class="card empty-card" id="empty-state"><b>No scenario generated yet.</b><br>Pick seed conditions and press <b>Generate Scenario</b> to see the scenario profile and its validation here.</div>
+    <div class="row-gen" id="result-row" hidden>
+      <div class="card tint">
+        <div class="head"><div class="icon-circle">&#128101;</div><div><h2>Generated synthetic scenario</h2><p>Scenario profile produced from your seed conditions</p></div></div>
+        <div id="generated"></div>
+      </div>
+      <div class="card tint-green">
+        <div class="head"><div class="icon-circle green">&#10004;</div><div><h2>Validation</h2><p>Checks for realism, consistency and quality</p></div></div>
+        <div id="validation-body"></div>
+      </div>
+    </div>
 
-  <h2>Run history</h2>
-  <div class="card" id="history"></div>
+    <div class="card">
+      <div class="head"><div class="icon-circle">&#128202;</div><div><h2>Case analysis</h2><p>The generated scenario suite and the data behind it</p></div></div>
+      <div id="case-analysis"></div>
+    </div>
+  </section>
 
-  <h2>Scenarios <span class="muted" style="font-weight:400;font-size:12px">(click a row for zone detail)</span></h2>
-  <div class="table-wrap"><table id="scenario-table"></table></div>
+  <section data-view="results" hidden>
+    <h3 class="sub">Headline results</h3>
+    <div class="grid" id="kpis"></div>
+    <h3 class="sub">Scenarios <span class="muted" style="font-weight:400;font-size:12px">(click a row for zone detail)</span></h3>
+    <div class="table-wrap"><table id="scenario-table"></table></div>
+    <h3 class="sub" id="wildcard-title">Wildcard</h3>
+    <p id="wildcard-prompt" class="muted" style="margin-bottom:10px;font-size:12px"></p>
+    <div class="zone-cards" id="wildcard"></div>
+    <h3 class="sub">Failure log</h3>
+    <div class="table-wrap"><table id="failures"></table></div>
+  </section>
 
-  <h2 id="wildcard-title">Wildcard</h2>
-  <p id="wildcard-prompt" class="muted" style="margin-bottom:10px"></p>
-  <div class="zone-cards" id="wildcard"></div>
+  <section data-view="audit" hidden>
+    <h3 class="sub">Scenario audit <span class="muted" style="font-weight:400;font-size:12px">(physical coherence, per zone)</span></h3>
+    <div class="grid" id="audit-kpis"></div>
+    <p id="audit-note" class="muted" style="margin:10px 0;font-size:12px"></p>
+    <div class="table-wrap"><table id="overconfident"></table></div>
+    <h3 class="sub">Realism audit <span class="muted" style="font-weight:400;font-size:12px">(generator vs the real record)</span></h3>
+    <div class="table-wrap"><table id="realism"></table></div>
+    <h3 class="sub">Stage 02 forecast probe <span class="muted" style="font-weight:400;font-size:12px">(perfectly flat 72 h river)</span></h3>
+    <p id="probe-note" class="muted" style="margin-bottom:10px;font-size:12px"></p>
+    <div class="table-wrap"><table id="probe"></table></div>
+  </section>
 
-  <h2>Realism audit</h2>
-  <div class="table-wrap"><table id="realism"></table></div>
-
-  <h2>Stage 02 forecast probe <span class="muted" style="font-weight:400;font-size:12px">(perfectly flat 72 h river)</span></h2>
-  <p id="probe-note" class="muted" style="margin-bottom:10px;font-size:12px"></p>
-  <div class="table-wrap"><table id="probe"></table></div>
-
-  <h2>Failure log</h2>
-  <div class="table-wrap"><table id="failures"></table></div>
+  <section data-view="history" hidden>
+    <div class="card" id="history-chart"></div>
+  </section>
 </main>
 <script>
 const DATA = __DASHBOARD_DATA__;
 const LEVELS = ['ROUTINE', 'ELEVATED', 'URGENT', 'CRITICAL'];
+const SEV_COLORS = {ROUTINE: '#16A34A', ELEVATED: '#F59E0B', URGENT: '#F97316', CRITICAL: '#DC2626'};
+const BAR_COLORS = ['#16A34A', '#0EA5E9', '#8B5CF6', '#14B8A6', '#F59E0B', '#3B82F6'];
+const ACCEPT_THRESHOLD = 0.8;
+const SENSOR_FIELDS = ['timestamp', 'state', 'district', 'rainfall_mm', 'river_level_m', 'river_level_threshold_m',
+  'emergency_calls', 'road_closures', 'bridge_closures', 'flood_history_count', 'population_affected', 'water_level_change_m'];
+const LOOKBACK = 72;
+const EVIDENCE_ICONS = {sensors: '\u{1F4DF}', text: '\u{1F4AC}', image: '\u{1F4F7}', water_history: '\u{1F4C8}'};
+const report = DATA.report;
+const audit = report ? report.scenario_audit : null;
+const realism = report ? report.realism : null;
+let currentTest = null;
 
 function el(tag, attrs, children) {
   const node = document.createElement(tag);
@@ -387,33 +584,281 @@ function el(tag, attrs, children) {
   }
   return node;
 }
+const $ = id => document.getElementById(id);
 const pct = v => v == null ? 'n/a' : (v * 100).toFixed(1) + '%';
-const priorityBadge = p => p && LEVELS.includes(p) ? el('span', {class: 'badge ' + p, text: p}) : el('span', {class: 'muted', text: p || '-'});
+const pct0 = v => v == null ? 'n/a' : Math.round(v * 100) + '%';
+const num = v => v == null ? 'n/a' : Number(v).toLocaleString();
+const priorityBadge = p => p && LEVELS.includes(p) ? el('span', {class: 'badge', style: 'background:' + SEV_COLORS[p], text: p}) : el('span', {class: 'muted', text: p || '-'});
 const passBadge = ok => el('span', {class: ok ? 'pass' : 'fail', text: ok ? 'PASS' : 'FAIL'});
+const countBy = items => items.reduce((acc, k) => (acc[k] = (acc[k] || 0) + 1, acc), {});
+const chips = (target, items) => $(target).replaceChildren(...(items.length ? items : [el('span', {text: '-'})]).map(t => typeof t === 'string' ? el('span', {text: t}) : t));
 
 function table(target, headers, rows) {
-  const t = document.getElementById(target);
+  const t = $(target);
   t.replaceChildren(el('tr', {}, headers.map(h => el('th', {text: h}))));
   if (!rows.length) { t.appendChild(el('tr', {}, el('td', {class: 'empty', colspan: String(headers.length), text: 'Nothing to show.'}))); return t; }
   rows.forEach(r => t.appendChild(el('tr', {}, r.map(c => el('td', {}, c instanceof Node ? c : String(c ?? '-'))))));
   return t;
 }
 
-function zoneTable(zones) {
+// ---------------------------------------------------------------- tabs + header
+function setupTabs() {
+  document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('active', x === b));
+    document.querySelectorAll('[data-view]').forEach(v => { v.hidden = v.dataset.view !== b.dataset.tab; });
+    window.scrollTo(0, 0);
+  }));
+}
+
+function renderMeta() {
+  const box = $('meta');
+  if (!report) { box.replaceChildren(el('span', {class: 'pill', text: 'No stress-test report yet: run 04_evaluation_engineer.py'})); return; }
+  const stages = Object.values(report.stage_status || {});
+  const healthy = stages.filter(v => v === 'healthy').length;
+  box.replaceChildren(
+    el('span', {class: 'pill', text: 'Report ' + String(report.generated_at || '').replace('T', ' ').slice(0, 16)}),
+    el('span', {class: 'pill', text: 'commit ' + (report.git_commit || 'n/a')}),
+    el('span', {class: 'pill' + (healthy === stages.length ? ' ok' : ''), title: Object.entries(report.stage_status || {}).map(([k, v]) => k + ': ' + v).join(', '),
+      text: healthy + '/' + stages.length + ' stages healthy'}),
+  );
+}
+
+// ---------------------------------------------------------------- seed + generate
+function selectedPrompt() { return (DATA.prompts || []).find(p => p.id === $('prompt-select').value); }
+
+function describePrompt() {
+  const p = selectedPrompt();
+  $('prompt-text').textContent = p ? p.prompt : 'No prompt library found. Run 02_eda_engineer.py.';
+  $('prompt-text').title = p ? p.prompt : '';
+  $('seed-state').textContent = p ? (p.state || 'multi-state') + ' · ' + p.zones + ' zones' : '-';
+  const mix = p && p.severities ? countBy(p.severities) : {};
+  chips('seed-severity', LEVELS.filter(l => mix[l]).map(l => el('span', {}, [el('i', {style: 'background:' + SEV_COLORS[l]}), mix[l] + ' ' + l])));
+  chips('seed-hazards', p && p.hazards ? p.hazards : []);
+  chips('seed-blind', p ? p.blind_spots : []);
+}
+
+function setupSeed() {
+  const select = $('prompt-select');
+  (DATA.prompts || []).forEach(p => select.appendChild(el('option', {value: p.id, text: p.id + ' · ' + p.name})));
+  select.addEventListener('change', describePrompt);
+  describePrompt();
+  if (!DATA.live) {
+    [$('generate-btn'), $('stress-btn')].forEach(b => { b.disabled = true; });
+    $('gen-status').textContent = 'Static snapshot: open /genai on the running dashboard to generate live.';
+    return;
+  }
+  $('generate-btn').addEventListener('click', () => run(false));
+  $('stress-btn').addEventListener('click', () => run(true));
+}
+
+async function post(path, body) {
+  let res;
+  try {
+    res = await fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  } catch (err) {
+    throw new Error('the dashboard server is not reachable. Is python app.py still running?');
+  }
+  const data = await res.json().catch(() => ({error: 'invalid response'}));
+  if (!res.ok) throw new Error(data.error || 'request failed');
+  return data;
+}
+
+async function run(withStress) {
+  const body = {prompt_id: $('prompt-select').value, seed: parseInt($('seed-input').value, 10), generator: $('generator-select').value};
+  const buttons = [$('generate-btn'), $('stress-btn')];
+  buttons.forEach(b => b.disabled = true);
+  const status = $('gen-status');
+  status.className = 'status muted';
+  status.textContent = withStress ? 'Generating and stress-testing…' : 'Generating…';
+  try {
+    const scenario = await post('/api/genai/scenario', body);
+    currentTest = withStress ? await post('/api/genai/stress-test', body) : null;
+    renderGenerated(scenario);
+    renderValidation(scenario);
+    $('empty-state').hidden = true;
+    $('result-row').hidden = false;
+    status.className = 'status pass';
+    status.textContent = '✓ Generated ' + scenario.scenario_id + ' (seed ' + body.seed + ')' + (currentTest ? ' and stress-tested.' : '.');
+    $('result-row').scrollIntoView({behavior: 'smooth', block: 'start'});
+  } catch (err) {
+    status.className = 'status fail';
+    status.textContent = 'Error: ' + err.message;
+  }
+  buttons.forEach(b => b.disabled = false);
+}
+
+// ---------------------------------------------------------------- generated scenario
+function generatorLabel(sc) {
+  const g = sc.generator;
+  if (g && typeof g === 'object') return [g.family, g.model].filter(Boolean).join(' · ');
+  if (typeof g === 'string') return g;
+  return {slm: 'Domain SLM', cvae: 'CVAE + phrase bank', llm: 'LLM'}[$('generator-select').value];
+}
+
+function renderGenerated(sc) {
+  const zones = sc.zones || [];
+  const mix = countBy(zones.map(z => z.true_severity));
+  const hazards = [...new Set(zones.flatMap(z => z.hazards || []))];
+  const modifiers = [...new Set((sc.global_modifiers || []).concat(zones.flatMap(z => z.modifiers || [])))];
+  const states = [...new Set(zones.map(z => z.state).filter(Boolean))];
+  const demand = sc.demand || {}, res = sc.resources || {};
+  const rows = [
+    ['Scenario', sc.scenario_id + ' · ' + sc.name], ['Region', states.join(', ')], ['Start time', sc.start_time],
+    ['Zones', zones.length + ' (' + LEVELS.filter(l => mix[l]).map(l => mix[l] + ' ' + l).join(', ') + ')'],
+    ['Hazards', hazards.join(', ') || '-'], ['Modifiers', modifiers.join(', ').replace(/_/g, ' ') || 'none'],
+    ['Blind spots', (sc.blind_spots || []).join(', ') || '-'],
+    ['People reported', num(demand.total_headcount_reported) + ' (shelter gap ' + num(demand.shelter_gap) + ')'],
+    ['Resources', res.rescue_boats + ' boats · ' + res.ambulances + ' ambulances · ' + res.shelter_beds + ' beds'],
+    ['Generator', generatorLabel(sc)],
+  ];
+  const kv = el('dl', {class: 'kv'}, rows.flatMap(([k, v]) => [el('dt', {text: k}), el('dd', {text: v == null ? '-' : String(v)})]));
+  const lost = zones.filter(z => ((z.provenance || {}).evidence_lost || []).length).length;
+  const beyond = zones.filter(z => ((z.provenance || {}).beyond_record_fields || []).length).length;
+  const badges = el('div', {class: 'badges'}, [
+    el('span', {text: '\u{1F5FA} ' + zones.length + '-zone incident'}),
+    el('span', {text: '\u{1F3AF} ' + (sc.blind_spots || []).length + ' blind spot(s) targeted'}),
+    el('span', {text: '⚡ ' + (beyond ? beyond + ' zone(s) beyond the record' : 'within recorded range')}),
+    el('span', {text: '\u{1F4E1} ' + (lost ? lost + ' zone(s) lost evidence' : 'all evidence present')}),
+    el('span', {text: '✨ Generated by GenAI'}),
+  ]);
+  const zt = el('table', {id: 'generated-zones'});
+  $('generated').replaceChildren(el('div', {class: 'gen-body'}, [kv, badges]), el('div', {class: 'table-wrap', style: 'margin-top:14px'}, zt));
+  table('generated-zones', ['Zone', 'District', 'Truth', 'River / danger', 'Evidence', 'People'], zones.map(z => {
+    const s = (z.inputs || {}).sensors, ev = (z.provenance || {}).evidence_available || {};
+    return [z.zone_id + ' ' + (z.label || ''), z.district || '-', priorityBadge(z.true_severity),
+      s ? Number(s.river_level_m).toFixed(2) + ' / ' + Number(s.river_level_threshold_m).toFixed(2) + ' m' : 'no sensors',
+      Object.entries(ev).filter(([, v]) => v).map(([k]) => EVIDENCE_ICONS[k] || k).join(' ') || 'none', z.headcount_reported ?? '-'];
+  }));
+}
+
+// ---------------------------------------------------------------- validation
+function structuralCompliance(sc) {
+  const zones = sc.zones || [];
+  let ok = 0;
+  zones.forEach(z => {
+    const inputs = z.inputs || {}, ev = (z.provenance || {}).evidence_available || {};
+    const sensorsOk = !inputs.sensors || SENSOR_FIELDS.every(f => inputs.sensors[f] !== undefined && inputs.sensors[f] !== null && inputs.sensors[f] !== '');
+    const levelsOk = !inputs.water_levels || (inputs.water_levels.length === LOOKBACK && inputs.water_levels.every(Number.isFinite));
+    const textOk = !ev.text || (typeof inputs.text === 'string' && inputs.text.trim().length > 0);
+    if (sensorsOk && levelsOk && textOk && z.expected && LEVELS.includes(z.true_severity)) ok += 1;
+  });
+  return {rate: zones.length ? ok / zones.length : null, detail: ok + '/' + zones.length + ' zones meet the input contract'};
+}
+
+function reportScenario(id) {
+  if (!report) return null;
+  return (report.scenarios || []).concat(report.wildcard ? [report.wildcard] : []).find(s => s.scenario_id === id) || null;
+}
+
+function validationChecks(sc) {
+  const checks = [];
+  if (realism) checks.push({name: 'Statistical', sub: '1 − mean KS vs real rows', value: 1 - realism.mean_ks_overall});
+  const ps = audit ? (audit.per_scenario || []).find(p => p.scenario_id === sc.scenario_id) : null;
+  if (ps && ps.realism_score != null) checks.push({name: 'Physical plausibility', sub: 'scenario audit', value: ps.realism_score});
+  const sc2 = structuralCompliance(sc);
+  checks.push({name: 'Constraint compliance', sub: sc2.detail, value: sc2.rate, required: true});
+  if (audit) checks.push({name: 'Diversity', sub: 'blind spots covered', value: audit.diversity_coverage.blind_spot_coverage});
+  if (audit) checks.push({name: 'Severity calibration', sub: '1 − overconfidence', value: 1 - audit.overconfidence.rate});
+  const test = currentTest || reportScenario(sc.scenario_id);
+  if (test) {
+    const passed = test.zones.filter(z => z.passed).length;
+    checks.push({name: 'Pipeline stress test', sub: passed + '/' + test.zones.length + ' zones' + (currentTest ? ' (this run)' : ' (last evaluation)'), value: passed / test.zones.length});
+  }
+  return checks;
+}
+
+function renderValidation(sc) {
+  const checks = validationChecks(sc);
+  const meets = c => c.value != null && (c.required ? c.value === 1 : c.value >= ACCEPT_THRESHOLD);
+  const rows = checks.map((c, i) => el('div', {class: 'vrow'}, [
+    el('div', {class: 'name'}, [c.name, el('div', {class: 'sub', text: c.sub})]),
+    el('div', {class: 'bar'}, el('i', {style: 'width:' + Math.max(0, Math.min(100, (c.value || 0) * 100)) + '%;background:' + BAR_COLORS[i % BAR_COLORS.length]})),
+    el('div', {class: 'val', text: pct0(c.value)}),
+    el('div', {class: 'tick', style: 'background:' + (meets(c) ? 'var(--green)' : 'var(--amber)'), text: meets(c) ? '✓' : '!'}),
+  ]));
+  const weak = checks.filter(c => !meets(c)).map(c => c.name);
+  const misses = currentTest ? currentTest.zones.filter(z => z.critical_miss).length : 0;
+  if (misses) weak.push(misses + ' critical miss(es)');
+  const accepted = weak.length === 0;
+  const verdict = el('div', {class: 'verdict ' + (accepted ? 'ok' : 'warn')}, [
+    el('span', {style: 'font-size:18px', text: accepted ? '✅' : '⚠️'}),
+    el('div', {}, [accepted ? 'SYNTHETIC SCENARIO ACCEPTED' : 'NEEDS REVIEW',
+      el('small', {text: accepted ? 'All checks ≥ ' + pct0(ACCEPT_THRESHOLD) + ', input contract 100%.' : 'Below threshold: ' + weak.join(', ')})]),
+  ]);
+  const out = [...rows, verdict];
+  if (currentTest) out.push(el('div', {class: 'table-wrap', style: 'margin-top:12px'}, zoneTable(currentTest.zones, true)));
+  $('validation-body').replaceChildren(...out);
+}
+
+// ---------------------------------------------------------------- case analysis
+function donut(counts) {
+  const ns = 'http://www.w3.org/2000/svg', size = 110, r = 40, c = 2 * Math.PI * r;
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${size} ${size}`); svg.setAttribute('width', '110'); svg.setAttribute('height', '110');
+  let offset = 0;
+  LEVELS.filter(l => counts[l]).forEach(l => {
+    const seg = document.createElementNS(ns, 'circle'), len = c * counts[l] / total;
+    [['cx', size / 2], ['cy', size / 2], ['r', r], ['fill', 'none'], ['stroke', SEV_COLORS[l]], ['stroke-width', '15'],
+     ['stroke-dasharray', `${len} ${c - len}`], ['stroke-dashoffset', String(-offset)], ['transform', `rotate(-90 ${size / 2} ${size / 2})`]]
+      .forEach(([k, v]) => seg.setAttribute(k, v));
+    svg.appendChild(seg); offset += len;
+  });
+  [[String(total), size / 2 + 4, 17, 800], ['zones', size / 2 + 17, 10, 400]].forEach(([t, y, fs, fw]) => {
+    const txt = document.createElementNS(ns, 'text');
+    txt.setAttribute('x', size / 2); txt.setAttribute('y', y); txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('style', `fill:var(--text);font-size:${fs}px;font-weight:${fw}`); txt.textContent = t; svg.appendChild(txt);
+  });
+  const legend = el('div', {class: 'legend'}, LEVELS.filter(l => counts[l]).flatMap(l => [
+    el('i', {style: 'background:' + SEV_COLORS[l]}), el('span', {text: l}), el('span', {class: 'muted', text: String(counts[l])}),
+    el('b', {text: Math.round(100 * counts[l] / total) + '%'})]));
+  return el('div', {class: 'donut-card'}, [svg, el('div', {}, [el('h3', {text: 'Severity distribution'}), legend])]);
+}
+
+function renderCaseAnalysis() {
+  const box = $('case-analysis');
+  if (!report) { box.replaceChildren(el('p', {class: 'empty', text: 'No stress-test report yet. Run python Stage05_GenAI/04_evaluation_engineer.py.'})); return; }
+  const scenarios = (report.scenarios || []).concat(report.wildcard ? [report.wildcard] : []);
+  const zones = scenarios.flatMap(sc => sc.zones || []);
+  const dv = audit ? audit.diversity_coverage : null;
+  const failed = zones.filter(z => !z.passed).length;
+  const stat = (icon, label, value, note, color) => el('div', {class: 'stat'}, [
+    el('div', {class: 'top'}, [el('span', {text: label}), el('span', {text: icon})]),
+    el('div', {class: 'num', style: color ? 'color:' + color : '', text: value}), el('div', {class: 'note', text: note})]);
+  box.replaceChildren(el('div', {class: 'stats'}, [
+    stat('\u{1F5C4}', 'Real records', num(realism ? realism.n_real : null), 'historical sensor rows', 'var(--blue)'),
+    stat('\u{1F4C4}', 'Synthetic samples', num(realism ? realism.n_synthetic : null), 'generated for the audit', 'var(--blue)'),
+    stat('\u{1F9E9}', 'Scenarios', String(scenarios.length), zones.length + ' zones incl. wildcard', '#8B5CF6'),
+    stat('⭐', 'Rare conditions', dv ? String(dv.blind_spots_rare_or_absent) : 'n/a', 'rare / absent blind spots', 'var(--amber)'),
+    stat('⚠️', 'Stress failures', String(failed), 'zones failing expectations', failed ? 'var(--red)' : 'var(--green)'),
+    donut(countBy(zones.map(z => z.true_severity))),
+  ]));
+}
+
+// ---------------------------------------------------------------- results + audits
+function zoneTable(zones, compact) {
   const t = el('table');
-  t.appendChild(el('tr', {}, ['Zone', 'True', 'Called', 'Review', 'Conflicts', 'Sources used', 'Evidence lost', 'Result'].map(h => el('th', {text: h}))));
-  zones.forEach(z => t.appendChild(el('tr', {}, [
-    el('td', {text: z.zone_id + ' ' + z.label}), el('td', {}, priorityBadge(z.true_severity)),
-    el('td', {}, z.status === 'ok' ? priorityBadge(z.priority) : el('span', {class: 'muted', text: z.status})),
-    el('td', {text: z.human_review ? 'yes' : 'no'}), el('td', {text: String(z.n_conflicts)}),
-    el('td', {class: 'muted', text: z.sources_used || 'none'}), el('td', {class: 'muted', text: z.evidence_lost || '-'}),
-    el('td', {}, z.passed ? passBadge(true) : el('span', {class: 'fail', text: 'FAIL: ' + z.failures})),
-  ])));
+  const headers = compact ? ['Zone', 'True', 'Called', 'Result'] : ['Zone', 'True', 'Called', 'Review', 'Conflicts', 'Sources used', 'Evidence lost', 'Result'];
+  t.appendChild(el('tr', {}, headers.map(h => el('th', {text: h}))));
+  zones.forEach(z => {
+    const called = el('td', {}, z.status === 'ok' ? priorityBadge(z.priority) : el('span', {class: 'muted', text: z.status}));
+    const result = el('td', {}, z.passed ? passBadge(true) : el('span', {class: 'fail', text: 'FAIL: ' + z.failures}));
+    t.appendChild(el('tr', {}, compact
+      ? [el('td', {text: z.zone_id}), el('td', {}, priorityBadge(z.true_severity)), called, result]
+      : [el('td', {text: z.zone_id + ' ' + z.label}), el('td', {}, priorityBadge(z.true_severity)), called,
+         el('td', {text: z.human_review ? 'yes' : 'no'}), el('td', {text: String(z.n_conflicts)}),
+         el('td', {class: 'muted', text: z.sources_used || 'none'}), el('td', {class: 'muted', text: z.evidence_lost || '-'}), result]));
+  });
   return t;
 }
 
-function renderKpis(s, realism) {
-  const cards = [
+function kpiCards(target, cards) {
+  $(target).replaceChildren(...cards.map(([label, value, hint]) =>
+    el('div', {class: 'kpi'}, [el('div', {class: 'label', text: label}), el('div', {class: 'value', text: String(value)}), el('div', {class: 'hint', text: hint})])));
+}
+
+function renderKpis(s, r) {
+  kpiCards('kpis', [
     ['Scenarios passed', s.scenarios_passed + '/' + s.scenarios, pct(s.scenario_pass_rate)],
     ['Zones passed', s.zones_passed + '/' + s.zones, pct(s.zone_pass_rate)],
     ['Critical-miss rate', pct(s.critical_miss_rate), s.critical_misses + ' of ' + s.high_risk_zones_scored + ' high-risk zones'],
@@ -421,57 +866,74 @@ function renderKpis(s, realism) {
     ['Conflicts surfaced', pct(s.conflict_detection_rate), 'where evidence disagrees'],
     ['No-evidence refused', pct(s.insufficient_evidence_handled), 'silence never read as safe'],
     ['Zone ranking tau', s.mean_ranking_tau ?? 'n/a', 'Kendall, ' + s.ranking_scenarios + ' scenarios'],
-    ['C2ST ROC-AUC', realism ? realism.c2st.cvae.auc_mean : 'n/a', realism ? 'naive baseline ' + realism.c2st.naive_baseline.auc_mean : 'realism audit not run'],
-  ];
-  document.getElementById('kpis').replaceChildren(...cards.map(([label, value, hint]) =>
-    el('div', {class: 'kpi'}, [el('div', {class: 'label', text: label}), el('div', {class: 'value', text: String(value)}), el('div', {class: 'hint', text: hint})])));
+    ['C2ST ROC-AUC', r ? r.c2st.cvae.auc_mean : 'n/a', r ? 'naive baseline ' + r.c2st.naive_baseline.auc_mean : 'realism audit not run'],
+  ]);
+}
+
+function renderAudit(a) {
+  const note = $('audit-note');
+  if (!a) { $('audit-kpis').replaceChildren(); note.textContent = 'Scenario audit not present in this report.'; $('overconfident').replaceChildren(); return; }
+  const ra = a.realism_score, oc = a.overconfidence, dv = a.diversity_coverage;
+  kpiCards('audit-kpis', [
+    ['Realism score', ra.mean ?? 'n/a', 'mean over ' + ra.zones_scored + ' scored zones, min ' + (ra.min ?? 'n/a')],
+    ['Fully plausible', pct(ra.fully_plausible_rate), ra.fully_plausible_zones + ' of ' + ra.zones_scored + ' zones break no rule'],
+    ['Overconfidence', pct(oc.rate), oc.zones + ' zones: severe label, benign physics'],
+    ['Blind-spot coverage', pct(dv.blind_spot_coverage), (dv.blind_spots_covered ?? 0) + ' of ' + dv.blind_spots_rare_or_absent + ' rare/absent spots'],
+    ['Failure modes', String(dv.distinct_archetypes), 'distinct archetypes in the suite'],
+    ['Condition coverage', dv.sensor_grid_cells_occupied + '/' + dv.sensor_grid_cells_total, pct(dv.sensor_grid_coverage) + ' of the rainfall x river grid'],
+  ]);
+  const rules = Object.entries(ra.violations_by_rule || {});
+  note.textContent = rules.length ? 'Plausibility rules violated: ' + rules.map(([k, v]) => k + ' x' + v).join(', ') + '.' : 'No plausibility rule was violated anywhere in the suite.';
+  table('overconfident', ['Scenario', 'Zone', 'Label', 'Truth', 'Rules broken'],
+    (oc.detail || []).map(d => [d.scenario_id, d.zone_id, d.label, d.true_severity, (d.violations || []).join(', ')]));
 }
 
 function renderHistory(history) {
-  const box = document.getElementById('history');
+  const box = $('history-chart');
   if (history.length < 2) { box.replaceChildren(el('p', {class: 'muted', text: history.length + ' run(s) recorded. The trend appears after the second run of 04_evaluation_engineer.py.'})); return; }
   const w = 640, h = 140, pad = 28, ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('viewBox', `0 0 ${w} ${h}`); svg.setAttribute('width', '100%'); svg.setAttribute('style', 'max-width:720px');
   const x = i => pad + i * (w - 2 * pad) / (history.length - 1), y = v => h - pad - v * (h - 2 * pad);
-  [['scenario_pass_rate', '#10B981'], ['critical_miss_rate', '#EF4444']].forEach(([key, color]) => {
+  [['scenario_pass_rate', '#16A34A'], ['critical_miss_rate', '#DC2626']].forEach(([key, color]) => {
     const pts = history.map((r, i) => r[key] == null ? null : `${x(i)},${y(r[key])}`).filter(Boolean).join(' ');
     const line = document.createElementNS(ns, 'polyline');
     line.setAttribute('points', pts); line.setAttribute('fill', 'none'); line.setAttribute('stroke', color); line.setAttribute('stroke-width', '2');
     svg.appendChild(line);
   });
   [0, 0.5, 1].forEach(v => { const t = document.createElementNS(ns, 'text'); t.setAttribute('x', '0'); t.setAttribute('y', String(y(v) + 3)); t.textContent = (v * 100) + '%'; svg.appendChild(t); });
-  box.replaceChildren(svg, el('p', {class: 'muted', style: 'font-size:12px', text: 'Green: scenario pass rate. Red: critical-miss rate. ' + history.length + ' runs.'}));
+  box.replaceChildren(el('h3', {class: 'sub', text: 'Run history'}), svg,
+    el('p', {class: 'muted', style: 'font-size:12px', text: 'Green: scenario pass rate. Red: critical-miss rate. ' + history.length + ' runs.'}));
 }
 
 function renderScenarios(scenarios) {
-  const t = document.getElementById('scenario-table');
+  const t = $('scenario-table');
   t.replaceChildren(el('tr', {}, ['ID', 'Scenario', 'Blind spots', 'Zones', 'Result', 'Ranking tau'].map(h => el('th', {text: h}))));
   scenarios.forEach(sc => {
     const passed = sc.zones.filter(z => z.passed).length;
     const row = el('tr', {class: 'clickable'}, [
       el('td', {text: sc.scenario_id}), el('td', {text: sc.name}),
-      el('td', {class: 'chips'}, sc.blind_spots.map(b => el('span', {text: b}))),
+      el('td', {}, el('div', {class: 'chips'}, sc.blind_spots.map(b => el('span', {text: b})))),
       el('td', {text: String(sc.zones.length)}),
       el('td', {}, sc.passed ? passBadge(true) : el('span', {class: 'fail', text: passed + '/' + sc.zones.length})),
       el('td', {text: sc.ranking_tau == null ? '-' : String(sc.ranking_tau)}),
     ]);
-    const detail = el('tr', {class: 'detail', hidden: ''}, el('td', {colspan: '6'}, [el('p', {class: 'muted', style: 'margin-bottom:8px', text: sc.prompt}), zoneTable(sc.zones)]));
+    const detail = el('tr', {class: 'detail', hidden: ''}, el('td', {colspan: '6'}, [el('p', {class: 'muted', style: 'margin-bottom:8px;font-size:12px', text: sc.prompt}), zoneTable(sc.zones)]));
     row.addEventListener('click', () => { detail.hidden = !detail.hidden; });
     t.append(row, detail);
   });
 }
 
 function renderWildcard(w) {
-  if (!w) { document.getElementById('wildcard').replaceChildren(el('p', {class: 'empty', text: 'No wildcard result.'})); return; }
-  document.getElementById('wildcard-title').textContent = 'Wildcard: ' + w.name;
-  document.getElementById('wildcard-prompt').textContent = w.prompt;
-  document.getElementById('wildcard').replaceChildren(...w.details.map(d => {
+  if (!w) { $('wildcard').replaceChildren(el('p', {class: 'empty', text: 'No wildcard result.'})); return; }
+  $('wildcard-title').textContent = 'Wildcard: ' + w.name;
+  $('wildcard-prompt').textContent = w.prompt;
+  $('wildcard').replaceChildren(...w.details.map(d => {
     const dec = d.decision || {};
     const kept = Object.entries(d.evidence_available).filter(([, v]) => v).map(([k]) => k);
     const reasons = (dec.escalations || []).concat(dec.conflicts || [], dec.human_review_reasons || []);
-    return el('div', {class: 'card'}, [
-      el('div', {style: 'display:flex;justify-content:space-between;gap:8px'}, [el('strong', {text: d.label}), d.passed ? passBadge(true) : passBadge(false)]),
+    return el('div', {class: 'kpi'}, [
+      el('div', {style: 'display:flex;justify-content:space-between;gap:8px'}, [el('strong', {text: d.label}), passBadge(d.passed)]),
       el('p', {class: 'muted', style: 'font-size:12px;margin-top:6px'}, ['Truth ', priorityBadge(d.true_severity), '  Called ', dec.status === 'ok' ? priorityBadge(dec.priority) : el('span', {class: 'fail', text: dec.status})]),
       el('p', {style: 'font-size:12px;margin-top:6px', text: 'Evidence left: ' + (kept.join(', ') || 'none') + (d.evidence_lost.length ? '  |  lost: ' + d.evidence_lost.join(', ') : '')}),
       el('ul', {}, (reasons.length ? reasons : [dec.message || 'No escalations or review reasons.']).map(r => el('li', {text: r}))),
@@ -499,7 +961,7 @@ function renderRealism(r) {
 
 function renderProbe(probe) {
   if (!probe) { table('probe', ['Flat level (m)', 'Projected 6 h change (m)', 'Fusion reads it as'], []); return; }
-  document.getElementById('probe-note').textContent = 'Real gauges rise more than ' + probe.real_gauge_rise_6h_q99_m +
+  $('probe-note').textContent = 'Real gauges rise more than ' + probe.real_gauge_rise_6h_q99_m +
     ' m in 6 h in only 1% of windows; fusion escalates to URGENT at a projected rise of ' + probe.steep_rise_threshold_m + ' m.';
   table('probe', ['Flat level (m)', 'Forecast 6 h peak (m)', 'Projected change (m)', 'Fusion reads it as'], probe.rows.map(r => [
     r.flat_level_m.toFixed(1), r.peak_6h_m.toFixed(2), (r.change_6h_m >= 0 ? '+' : '') + r.change_6h_m.toFixed(2),
@@ -511,38 +973,16 @@ function renderFailures(failures) {
     [f.scenario_id, f.zone_id + ' ' + f.label, priorityBadge(f.true_severity), f.priority ? priorityBadge(f.priority) : (f.status || '-'), f.failures]));
 }
 
-function setupLive() {
-  if (!DATA.live) return;
-  document.getElementById('live-section').hidden = false;
-  const select = document.getElementById('prompt-select');
-  DATA.prompts.forEach(p => select.appendChild(el('option', {value: p.id, text: p.id + ' - ' + p.name})));
-  const describe = () => { const p = DATA.prompts.find(q => q.id === select.value); document.getElementById('prompt-text').textContent = p ? p.prompt : ''; };
-  select.addEventListener('change', describe); describe();
-  const btn = document.getElementById('run-btn'), out = document.getElementById('live-result');
-  btn.addEventListener('click', async () => {
-    btn.disabled = true; btn.textContent = 'Running (first run loads the Stage 01-04 models)...';
-    try {
-      const res = await fetch('/api/genai/stress-test', {method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({prompt_id: select.value, seed: parseInt(document.getElementById('seed-input').value, 10)})});
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'request failed');
-      const passed = data.zones.filter(z => z.passed).length;
-      out.replaceChildren(el('p', {style: 'margin-bottom:8px'}, [el('strong', {text: data.name + ': '}), data.passed ? passBadge(true) : el('span', {class: 'fail', text: passed + '/' + data.zones.length + ' zones passed'}), ' ranking tau ' + (data.ranking_tau ?? '-')]), el('div', {class: 'table-wrap'}, zoneTable(data.zones)));
-    } catch (err) { out.replaceChildren(el('p', {class: 'fail', text: 'Error: ' + err.message})); }
-    btn.disabled = false; btn.textContent = 'Generate & stress-test';
-  });
-}
-
-const report = DATA.report;
-setupLive();
-if (!report) {
-  document.getElementById('meta').textContent = 'No stress-test report yet. Run python Stage05_GenAI/04_evaluation_engineer.py.';
-} else {
-  const status = Object.entries(report.stage_status || {}).map(([k, v]) => k + ': ' + v).join('  |  ');
-  document.getElementById('meta').textContent = 'Report ' + report.generated_at + '  |  commit ' + (report.git_commit || 'n/a') + '  |  ' + status;
+// ---------------------------------------------------------------- boot
+setupTabs();
+renderMeta();
+setupSeed();
+renderCaseAnalysis();
+if (report) {
   renderKpis(report.summary, report.realism);
   renderScenarios(report.scenarios || []);
   renderWildcard(report.wildcard);
+  renderAudit(report.scenario_audit);
   renderRealism(report.realism);
   renderProbe(report.forecast_probe);
   renderFailures(report.failures || []);

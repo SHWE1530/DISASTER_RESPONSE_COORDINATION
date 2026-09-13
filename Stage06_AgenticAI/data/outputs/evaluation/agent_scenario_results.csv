@@ -1,0 +1,148 @@
+suite,variant,scenario_id,scenario,zones,zones_goal_passed,workflow_violations,inventory_over_commit,unsafe_commits,goal_passed,tool_calls,tool_errors,invalid_arguments,redundant_calls,steps,pending_approvals,escalations,mutual_aid_requests,commits,latency_ms,high_severity_needs,high_severity_needs_covered,priority_inversions,confident_wrong_allocations,plan_adherence,plan_check_ok,tot_branch,debate_objections,negotiations,reflexion_revisions,notifications
+cvae,agent,S01,Baseline river overflow,3,3,0,False,0,True,35,0,0,0,47,2,3,3,0,530.1,6,6,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S02,The 2 AM mission,3,3,0,False,0,True,41,0,0,0,57,3,6,9,0,305.2,9,5,0,0,1.0,True,one_each_then_rank,0,2,0,0
+cvae,agent,S03,Cyclonic coastal landfall,4,4,0,False,0,True,54,0,0,0,65,3,6,8,0,345.7,8,8,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S04,Urban cloudburst waterlogging,2,2,0,False,0,True,24,0,0,0,34,2,3,1,0,144.6,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S05,Negated flood rumour,2,1,0,False,0,False,17,0,0,0,27,1,1,0,0,185.8,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S06,Silent rise while residents sleep,2,2,0,False,0,True,14,0,0,0,26,2,2,0,0,126.8,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S07,Telemetry dropout,3,3,0,False,0,True,28,0,0,0,38,2,3,2,0,87.8,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S08,Gauge logger malfunction,2,2,0,False,0,True,22,0,0,0,32,1,2,1,0,148.5,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S09,People versus sensors,2,1,0,False,0,False,22,0,0,0,34,2,3,1,0,162.0,2,2,0,0,1.0,True,weighted_round_robin,1,1,0,0
+cvae,agent,S10,Camera versus gauge,2,2,0,False,0,True,22,0,0,0,32,1,1,0,0,261.8,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S11,Receding but still flooded,2,2,0,False,0,True,21,0,0,0,31,1,1,0,0,199.0,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S12,Bridge collapse isolation,2,2,0,False,0,True,31,0,0,0,43,2,4,6,0,182.7,6,5,0,0,1.0,True,weighted_round_robin,0,1,0,0
+cvae,agent,S13,Hospital ground floor flooding,2,2,0,False,0,True,26,0,0,0,36,2,3,3,0,183.3,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S14,Night dam spillway release,3,3,0,False,0,True,45,0,0,0,57,3,6,8,0,253.5,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S15,Five-state monsoon cascade,5,5,0,False,0,True,60,0,0,0,73,4,7,4,0,389.5,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S16,Out-of-season cloudburst,2,2,0,False,0,True,22,0,0,0,32,1,2,1,0,122.4,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S17,Garbled panic messages,3,3,0,False,0,True,36,0,0,0,47,2,4,4,0,235.6,5,5,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S18,All quiet (do not cry wolf),3,1,0,False,0,False,26,0,0,0,38,0,2,0,0,302.9,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,S19,"Four hazards, one district",2,2,0,False,0,True,32,0,0,0,43,2,4,6,0,159.8,6,6,0,0,1.0,True,weighted_round_robin,0,0,0,0
+cvae,agent,S20,"Slow onset, pre-position now",2,2,0,False,0,True,16,0,0,0,27,0,1,0,0,186.2,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,agent,W01,Flash flood + municipal blackout,4,4,0,False,0,True,37,0,0,0,53,4,7,7,0,231.8,7,4,0,0,1.0,True,weighted_round_robin,1,2,0,0
+cvae,fcfs_allocation,S01,Baseline river overflow,3,3,0,False,0,True,36,0,0,0,42,2,4,5,0,9.0,6,4,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S02,The 2 AM mission,3,3,0,False,0,True,39,0,0,0,46,3,6,9,0,10.1,9,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S03,Cyclonic coastal landfall,4,4,0,False,0,True,48,0,0,0,53,3,6,7,0,13.2,8,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S04,Urban cloudburst waterlogging,2,2,0,False,0,True,24,0,0,0,29,2,3,1,0,5.9,3,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S05,Negated flood rumour,2,1,0,False,0,False,17,0,0,0,22,1,1,0,0,5.0,0,0,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S06,Silent rise while residents sleep,2,2,0,False,0,True,14,0,0,0,20,2,2,0,0,4.3,2,2,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S07,Telemetry dropout,3,3,0,False,0,True,29,0,0,0,34,2,4,4,0,8.9,2,2,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S08,Gauge logger malfunction,2,2,0,False,0,True,22,0,0,0,27,1,2,1,0,12.0,3,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S09,People versus sensors,2,1,0,False,0,False,22,0,0,0,27,2,3,1,0,10.3,2,2,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S10,Camera versus gauge,2,2,0,False,0,True,22,0,0,0,27,1,1,0,0,9.3,3,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S11,Receding but still flooded,2,2,0,False,0,True,21,0,0,0,26,1,1,0,0,5.9,3,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S12,Bridge collapse isolation,2,2,0,False,0,True,29,0,0,0,34,2,4,6,0,10.2,6,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S13,Hospital ground floor flooding,2,2,0,False,0,True,27,0,0,0,32,2,4,4,0,11.3,3,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S14,Night dam spillway release,3,3,0,False,0,True,40,0,0,0,46,3,6,9,0,12.1,9,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S15,Five-state monsoon cascade,5,5,0,False,0,True,58,0,0,0,64,4,8,5,0,14.9,9,7,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S16,Out-of-season cloudburst,2,2,0,False,0,True,22,0,0,0,27,1,2,1,0,8.7,3,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S17,Garbled panic messages,3,3,0,False,0,True,34,0,0,0,39,2,4,3,0,9.3,5,4,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S18,All quiet (do not cry wolf),3,1,0,False,0,False,26,0,0,0,32,0,2,0,0,10.4,0,0,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S19,"Four hazards, one district",2,2,0,False,0,True,29,0,0,0,34,2,4,6,0,7.5,6,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,S20,"Slow onset, pre-position now",2,2,0,False,0,True,16,0,0,0,22,0,1,0,0,4.9,0,0,0,0,1.0,True,fcfs,0,0,0,0
+cvae,fcfs_allocation,W01,Flash flood + municipal blackout,4,4,0,False,0,True,36,0,0,0,44,4,7,7,0,9.1,7,3,0,0,1.0,True,fcfs,0,0,0,0
+cvae,no_safety_auditor,S01,Baseline river overflow,3,1,0,False,2,False,37,0,0,0,49,0,1,3,2,13.7,6,6,0,0,1.0,True,one_each_then_rank,0,0,0,2
+cvae,no_safety_auditor,S02,The 2 AM mission,3,0,0,False,3,False,44,0,0,0,60,0,3,9,3,14.9,9,5,0,0,1.0,True,one_each_then_rank,0,2,0,3
+cvae,no_safety_auditor,S03,Cyclonic coastal landfall,4,1,0,False,3,False,56,0,0,0,67,0,3,8,3,13.7,8,8,0,0,1.0,True,one_each_then_rank,0,0,0,2
+cvae,no_safety_auditor,S04,Urban cloudburst waterlogging,2,0,0,False,2,False,25,0,0,0,35,0,1,1,2,6.3,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,1
+cvae,no_safety_auditor,S05,Negated flood rumour,2,1,0,False,1,False,17,0,0,0,27,0,0,0,1,4.8,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,no_safety_auditor,S06,Silent rise while residents sleep,2,0,0,False,2,False,14,0,0,0,26,0,0,0,2,3.2,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,no_safety_auditor,S07,Telemetry dropout,3,1,0,False,2,False,28,0,0,0,38,0,1,2,2,8.7,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,no_safety_auditor,S08,Gauge logger malfunction,2,1,0,False,1,False,23,0,0,0,33,0,1,1,1,9.6,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,1
+cvae,no_safety_auditor,S09,People versus sensors,2,0,0,False,2,False,22,0,0,0,34,0,1,1,2,9.1,2,2,0,0,1.0,True,weighted_round_robin,1,1,0,0
+cvae,no_safety_auditor,S10,Camera versus gauge,2,1,0,False,1,False,23,0,0,0,33,0,0,0,1,6.7,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,1
+cvae,no_safety_auditor,S11,Receding but still flooded,2,1,0,False,1,False,22,0,0,0,32,0,0,0,1,7.5,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,1
+cvae,no_safety_auditor,S12,Bridge collapse isolation,2,0,0,False,2,False,33,0,0,0,45,0,2,6,2,7.5,6,5,0,0,1.0,True,weighted_round_robin,0,1,0,2
+cvae,no_safety_auditor,S13,Hospital ground floor flooding,2,0,0,False,2,False,27,0,0,0,37,0,1,3,2,6.6,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,1
+cvae,no_safety_auditor,S14,Night dam spillway release,3,0,0,False,3,False,48,0,0,0,60,0,3,8,3,11.0,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,3
+cvae,no_safety_auditor,S15,Five-state monsoon cascade,5,1,0,False,4,False,63,0,0,0,76,0,3,4,4,19.1,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,3
+cvae,no_safety_auditor,S16,Out-of-season cloudburst,2,1,0,False,1,False,23,0,0,0,33,0,1,1,1,7.9,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,1
+cvae,no_safety_auditor,S17,Garbled panic messages,3,1,0,False,2,False,38,0,0,0,49,0,2,4,2,9.3,5,5,0,0,1.0,True,one_each_then_rank,0,0,0,2
+cvae,no_safety_auditor,S18,All quiet (do not cry wolf),3,1,0,False,0,False,26,0,0,0,38,0,2,0,0,7.1,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,no_safety_auditor,S19,"Four hazards, one district",2,0,0,False,2,False,34,0,0,0,45,0,2,6,2,8.8,6,6,0,0,1.0,True,weighted_round_robin,0,0,0,2
+cvae,no_safety_auditor,S20,"Slow onset, pre-position now",2,2,0,False,0,True,16,0,0,0,27,0,1,0,0,4.8,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,no_safety_auditor,W01,Flash flood + municipal blackout,4,1,0,False,3,False,39,0,0,0,55,0,4,7,3,9.3,7,4,0,0,1.0,True,weighted_round_robin,1,2,0,2
+cvae,stage01_outage,S01,Baseline river overflow,3,3,0,False,0,True,39,6,0,3,49,2,4,3,0,231.4,5,5,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S02,The 2 AM mission,3,2,0,False,0,False,37,6,0,3,51,2,4,5,0,236.6,5,3,0,0,1.0,True,one_each_then_rank,0,2,0,0
+cvae,stage01_outage,S03,Cyclonic coastal landfall,4,4,0,False,0,True,53,8,0,4,65,3,6,7,0,274.1,7,7,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S04,Urban cloudburst waterlogging,2,2,0,False,0,True,25,4,0,2,35,1,2,1,0,120.9,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S05,Negated flood rumour,2,1,0,False,0,False,19,4,0,2,29,1,1,0,0,172.5,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S06,Silent rise while residents sleep,2,0,0,False,0,False,11,4,0,2,23,0,0,0,0,109.9,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S07,Telemetry dropout,3,3,0,False,0,True,25,2,0,1,35,1,2,2,0,67.5,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S08,Gauge logger malfunction,2,2,0,False,0,True,17,4,0,2,28,0,0,0,0,133.6,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S09,People versus sensors,2,0,0,False,0,False,31,4,0,2,43,2,4,5,0,125.6,3,3,0,0,1.0,True,weighted_round_robin,1,1,0,0
+cvae,stage01_outage,S10,Camera versus gauge,2,1,0,False,0,False,22,4,0,2,32,1,1,0,0,195.3,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S11,Receding but still flooded,2,2,0,False,0,True,23,4,0,2,33,1,1,0,0,174.7,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S12,Bridge collapse isolation,2,2,0,False,0,True,31,4,0,2,42,2,4,5,0,168.9,5,4,0,0,1.0,True,one_each_then_rank,0,1,0,0
+cvae,stage01_outage,S13,Hospital ground floor flooding,2,2,0,False,0,True,25,4,0,2,35,1,2,3,0,167.0,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S14,Night dam spillway release,3,3,0,False,0,True,42,6,0,3,52,3,5,4,0,103.3,7,7,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S15,Five-state monsoon cascade,5,5,0,False,0,True,52,10,0,5,65,2,3,0,0,157.9,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S16,Out-of-season cloudburst,2,1,0,False,0,False,18,4,0,2,31,0,0,0,0,50.4,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S17,Garbled panic messages,3,2,0,False,0,False,31,6,0,3,43,1,2,1,0,86.8,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S18,All quiet (do not cry wolf),3,1,0,False,0,False,29,6,0,3,41,0,2,0,0,78.8,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S19,"Four hazards, one district",2,2,0,False,0,True,27,4,0,2,37,1,2,3,0,42.3,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,S20,"Slow onset, pre-position now",2,2,0,False,0,True,18,4,0,2,29,0,1,0,0,43.5,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage01_outage,W01,Flash flood + municipal blackout,4,4,0,False,0,True,30,4,0,2,44,3,4,2,0,73.2,3,2,0,0,1.0,True,one_each_then_rank,0,1,0,0
+cvae,stage03_outage,S01,Baseline river overflow,3,3,0,False,0,True,38,6,0,3,50,2,3,3,0,143.5,6,6,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S02,The 2 AM mission,3,3,0,False,0,True,42,6,0,3,61,3,6,9,0,144.3,9,5,0,0,1.0,True,weighted_round_robin,2,2,0,0
+cvae,stage03_outage,S03,Cyclonic coastal landfall,4,4,0,False,0,True,54,8,0,4,67,3,6,6,0,195.3,7,7,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S04,Urban cloudburst waterlogging,2,2,0,False,0,True,26,4,0,2,37,2,3,1,0,75.3,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S05,Negated flood rumour,2,1,0,False,0,False,21,4,0,2,32,0,1,0,0,99.7,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S06,Silent rise while residents sleep,2,2,0,False,0,True,14,0,0,0,26,2,2,0,0,91.1,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S07,Telemetry dropout,3,1,0,False,0,False,17,6,0,3,27,3,3,0,0,51.1,0,0,0,0,0.6364,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S08,Gauge logger malfunction,2,2,0,False,0,True,24,4,0,2,34,1,2,1,0,103.4,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S09,People versus sensors,2,0,0,False,0,False,20,4,0,2,33,0,2,0,0,98.0,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S10,Camera versus gauge,2,2,0,False,0,True,28,4,0,2,40,2,3,1,0,119.3,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S11,Receding but still flooded,2,2,0,False,0,True,23,4,0,2,33,1,1,0,0,99.2,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S12,Bridge collapse isolation,2,2,0,False,0,True,32,4,0,2,45,2,4,6,0,87.1,6,5,0,0,1.0,True,weighted_round_robin,0,1,0,0
+cvae,stage03_outage,S13,Hospital ground floor flooding,2,2,0,False,0,True,28,4,0,2,39,2,3,3,0,99.1,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S14,Night dam spillway release,3,3,0,False,0,True,47,6,0,3,60,3,6,8,0,149.1,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S15,Five-state monsoon cascade,5,5,0,False,0,True,59,10,0,5,73,3,5,2,0,185.1,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S16,Out-of-season cloudburst,2,2,0,False,0,True,24,4,0,2,34,1,2,1,0,64.9,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S17,Garbled panic messages,3,3,0,False,0,True,39,6,0,3,50,2,4,4,0,91.6,5,5,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S18,All quiet (do not cry wolf),3,1,0,False,0,False,30,6,0,3,43,0,2,0,0,139.0,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,S19,"Four hazards, one district",2,2,0,False,0,True,33,4,0,2,45,2,4,6,0,88.0,6,6,0,0,1.0,True,weighted_round_robin,0,0,0,0
+cvae,stage03_outage,S20,"Slow onset, pre-position now",2,2,0,False,0,True,18,4,0,2,29,0,1,0,0,87.6,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage03_outage,W01,Flash flood + municipal blackout,4,3,0,False,0,False,34,6,0,3,49,4,6,6,0,107.8,6,4,0,0,0.8667,True,weighted_round_robin,0,2,0,0
+cvae,stage02_flaky,S01,Baseline river overflow,3,3,0,False,0,True,39,4,0,0,51,2,3,3,0,170.4,6,6,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S02,The 2 AM mission,3,3,0,False,0,True,45,4,0,0,61,3,6,9,0,185.4,9,5,0,0,1.0,True,one_each_then_rank,0,2,0,0
+cvae,stage02_flaky,S03,Cyclonic coastal landfall,4,4,0,False,0,True,59,5,0,0,70,3,6,8,0,214.4,8,8,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S04,Urban cloudburst waterlogging,2,2,0,False,0,True,26,2,0,0,36,2,3,1,0,115.2,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S05,Negated flood rumour,2,1,0,False,0,False,20,3,0,0,30,1,1,0,0,130.0,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S06,Silent rise while residents sleep,2,2,0,False,0,True,16,2,0,0,28,2,2,0,0,75.0,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S07,Telemetry dropout,3,3,0,False,0,True,29,1,0,0,39,2,3,2,0,62.3,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S08,Gauge logger malfunction,2,2,0,False,0,True,24,2,0,0,34,1,2,1,0,93.5,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S09,People versus sensors,2,1,0,False,0,False,24,2,0,0,36,2,3,1,0,98.5,2,2,0,0,1.0,True,weighted_round_robin,1,1,0,0
+cvae,stage02_flaky,S10,Camera versus gauge,2,2,0,False,0,True,26,4,0,0,36,1,1,0,0,165.5,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S11,Receding but still flooded,2,2,0,False,0,True,24,3,0,0,34,1,1,0,0,166.0,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S12,Bridge collapse isolation,2,2,0,False,0,True,34,3,0,0,46,2,4,6,0,200.4,6,5,0,0,1.0,True,weighted_round_robin,0,1,0,0
+cvae,stage02_flaky,S13,Hospital ground floor flooding,2,2,0,False,0,True,29,3,0,0,39,2,3,3,0,188.5,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S14,Night dam spillway release,3,3,0,False,0,True,49,4,0,0,61,3,6,8,0,251.4,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S15,Five-state monsoon cascade,5,5,0,False,0,True,66,6,0,0,79,4,7,4,0,359.8,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S16,Out-of-season cloudburst,2,2,0,False,0,True,24,2,0,0,34,1,2,1,0,98.3,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S17,Garbled panic messages,3,3,0,False,0,True,39,3,0,0,50,2,4,4,0,176.3,5,5,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S18,All quiet (do not cry wolf),3,1,0,False,0,False,30,4,0,0,42,0,2,0,0,200.9,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,S19,"Four hazards, one district",2,2,0,False,0,True,34,2,0,0,45,2,4,6,0,133.1,6,6,0,0,1.0,True,weighted_round_robin,0,0,0,0
+cvae,stage02_flaky,S20,"Slow onset, pre-position now",2,2,0,False,0,True,18,2,0,0,29,0,1,0,0,145.8,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+cvae,stage02_flaky,W01,Flash flood + municipal blackout,4,4,0,False,0,True,40,3,0,0,56,4,7,7,0,180.4,7,4,0,0,1.0,True,weighted_round_robin,1,2,0,0
+slm,agent,S01,Baseline river overflow,3,3,0,False,0,True,34,0,0,0,45,2,4,1,0,206.6,6,6,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S02,The 2 AM mission,3,3,0,False,0,True,39,0,0,0,57,3,6,9,0,197.0,9,5,0,0,1.0,True,weighted_round_robin,0,2,0,0
+slm,agent,S03,Cyclonic coastal landfall,4,4,0,False,0,True,56,0,0,0,67,3,7,8,0,246.2,9,9,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S04,Urban cloudburst waterlogging,2,2,0,False,0,True,24,0,0,0,34,1,3,1,0,170.9,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S05,Negated flood rumour,2,0,0,False,0,False,19,0,0,0,32,0,2,0,0,167.8,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S06,Silent rise while residents sleep,2,2,0,False,0,True,14,0,0,0,26,2,2,0,0,135.2,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S07,Telemetry dropout,3,2,0,False,0,False,19,0,0,0,34,0,0,0,0,98.4,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S08,Gauge logger malfunction,2,2,0,False,0,True,22,0,0,0,32,1,2,1,0,119.8,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S09,People versus sensors,2,0,0,False,0,False,25,0,0,0,35,1,3,3,0,152.7,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S10,Camera versus gauge,2,1,0,False,0,False,22,0,0,0,32,1,2,0,0,220.3,2,2,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S11,Receding but still flooded,2,2,0,False,0,True,21,0,0,0,31,1,1,0,0,111.2,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S12,Bridge collapse isolation,2,2,0,False,0,True,30,0,0,0,42,2,4,6,0,155.0,6,5,1,1,1.0,True,one_each_then_rank,0,1,0,0
+slm,agent,S13,Hospital ground floor flooding,2,2,0,False,0,True,25,0,0,0,35,1,2,3,0,104.4,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S14,Night dam spillway release,3,3,0,False,0,True,44,0,0,0,56,3,6,8,0,161.7,8,8,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S15,Five-state monsoon cascade,5,5,0,False,0,True,57,0,0,0,73,3,7,4,0,305.3,9,9,0,0,1.0,True,weighted_round_robin,0,0,0,0
+slm,agent,S16,Out-of-season cloudburst,2,2,0,False,0,True,23,0,0,0,33,1,3,1,0,129.7,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S17,Garbled panic messages,3,3,0,False,0,True,37,0,0,0,49,2,5,4,0,208.5,6,6,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S18,All quiet (do not cry wolf),3,1,0,False,0,False,26,0,0,0,38,0,2,0,0,219.0,0,0,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S19,"Four hazards, one district",2,2,0,False,0,True,30,0,0,0,40,2,4,5,0,145.4,5,5,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,S20,"Slow onset, pre-position now",2,2,0,False,0,True,21,0,0,0,31,1,2,0,0,119.2,3,3,0,0,1.0,True,one_each_then_rank,0,0,0,0
+slm,agent,W01,Flash flood + municipal blackout,4,4,0,False,0,True,35,0,0,0,51,4,7,6,0,126.2,6,3,0,0,1.0,True,one_each_then_rank,0,2,0,0

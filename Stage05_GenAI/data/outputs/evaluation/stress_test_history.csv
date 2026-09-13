@@ -1,3 +1,7 @@
-run_at,git_commit,seed,slm_model,scenario_pass_rate,zone_pass_rate,critical_miss_rate,priority_exact_accuracy,crashes,c2st_auc
-2026-09-11T11:25:55+00:00,db120b0,42,slm_baseline,0.8,0.902,0.0312,0.7451,0,0.9657
-2026-09-11T11:30:39+00:00,db120b0,42,slm_baseline,0.85,0.9216,0.0,0.7059,0,0.7625
+run_at,git_commit,seed,slm_model,scenario_pass_rate,zone_pass_rate,critical_miss_rate,priority_exact_accuracy,crashes,c2st_auc,realism_score_mean,overconfidence_rate,blind_spot_coverage
+2026-09-11T11:25:55+00:00,db120b0,42,slm_baseline,0.8,0.902,0.0312,0.7451,0,0.9657,,,
+2026-09-11T11:30:39+00:00,db120b0,42,slm_baseline,0.85,0.9216,0.0,0.7059,0,0.7625,,,
+2026-09-12T06:21:25+00:00,9bda9a4,42,slm_baseline,0.85,0.9216,0.0,0.7059,0,0.7625,0.9843,0.0392,1.0
+2026-09-12T06:23:26+00:00,9bda9a4,42,slm_baseline,0.85,0.9216,0.0,0.7059,0,,0.9843,0.0392,1.0
+2026-09-12T06:26:22+00:00,9bda9a4,42,slm_baseline,0.85,0.9216,0.0,0.7059,0,0.7625,0.9843,0.0392,1.0
+2026-09-12T09:31:01+00:00,9bda9a4,42,slm_baseline,0.8,0.8627,0.0,0.5882,0,,0.9892,0.0196,1.0

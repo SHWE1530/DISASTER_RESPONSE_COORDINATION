@@ -1,0 +1,560 @@
+[
+  {
+    "term":"water pump",
+    "category":"Resource",
+    "shorthand":"RES-WP",
+    "expansion":"Water Pump",
+    "definition":"Response resource requested in dispatcher logs; appears 9,432 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch water pump to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"ambulance",
+    "category":"Resource",
+    "shorthand":"RES-AMBU",
+    "expansion":"Ambulance",
+    "definition":"Response resource requested in dispatcher logs; appears 6,899 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch ambulance to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"relief supplies",
+    "category":"Resource",
+    "shorthand":"RES-RS",
+    "expansion":"Relief Supplies",
+    "definition":"Response resource requested in dispatcher logs; appears 5,681 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch relief supplies to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"NDRF flood rescue team",
+    "category":"Resource",
+    "shorthand":"RES-NFRT",
+    "expansion":"Ndrf Flood Rescue Team",
+    "definition":"Response resource requested in dispatcher logs; appears 5,643 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch NDRF flood rescue team to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"rescue boat",
+    "category":"Resource",
+    "shorthand":"RES-RB",
+    "expansion":"Rescue Boat",
+    "definition":"Response resource requested in dispatcher logs; appears 5,641 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch rescue boat to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"life jackets",
+    "category":"Resource",
+    "shorthand":"RES-LJ",
+    "expansion":"Life Jackets",
+    "definition":"Response resource requested in dispatcher logs; appears 5,535 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch life jackets to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"rescue rope and ladder",
+    "category":"Resource",
+    "shorthand":"RES-RRAL",
+    "expansion":"Rescue Rope And Ladder",
+    "definition":"Response resource requested in dispatcher logs; appears 5,138 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch rescue rope and ladder to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"NDRF rescue team",
+    "category":"Resource",
+    "shorthand":"RES-NRT",
+    "expansion":"Ndrf Rescue Team",
+    "definition":"Response resource requested in dispatcher logs; appears 5,054 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch NDRF rescue team to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"fire and rescue unit",
+    "category":"Resource",
+    "shorthand":"RES-FARU",
+    "expansion":"Fire And Rescue Unit",
+    "definition":"Response resource requested in dispatcher logs; appears 4,976 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch fire and rescue unit to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"road clearance team",
+    "category":"Resource",
+    "shorthand":"RES-RCT",
+    "expansion":"Road Clearance Team",
+    "definition":"Response resource requested in dispatcher logs; appears 3,637 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch road clearance team to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"drainage team",
+    "category":"Resource",
+    "shorthand":"RES-DT",
+    "expansion":"Drainage Team",
+    "definition":"Response resource requested in dispatcher logs; appears 3,595 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch drainage team to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"sandbags",
+    "category":"Resource",
+    "shorthand":"RES-SAND",
+    "expansion":"Sandbags",
+    "definition":"Response resource requested in dispatcher logs; appears 3,535 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch sandbags to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"tow truck",
+    "category":"Resource",
+    "shorthand":"RES-TT",
+    "expansion":"Tow Truck",
+    "definition":"Response resource requested in dispatcher logs; appears 2,444 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch tow truck to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"traffic police team",
+    "category":"Resource",
+    "shorthand":"RES-TPT",
+    "expansion":"Traffic Police Team",
+    "definition":"Response resource requested in dispatcher logs; appears 2,405 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch traffic police team to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"earthmover (JCB)",
+    "category":"Resource",
+    "shorthand":"RES-EJ",
+    "expansion":"Earthmover (Jcb)",
+    "definition":"Response resource requested in dispatcher logs; appears 2,399 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch earthmover (JCB) to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"road clearance crew",
+    "category":"Resource",
+    "shorthand":"RES-RCC",
+    "expansion":"Road Clearance Crew",
+    "definition":"Response resource requested in dispatcher logs; appears 2,350 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch road clearance crew to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"emergency medical team",
+    "category":"Resource",
+    "shorthand":"RES-EMT",
+    "expansion":"Emergency Medical Team",
+    "definition":"Response resource requested in dispatcher logs; appears 2,024 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch emergency medical team to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"paramedic team",
+    "category":"Resource",
+    "shorthand":"RES-PT",
+    "expansion":"Paramedic Team",
+    "definition":"Response resource requested in dispatcher logs; appears 1,997 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch paramedic team to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"medical first-aid kit",
+    "category":"Resource",
+    "shorthand":"RES-MFAK",
+    "expansion":"Medical First-Aid Kit",
+    "definition":"Response resource requested in dispatcher logs; appears 1,985 times in the Stage 03 corpus.",
+    "example_usage":"Dispatch medical first-aid kit to the affected location.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"industrial area",
+    "category":"Location type",
+    "shorthand":"LOC-IA",
+    "expansion":"Industrial Area",
+    "definition":"Location descriptor used in incident reports; appears 4,099 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the industrial area.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"riverside settlement",
+    "category":"Location type",
+    "shorthand":"LOC-RS",
+    "expansion":"Riverside Settlement",
+    "definition":"Location descriptor used in incident reports; appears 4,098 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the riverside settlement.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"railway crossing",
+    "category":"Location type",
+    "shorthand":"LOC-RC",
+    "expansion":"Railway Crossing",
+    "definition":"Location descriptor used in incident reports; appears 4,046 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the railway crossing.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"bus stand",
+    "category":"Location type",
+    "shorthand":"LOC-BS",
+    "expansion":"Bus Stand",
+    "definition":"Location descriptor used in incident reports; appears 4,023 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the bus stand.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"hilly terrain",
+    "category":"Location type",
+    "shorthand":"LOC-HT",
+    "expansion":"Hilly Terrain",
+    "definition":"Location descriptor used in incident reports; appears 4,007 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the hilly terrain.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"national highway",
+    "category":"Location type",
+    "shorthand":"LOC-NH",
+    "expansion":"National Highway",
+    "definition":"Location descriptor used in incident reports; appears 4,005 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the national highway.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"government hospital",
+    "category":"Location type",
+    "shorthand":"LOC-GH",
+    "expansion":"Government Hospital",
+    "definition":"Location descriptor used in incident reports; appears 4,003 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the government hospital.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"local market",
+    "category":"Location type",
+    "shorthand":"LOC-LM",
+    "expansion":"Local Market",
+    "definition":"Location descriptor used in incident reports; appears 4,001 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the local market.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"village school",
+    "category":"Location type",
+    "shorthand":"LOC-VS",
+    "expansion":"Village School",
+    "definition":"Location descriptor used in incident reports; appears 3,992 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the village school.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"main bridge",
+    "category":"Location type",
+    "shorthand":"LOC-MB",
+    "expansion":"Main Bridge",
+    "definition":"Location descriptor used in incident reports; appears 3,982 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the main bridge.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"river bank",
+    "category":"Location type",
+    "shorthand":"LOC-RB",
+    "expansion":"River Bank",
+    "definition":"Location descriptor used in incident reports; appears 3,971 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the river bank.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"old town area",
+    "category":"Location type",
+    "shorthand":"LOC-OTA",
+    "expansion":"Old Town Area",
+    "definition":"Location descriptor used in incident reports; appears 3,967 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the old town area.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"residential colony",
+    "category":"Location type",
+    "shorthand":"LOC-RC",
+    "expansion":"Residential Colony",
+    "definition":"Location descriptor used in incident reports; appears 3,942 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the residential colony.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"low-lying area",
+    "category":"Location type",
+    "shorthand":"LOC-LLA",
+    "expansion":"Low-Lying Area",
+    "definition":"Location descriptor used in incident reports; appears 3,941 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the low-lying area.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"highway junction",
+    "category":"Location type",
+    "shorthand":"LOC-HJ",
+    "expansion":"Highway Junction",
+    "definition":"Location descriptor used in incident reports; appears 3,923 times in the Stage 03 corpus.",
+    "example_usage":"Flooding reported near the highway junction.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"Flood",
+    "category":"Hazard type",
+    "shorthand":"HZ-F",
+    "expansion":"Flood",
+    "definition":"Hazard classification assigned to an incident by the Stage 03 pipeline.",
+    "example_usage":"Hazard type: Flood.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"Medical Emergency",
+    "category":"Hazard type",
+    "shorthand":"HZ-ME",
+    "expansion":"Medical Emergency",
+    "definition":"Hazard classification assigned to an incident by the Stage 03 pipeline.",
+    "example_usage":"Hazard type: Medical Emergency.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"Rescue Emergency",
+    "category":"Hazard type",
+    "shorthand":"HZ-RE",
+    "expansion":"Rescue Emergency",
+    "definition":"Hazard classification assigned to an incident by the Stage 03 pipeline.",
+    "example_usage":"Hazard type: Rescue Emergency.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"Road Blockage",
+    "category":"Hazard type",
+    "shorthand":"HZ-RB",
+    "expansion":"Road Blockage",
+    "definition":"Hazard classification assigned to an incident by the Stage 03 pipeline.",
+    "example_usage":"Hazard type: Road Blockage.",
+    "origin":"derived from Stage 03 corpus"
+  },
+  {
+    "term":"LOW",
+    "category":"Severity level",
+    "shorthand":"SEV-L",
+    "expansion":"Low",
+    "definition":"Incident severity. Maps to briefing priority 'ROUTINE' in the Stage 04 summary format.",
+    "example_usage":"ROUTINE: low severity incident.",
+    "origin":"project-defined (Stage 03 label space)"
+  },
+  {
+    "term":"MEDIUM",
+    "category":"Severity level",
+    "shorthand":"SEV-M",
+    "expansion":"Medium",
+    "definition":"Incident severity. Maps to briefing priority 'ELEVATED' in the Stage 04 summary format.",
+    "example_usage":"ELEVATED: medium severity incident.",
+    "origin":"project-defined (Stage 03 label space)"
+  },
+  {
+    "term":"HIGH",
+    "category":"Severity level",
+    "shorthand":"SEV-H",
+    "expansion":"High",
+    "definition":"Incident severity. Maps to briefing priority 'URGENT' in the Stage 04 summary format.",
+    "example_usage":"URGENT: high severity incident.",
+    "origin":"project-defined (Stage 03 label space)"
+  },
+  {
+    "term":"CRITICAL",
+    "category":"Severity level",
+    "shorthand":"SEV-C",
+    "expansion":"Critical",
+    "definition":"Incident severity. Maps to briefing priority 'IMMEDIATE' in the Stage 04 summary format.",
+    "example_usage":"IMMEDIATE: critical severity incident.",
+    "origin":"project-defined (Stage 03 label space)"
+  },
+  {
+    "term":"Incident Commander",
+    "category":"Incident-command term",
+    "shorthand":"IC",
+    "expansion":"Incident Commander",
+    "definition":"The single person accountable for overall management of an incident.",
+    "example_usage":"IC has authorised evacuation of the zone.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Staging Area",
+    "category":"Incident-command term",
+    "shorthand":"STAGING",
+    "expansion":"Staging Area",
+    "definition":"A location where resources are held ready for assignment.",
+    "example_usage":"Hold the ambulance fleet at the staging area.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Triage",
+    "category":"Incident-command term",
+    "shorthand":"TRIAGE",
+    "expansion":"Triage",
+    "definition":"Sorting casualties by urgency of the treatment they need.",
+    "example_usage":"Begin triage at the shelter entrance.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Evacuation",
+    "category":"Incident-command term",
+    "shorthand":"EVAC",
+    "expansion":"Evacuation",
+    "definition":"Organised movement of people away from a threatened area.",
+    "example_usage":"EVAC under way for the residential colony.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Shelter-in-place",
+    "category":"Incident-command term",
+    "shorthand":"SIP",
+    "expansion":"Shelter-in-place",
+    "definition":"Instruction to remain indoors rather than evacuate.",
+    "example_usage":"Advise SIP until the water level falls.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Situation Report",
+    "category":"Incident-command term",
+    "shorthand":"SITREP",
+    "expansion":"Situation Report",
+    "definition":"A periodic summary of current conditions and actions.",
+    "example_usage":"Submit a SITREP every thirty minutes.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Estimated Time of Arrival",
+    "category":"Incident-command term",
+    "shorthand":"ETA",
+    "expansion":"Estimated Time of Arrival",
+    "definition":"Expected arrival time of a resource on scene.",
+    "example_usage":"Rescue boat ETA fifteen minutes.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Casualty",
+    "category":"Incident-command term",
+    "shorthand":"CAS",
+    "expansion":"Casualty",
+    "definition":"A person injured or killed in an incident.",
+    "example_usage":"Three CAS reported at the main bridge.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Access Route",
+    "category":"Incident-command term",
+    "shorthand":"ACCESS",
+    "expansion":"Access Route",
+    "definition":"A road or path usable to reach the incident.",
+    "example_usage":"Confirm access route before committing units.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"Standby",
+    "category":"Incident-command term",
+    "shorthand":"STANDBY",
+    "expansion":"Standby",
+    "definition":"Resource is ready but not yet committed.",
+    "example_usage":"Place the medical team on standby.",
+    "origin":"standard incident-command terminology"
+  },
+  {
+    "term":"National Disaster Response Force",
+    "category":"Agency",
+    "shorthand":"NDRF",
+    "expansion":"National Disaster Response Force",
+    "definition":"India's national specialist disaster-response force. Referenced directly in Stage 03 resource strings.",
+    "example_usage":"Request support from NDRF.",
+    "origin":"real agency referenced in project data"
+  },
+  {
+    "term":"State Disaster Response Force",
+    "category":"Agency",
+    "shorthand":"SDRF",
+    "expansion":"State Disaster Response Force",
+    "definition":"State-level counterpart to the NDRF.",
+    "example_usage":"Request support from SDRF.",
+    "origin":"real agency referenced in project data"
+  },
+  {
+    "term":"Central Water Commission",
+    "category":"Agency",
+    "shorthand":"CWC",
+    "expansion":"Central Water Commission",
+    "definition":"Source agency for the river-level and rainfall telemetry used in Stage 01 and Stage 02.",
+    "example_usage":"Request support from CWC.",
+    "origin":"real agency referenced in project data"
+  },
+  {
+    "term":"India Meteorological Department",
+    "category":"Agency",
+    "shorthand":"IMD",
+    "expansion":"India Meteorological Department",
+    "definition":"Source agency for the rainfall data referenced in Stage 01.",
+    "example_usage":"Request support from IMD.",
+    "origin":"real agency referenced in project data"
+  },
+  {
+    "term":"National Disaster Management Authority",
+    "category":"Agency",
+    "shorthand":"NDMA",
+    "expansion":"National Disaster Management Authority",
+    "definition":"Source agency for the vulnerability and impact data in Stage 01.",
+    "example_usage":"Request support from NDMA.",
+    "origin":"real agency referenced in project data"
+  },
+  {
+    "term":"Emergency Response Support System",
+    "category":"Agency",
+    "shorthand":"ERSS",
+    "expansion":"Emergency Response Support System",
+    "definition":"The incident-ID prefix used throughout the Stage 03 dispatcher log (for example ERSS-000001).",
+    "example_usage":"Request support from ERSS.",
+    "origin":"real agency referenced in project data"
+  },
+  {
+    "term":"ROUTINE",
+    "category":"Briefing priority",
+    "shorthand":"P-ROUT",
+    "expansion":"Routine",
+    "definition":"Opening keyword of a Stage 04 briefing. Emitted when the worst entry in the log is LOW.",
+    "example_usage":"ROUTINE: flooding across ZONE-3.",
+    "origin":"project-defined (Stage 04 summary format)"
+  },
+  {
+    "term":"ELEVATED",
+    "category":"Briefing priority",
+    "shorthand":"P-ELEV",
+    "expansion":"Elevated",
+    "definition":"Opening keyword of a Stage 04 briefing. Emitted when the worst entry in the log is MEDIUM.",
+    "example_usage":"ELEVATED: flooding across ZONE-3.",
+    "origin":"project-defined (Stage 04 summary format)"
+  },
+  {
+    "term":"URGENT",
+    "category":"Briefing priority",
+    "shorthand":"P-URGE",
+    "expansion":"Urgent",
+    "definition":"Opening keyword of a Stage 04 briefing. Emitted when the worst entry in the log is HIGH.",
+    "example_usage":"URGENT: flooding across ZONE-3.",
+    "origin":"project-defined (Stage 04 summary format)"
+  },
+  {
+    "term":"IMMEDIATE",
+    "category":"Briefing priority",
+    "shorthand":"P-IMME",
+    "expansion":"Immediate",
+    "definition":"Opening keyword of a Stage 04 briefing. Emitted when the worst entry in the log is CRITICAL.",
+    "example_usage":"IMMEDIATE: flooding across ZONE-3.",
+    "origin":"project-defined (Stage 04 summary format)"
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "resource_types": [
+    "rescue_boats",
+    "ambulances",
+    "shelter_beds"
+  ],
+  "phrase_to_inventory": {
+    "water pump": null,
+    "ambulance": "ambulances",
+    "relief supplies": "shelter_beds",
+    "NDRF flood rescue team": "rescue_boats",
+    "rescue boat": "rescue_boats",
+    "life jackets": "rescue_boats",
+    "rescue rope and ladder": "rescue_boats",
+    "NDRF rescue team": "rescue_boats",
+    "fire and rescue unit": "rescue_boats",
+    "road clearance team": null,
+    "drainage team": null,
+    "sandbags": null,
+    "tow truck": null,
+    "traffic police team": null,
+    "earthmover (JCB)": null,
+    "road clearance crew": null,
+    "emergency medical team": "ambulances",
+    "paramedic team": "ambulances",
+    "medical first-aid kit": "ambulances"
+  },
+  "unmapped_phrases": [
+    "drainage team",
+    "earthmover (JCB)",
+    "road clearance crew",
+    "road clearance team",
+    "sandbags",
+    "tow truck",
+    "traffic police team",
+    "water pump"
+  ],
+  "planning_ratios": {
+    "people_per_boat": 50,
+    "people_per_ambulance": 40,
+    "shelter_beds_per_evacuee": 1
+  },
+  "default_inventory": {
+    "rescue_boats": 2,
+    "ambulances": 2,
+    "shelter_beds": 110
+  },
+  "default_inventory_source": "median over 20 Stage 05 suite scenarios"
+}

@@ -1,0 +1,6 @@
+generated_at,git_commit,suite,scenario_goal_success_rate,zone_goal_success_rate,priority_exact_accuracy,critical_misses,tool_precision,tool_recall,unsafe_commits,workflow_violations
+2026-09-13T04:38:07+00:00,9bda9a4,cvae,0.8095,0.9091,0.7037,0,0.9869,1.0,0,0
+2026-09-13T04:46:02+00:00,9bda9a4,cvae,0.8571,0.9273,0.7037,0,0.9869,1.0,0,0
+2026-09-13T05:42:09+00:00,9bda9a4,cvae,0.8571,0.9273,0.7037,0,0.9869,1.0,0,0
+2026-09-13T08:48:35+00:00,9bda9a4,cvae,0.8571,0.9273,0.7037,0,0.9869,1.0,0,0
+2026-09-13T09:39:03+00:00,9bda9a4,cvae,0.8571,0.9273,0.7037,0,0.9869,1.0,0,0.0,4,0

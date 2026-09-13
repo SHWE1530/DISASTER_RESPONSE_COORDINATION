@@ -1,0 +1,116 @@
+{
+  "generated_at": "2026-09-13T09:33:59+00:00",
+  "sources": {
+    "sop_corpus": "Stage04_SLM/data/processed/Safety_SOP_Dataset_PROCESSED.csv",
+    "sensor_record": "Stage01_ML/data/processed/Master_Processed_Dataset.csv",
+    "domain_dictionary": "Stage04_SLM/data/processed/SLM_Domain_Dictionary.csv",
+    "scenario_suite": "Stage05_GenAI/data/outputs/scenarios/scenario_suite.json"
+  },
+  "sop_filtering": {
+    "input": 1697,
+    "too_short": 562,
+    "directory_listing": 86,
+    "acronym_glossary": 6,
+    "duplicate": 5,
+    "kept": 1038
+  },
+  "sop_vocabulary": 14107,
+  "sop_documents": [
+    "DISMGPLAN_SOP",
+    "NIDM_SOP",
+    "NPDM_SOP"
+  ],
+  "districts": 50,
+  "states": 10,
+  "resource_catalog": {
+    "types": [
+      "rescue_boats",
+      "ambulances",
+      "shelter_beds"
+    ],
+    "mapped_phrases": 11,
+    "unmapped_phrases": 8,
+    "default_inventory": {
+      "rescue_boats": 2,
+      "ambulances": 2,
+      "shelter_beds": 110
+    }
+  },
+  "glossary_terms": 62,
+  "tools": [
+    "query_sensor_risk_score",
+    "predict_visual_flood",
+    "forecast_water_level",
+    "parse_emergency_text",
+    "assess_zone",
+    "generate_tactical_briefing",
+    "get_district_profile",
+    "search_sop",
+    "recall_precedents",
+    "check_resource_inventory",
+    "reserve_resources",
+    "release_resources",
+    "escalate_to_human",
+    "request_mutual_aid",
+    "issue_alert",
+    "notify_shelter",
+    "commit_rescue_dispatch",
+    "recall_dispatch"
+  ],
+  "retrieval_check": {
+    "k": 3,
+    "mean_precision_at_k": 0.708,
+    "mean_label_base_rate": 0.095,
+    "probes": [
+      {
+        "query": "set up relief camps with food and water for displaced people",
+        "label": "Relief",
+        "precision_at_k": 1.0,
+        "label_base_rate": 0.134
+      },
+      {
+        "query": "issue early warning alerts to the population before landfall",
+        "label": "Early_Warning",
+        "precision_at_k": 1.0,
+        "label_base_rate": 0.177
+      },
+      {
+        "query": "provide medical care and first aid to injured victims",
+        "label": "Medical_Care",
+        "precision_at_k": 1.0,
+        "label_base_rate": 0.09
+      },
+      {
+        "query": "search and rescue of people trapped by flood water",
+        "label": "Search_and_Rescue",
+        "precision_at_k": 0.333,
+        "label_base_rate": 0.054
+      },
+      {
+        "query": "mobilise equipment and stockpile resources for response",
+        "label": "Resource_Management",
+        "precision_at_k": 1.0,
+        "label_base_rate": 0.093
+      },
+      {
+        "query": "assess damage to houses and infrastructure after the disaster",
+        "label": "Damage_Assessment",
+        "precision_at_k": 0.333,
+        "label_base_rate": 0.062
+      },
+      {
+        "query": "activate the emergency operations centre",
+        "label": "Emergency_Operations",
+        "precision_at_k": 1.0,
+        "label_base_rate": 0.059
+      },
+      {
+        "query": "communicate public information through media and messaging",
+        "label": "Communication",
+        "precision_at_k": 0.0,
+        "label_base_rate": 0.092
+      }
+    ],
+    "note": "Relevance is judged by the SOP corpus's own action_type/phase labels, which are keyword-derived; this is a sanity check that retrieval beats chance, not a human-judged relevance score."
+  }
+}
