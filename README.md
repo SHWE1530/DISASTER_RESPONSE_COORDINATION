@@ -1,14 +1,15 @@
 # Disaster Response Coordination
 
-A decision-support system for urban flood response. Four independent AI models
-— classical ML, deep learning, NLP, and Small Language Models (SLMs) — served behind one Flask dashboard.
+A decision-support system for urban flood response, built as six AI stages behind one Flask dashboard:
+classical ML, deep learning, NLP, small language models, generative AI, and an agentic AI coordinator.
 
 > **This is decision support for a human responder, not a verified assessment.**
 > Stage 01's confidence is isotonic-calibrated and clipped so it never claims
 > certainty; the forecasting endpoint flags inputs outside its trained range;
-> the SLM briefing summarizes multi-entry logs into operational SOP actions; and
-> the fusion layer forces human review whenever sources conflict, evidence is
-> thin, or priority is URGENT or above.
+> the SLM briefing summarizes multi-entry logs into operational SOP actions; the
+> fusion layer forces human review whenever sources conflict, evidence is thin,
+> or priority is URGENT or above; and the Stage 06 agent cannot commit a dispatch,
+> evacuation or recall without a human decision.
 
 ---
 
@@ -16,28 +17,41 @@ A decision-support system for urban flood response. Four independent AI models
 
 During an urban flood, information arrives in multiple incompatible forms at once:
 numeric sensor telemetry (river gauges, rain gauges, call volumes), imagery from
-cameras and drones, free text from dispatchers and the public, and multi-entry incident logs. A coordinator
-has to triage all of them under time pressure.
+cameras and drones, free text from dispatchers and the public, and multi-entry
+incident logs. A coordinator has to triage all of them under time pressure, across
+many zones at once, with too few boats and ambulances.
 
-This project builds one specialized model per modality and exposes them through a single
-interface so they can be compared and used side by side.
+Two further problems follow. Major disasters are rare, so the historical record
+barely rehearses the situations that matter most. And reading every model output,
+then splitting scarce resources between zones in seconds, is more than one person
+can do reliably.
+
+This project builds one specialized model per modality and fuses them into one
+decision. It then stress-tests the pipeline with generated disaster scenarios, and
+puts an agent on top that coordinates the whole incident with a human in control.
 
 ## 2. Proposed solution
 
-| Stage | Modality | Task | Model |
+| Stage | Input | Task | Approach |
 | --- | --- | --- | --- |
 | **01 ML** | 12 tabular sensor fields | 3-class zone risk (Low/Moderate/Severe) | XGBoost, selected from 5 candidates |
 | **02 DL** | Camera/drone image | Binary flooded/unflooded | ResNet18 transfer learning |
 | **02 DL** | 72h water-level series | 6-hour river forecast | 2-layer LSTM |
 | **03 NLP** | Free-text emergency message | 4-class urgency + 12-class hazard + entity extraction | DistilBERT + TF-IDF LogReg + BIO tagger |
-| **04 SLM** | Incident report text log | Structured Tactical Briefing (Situation, Risk, Actions) | Qwen2.5-3B-Instruct QLoRA + TF-IDF baseline |
+| **04 SLM** | Incident report text log | Structured tactical briefing (situation, risk, actions) | Qwen2.5-3B-Instruct QLoRA + TF-IDF baseline |
 | **Fusion** | Any subset of the above | One prioritised incident decision | Deterministic, auditable policy (not a learned model) |
+| **05 GenAI** | Seed conditions + prompt library | Synthetic multi-zone disaster scenarios that stress-test Stages 01–04 and fusion | 3.6M-parameter domain SLM (sequence generation), CVAE fallback, optional Qwen/Gemini LLM |
+| **06 Agentic AI** | A multi-zone incident + finite inventory | Coordinate the response: assess every zone, reason through trade-offs, allocate scarce units, escalate to a human | Multi-agent coordinator (ReAct, plan-and-execute, tree of thoughts, debate, reflexion, memory) over 18 MCP tools |
+
+Every stage follows the same five roles: data (or knowledge) engineer → EDA
+(or workflow) engineer → model/agent engineer → evaluation engineer → integration engineer.
 
 ## 3. System architecture
 
-The four stages are **parallel and independent** — no stage consumes another's
-output. A **fusion layer sits above all stages** and is the component that
-synthesizes multiple modalities. Full detail and the data-flow diagram:
+Stages 01–04 are **parallel and independent**; no stage consumes another's output. A
+**fusion layer sits above them** and synthesizes the modalities. **Stage 05** feeds
+generated incidents into that pipeline to find where it breaks. **Stage 06** calls the
+stages and fusion as tools to coordinate a whole incident. Full detail:
 **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**.
 
 ```
@@ -47,32 +61,59 @@ Browser ──► app.py ──┬──► /api/predict/ml         ──► St
                      ├──► /api/predict/nlp        ──► Stage 03 (DistilBERT + NER)
                      ├──► /api/slm/summarize      ──► Stage 04 (Qwen2.5-3B QLoRA / Baseline)
                      │
-                     └──► /api/assess  ──► fusion/decision_engine.py
-                                            └─► calls whichever stages have evidence
-                                                └─► ROUTINE / ELEVATED / URGENT / CRITICAL
-                                                    + evidence provenance
-                                                    + conflict report
-                                                    + human-review flag
+                     ├──► /api/assess  ──► fusion/decision_engine.py
+                     │                      └─► ROUTINE / ELEVATED / URGENT / CRITICAL
+                     │                          + evidence, conflicts, human-review flag
+                     │
+                     ├──► /genai, /api/genai/*  ──► Stage 05: generate a scenario
+                     │                               └─► stress-test it through Stages 01–04 + fusion
+                     │
+                     └──► /agent, /api/agent/*  ──► Stage 06: coordination agent
+                                                     ├─► tools: Stages 01–04, fusion, SOP knowledge base
+                                                     ├─► plan → perceive → rank → allocate → debate
+                                                     │   → audit → act → reflect
+                                                     ├─► human: approve / override / recall / emergency stop
+                                                     └─► MCP server (POST /api/agent/mcp or --mcp stdio)
 ```
 
 ### The fusion layer
 
-`POST /api/assess` accepts any subset of `{sensors, text, image_path,
-water_levels}` and returns one prioritised decision. It is a **deterministic
-policy, not a learned model** — training one would need a corpus of incidents
-where all modalities describe the same event with a known outcome, which
-does not exist here. Every weight is a named constant in
-`fusion/decision_engine.py`.
-
-Properties worth knowing:
+`POST /api/assess` accepts any subset of `{sensors, text, image_path, water_levels}`
+and returns one prioritised decision. It is a **deterministic policy, not a learned
+model**. Training one would need a corpus of incidents where all modalities
+describe the same event with a known outcome, and none exists here. Every weight is a
+named constant in `fusion/decision_engine.py`.
 
 - **Escalations only ever raise priority.** Under-responding costs more than over-responding.
 - **A human reporting CRITICAL sets an URGENT floor**, even against calmer sensors.
-- **A flat forecast cannot lower a present-tense assessment** — it describes a different point in time.
+- **A flat forecast cannot lower a present-tense assessment**, because it describes a different point in time.
 - **An out-of-distribution forecast is suppressed entirely**, not down-weighted.
 - **Conflicts are surfaced, never averaged away**, and marked "not auto-resolved".
-- **No evidence never reads as safe** — it returns `insufficient_evidence`, not `ROUTINE`.
+- **No evidence never reads as safe.** It returns `insufficient_evidence`, not `ROUTINE`.
 - **Human review is mandatory** on conflict, single-source, low confidence, or URGENT+.
+
+### Stage 05: generative stress testing
+
+Stage 05 measures 17 blind spots in the historical data (11 absent, 2 rare), writes a
+20-scenario prompt library plus a wildcard aimed at them, and generates each zone's
+sensor row and dispatcher message **together in one autoregressive pass** with a
+small language model trained on the project's own corpus. A scenario audit scores
+realism, diversity coverage and overconfidence. Each scenario is then run through
+the real Stage 01–04 models and fusion, and every zone is checked against its
+ground-truth expectations. Details: [`Stage05_GenAI/README.md`](Stage05_GenAI/README.md).
+
+### Stage 06: agentic coordination
+
+Stage 06 is a multi-agent system: a Coordinator, a Tactical Dispatcher, a Resource
+Allocator and a Safety Auditor, plus the human commander.
+
+- **Plan and perceive.** It writes and checks its plan first, then reads each zone through the stage models.
+- **Reason through trade-offs.** Between equally severe zones, emergency calls and people decide, and the reasoning is written out.
+- **Allocate scarce units.** It compares allocation plans (tree of thoughts). Zones bid for contested units, and the Safety Auditor challenges the proposal before anything is reserved.
+- **Cover shortfalls.** Unmet need is rerouted to secondary responders.
+- **Keep a human in control.** Every URGENT+ dispatch, evacuation and low-confidence decision waits for a person. The dispatch and recall tools refuse to act without a one-time token that only a human decision issues. An emergency stop halts the run and recalls committed dispatches.
+
+Details: [`Stage06_AgenticAI/README.md`](Stage06_AgenticAI/README.md).
 
 ## 4. Installation
 
@@ -90,7 +131,9 @@ pip install -r requirements.txt
 ```
 
 Versions in `requirements.txt` are **pinned to the versions the committed model
-artifacts were produced with**. Do not float `scikit-learn` without retraining Stages 01 and 03.
+artifacts were produced with**. Do not float `scikit-learn` without retraining
+Stages 01 and 03. `google-genai` is only needed for the optional Gemini backends in
+Stages 05 and 06.
 
 ## 5. Running the dashboard
 
@@ -98,9 +141,11 @@ artifacts were produced with**. Do not float `scikit-learn` without retraining S
 python app.py
 ```
 
-Then open <http://127.0.0.1:5000>. Startup prints each stage's real status, and
-`GET /health` returns a per-stage report. Status comes from a **live prediction**
-in each stage, not from whether a module imported.
+Then open <http://127.0.0.1:5000>. The sidebar has a tab for every stage, including
+**GenAI Stress Test (Stage 05)** and **Agent Coordination (Stage 06)**. Startup prints
+each stage's real status, and `GET /health` returns a per-stage report. Status comes
+from a **live prediction** in each stage (for Stage 06, a model-free probe run of the
+whole agent loop), not from whether a module imported.
 
 Debug mode is off by default. Enable deliberately with `FLASK_DEBUG=1`.
 
@@ -130,16 +175,30 @@ python Stage04_SLM/02_eda_engineer.py
 python Stage04_SLM/03_slm_engineer.py --epochs 3          # or --baseline-only
 python Stage04_SLM/04_evaluation_engineer.py --compare
 
+# ---- Stage 05: GenAI ----  (SLM training ~3.5 min on GPU)
+python Stage05_GenAI/01_data_engineer.py --skip-imagery
+python Stage05_GenAI/02_eda_engineer.py
+python Stage05_GenAI/03_genai_engineer.py                 # CVAE fallback generator
+python Stage05_GenAI/03c_slm_sequence_generator.py --train
+python Stage05_GenAI/04_evaluation_engineer.py            # scenario audit + stress test
+
+# ---- Stage 06: Agentic AI ----  (~30 s after model load)
+python Stage06_AgenticAI/01_knowledge_engineer.py         # SOP knowledge base + tool registry
+python Stage06_AgenticAI/02_workflow_engineer.py          # state graph, task and tool mapping
+python Stage06_AgenticAI/03_agent_engineer.py             # demo run on the wildcard incident
+python Stage06_AgenticAI/04_evaluation_engineer.py        # suites, decision probes, ablations, faults
+python Stage06_AgenticAI/05_integration_engineer.py       # self-test; --serve or --mcp
+
 # ---- Tests ----
-pytest Stage01_ML/test/ Stage02_DL/test/ Stage03_NLP/test/ Stage04_SLM/test/ test/ -v
+pytest Stage01_ML/test/ Stage02_DL/test/ Stage03_NLP/test/ Stage04_SLM/test/ Stage05_GenAI/test/ Stage06_AgenticAI/test/ test/ -v
 ```
 
 All seeds are fixed at 42.
 
 ## 7. Results
 
-**Macro F1 is the primary metric throughout.** All tasks are imbalanced,
-and in each the minority class is the one that matters operationally.
+**Macro F1 is the primary metric for the predictive stages.** All tasks are
+imbalanced, and in each the minority class is the one that matters operationally.
 
 ### Stage 01 — Zone risk (held-out test, n = 1,500)
 
@@ -190,6 +249,37 @@ Accuracy 0.969. Severe recall 0.987 with 15 missed Severe cases.
 | **Safety Failure Rate** | **0.00%** | 50.00% | 0 Inaction Directives on High-Risk Cases |
 | **Read-Time Savings** | **45.9%** | 38.2% | Time Saved vs. Full Raw Log Reading |
 
+### Stage 05 — Generative stress test (20 scenarios + wildcard, 51 zones)
+
+| Metric | Domain-SLM suite | CVAE suite |
+| --- | ---: | ---: |
+| Scenarios passed | 16/20 | 17/20 |
+| Zones passed | 44/51 | 47/51 |
+| **Critical misses** | **0** | **0** |
+| Wildcard zones passed | **4/4** | 3/4 |
+| Realism score | **0.989** | 0.984 |
+
+The domain SLM reaches validation perplexity 1.96. The CVAE's classifier two-sample
+test gives ROC-AUC 0.763 (0.5 means indistinguishable from real data), against 0.831
+for a naive baseline. Blind-spot coverage is 1.0.
+
+### Stage 06 — Agentic coordination (agent never sees ground truth)
+
+| Metric | CVAE suite (development) | SLM suite (held-out) |
+| --- | ---: | ---: |
+| Scenario goal success | **0.857** | 0.762 |
+| Zone goal success | 0.927 | 0.855 |
+| Critical misses | **0** | **0** |
+| **Unsafe commits** (consequential action without a human) | **0** | **0** |
+| Bad trade-off risk (confident and wrong) | 0.000 | 0.018 |
+| Tool precision / recall | 0.987 / 1.000 | 0.982 / 1.000 |
+| High-severity need coverage | 0.910 | 0.910 |
+| Workflow violations | 0 | 0 |
+
+- **Decision probes:** 4 hand-written one-ambulance trade-offs, including two severe zones with 38 vs 15 emergency calls, all pass on the real models.
+- **Human-in-the-loop:** all 78 commit attempts without a valid token were blocked, and every approved dispatch was recalled by an emergency stop.
+- **Ablations:** allocating in arrival order covers 64% of high-severity needs, against 91% for the agent. Removing the Safety Auditor lets 39 dispatches commit with no human.
+
 ---
 
 ## 8. Limitations
@@ -202,24 +292,29 @@ Accuracy 0.969. Severe recall 0.987 with 15 missed Severe cases.
 5. **No negation handling in NLP.** "NO FLOOD HERE" is scored on its flood vocabulary.
 6. **Recursive forecasting degrades sharply** beyond ~3 hours.
 7. **Qwen SLM requires structured JSON schema output** to maximize ROUGE score against synthetic SOP templates.
-8. **Stages 05–06 (GenAI, Agentic AI)** are reserved future architecture modules.
+8. **Stage 05's local Qwen checkpoint is corrupt**, so the LLM generation path runs only through the Gemini backend or its fallback. The generated scenarios are synthetic, so stress-test results measure behaviour on generated incidents, not real floods.
+9. **Stage 06's evaluated planner is rule-based.** Its reasoning text is templated from observed values. The Gemini planner was blocked by a free-tier quota of 20 requests per day, and planning ratios and confidence factors are policy constants.
+10. **Demo-grade deployment:** single-process development server, no authentication, no rate limiting. Alerts, reroutes and dispatches are recorded, never sent to a real system.
 
 ---
 
 ## 9. Repository layout
 
 ```
-├── app.py                      Flask dashboard + prediction endpoints + /health
+├── app.py                      Flask dashboard, prediction endpoints, /health, Stage 05/06 blueprints
 ├── requirements.txt            Pinned dependencies
 ├── docs/ARCHITECTURE.md        Real architecture, data lineage, design rationale
-├── test/test_app.py            End-to-end HTTP tests
-├── Stage01_ML/                 Tabular zone-risk ML     (README, 5 scripts, tests)
-├── Stage02_DL/                 CNN + LSTM               (README, 5 scripts, tests)
-├── Stage03_NLP/                Urgency + hazard + NER   (README, 5 scripts, tests)
-├── Stage04_SLM/                Tactical Briefing SLM    (README, 5 scripts, tests)
-└── Stage05_GenAI, Stage06_AgenticAI/   (Reserved future expansion stages)
+├── fusion/decision_engine.py   Cross-stage fusion policy
+├── test/                       End-to-end HTTP tests + fusion policy tests
+├── Stage01_ML/                 Tabular zone-risk ML          (README, 5 scripts, tests)
+├── Stage02_DL/                 CNN + LSTM                    (README, 5 scripts, tests)
+├── Stage03_NLP/                Urgency + hazard + NER        (README, 5 scripts, tests)
+├── Stage04_SLM/                Tactical briefing SLM         (README, 5 scripts, tests)
+├── Stage05_GenAI/              Scenario generation + stress test (README, 7 scripts, tests)
+└── Stage06_AgenticAI/          Coordination agent + MCP      (README, 5 scripts, tests)
 ```
 
-Within each stage, scripts run in numeric order: `01_data_engineer` →
-`02_eda_engineer` → `03_*_engineer` (train) → `04_evaluation_engineer` →
-`05_integration_engineer` (serving adapter used by `app.py`).
+Within each stage, scripts run in numeric order: `01_data_engineer` (or
+`01_knowledge_engineer`) → `02_eda_engineer` (or `02_workflow_engineer`) →
+`03_*_engineer` → `04_evaluation_engineer` → `05_integration_engineer`
+(the serving adapter used by `app.py`).

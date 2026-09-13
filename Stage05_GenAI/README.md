@@ -35,7 +35,7 @@
 
 Major disasters are rare, so the historical record barely rehearses the situations that matter most. Stage 05 **synthesises compound, multi-zone disaster scenarios** and runs them through the *existing* pipeline: Stage 01 risk, the Stage 02 CNN and LSTM, and Stage 03 NLP, fused by `fusion/decision_engine.py`, plus a Stage 04 briefing for each zone. The goal is to find where the pipeline breaks *before* a real flood does.
 
-**Scope guarantee.** Stage 05 only *reads* earlier stages' data and calls their public adapters. Nothing in `Stage01_ML/`–`Stage04_SLM/`, `fusion/`, `app.py` or the root docs is modified.
+**Scope guarantee.** Stage 05 only *reads* earlier stages' data and calls their public adapters. Nothing in `Stage01_ML/`–`Stage04_SLM/` or `fusion/` is modified. The only shared file it touches is `app.py`, which registers the Stage 05 blueprint and adds the dashboard tab.
 
 ---
 
@@ -373,14 +373,26 @@ pytest Stage05_GenAI/test/ -v                     # 71 tests, ~30 s
 
 **Dependencies:** no new pins. The scripts use packages already in `requirements.txt` (torch, pandas, scikit-learn, scipy, xgboost, flask). The one exception is **rebuilding** the imagery bank, which needs `datasets` (installed here, not pinned). The bank itself is committed, so `--skip-imagery` avoids it. The C2ST uses XGBoost rather than scikit-learn's forests, because on this machine an application-control policy blocks a scikit-learn extension that `sklearn.ensemble` imports.
 
-### Wiring into the main dashboard (optional, not applied)
+### In the main dashboard
 
-Stage 05 deliberately leaves `app.py` untouched. To mount it there:
+`app.py` loads the Stage 05 adapter and registers its blueprint, so `python app.py` serves the studio at
+<http://127.0.0.1:5000> under **GenAI Stress Test (Stage 05)**:
 
 ```python
-stage05 = load_module("stage05_api", BASE_DIR / "Stage05_GenAI" / "05_integration_engineer.py")
-app.register_blueprint(stage05.create_blueprint())   # serves /genai and /api/genai/*
+stage05_module = load_module("stage05_api", BASE_DIR / "Stage05_GenAI" / "05_integration_engineer.py")
+app.register_blueprint(stage05_module.create_blueprint(stage05_engine))   # serves /genai and /api/genai/*
 ```
+
+The **GenAI Scenario Studio** uses the dashboard's dark palette and has four tabs:
+
+* **Studio:**
+  * 1 Seed conditions: prompt, generator and seed, plus the region, severity mix, hazards and blind spots.
+  * 2 Generate: generate, or generate and stress-test.
+  * The generated scenario spans the full width, with its validation checks and an accept / needs-review verdict underneath.
+  * Case analysis: record counts and the severity distribution.
+* **Stress-test results:** headline results, scenarios, the wildcard and the failure log.
+* **Audits:** scenario audit, realism audit and forecast probe.
+* **History:** results across evaluation runs.
 
 | Endpoint | Method | Purpose |
 | --- | --- | --- |
