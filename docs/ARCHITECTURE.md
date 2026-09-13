@@ -2,12 +2,15 @@
 
 ## 1. What this system actually is
 
-Three **independent** predictors, each answering a different question from a
+Independent predictors (Stages 01–04), each answering a different question from a
 different modality, plus a **fusion layer** that combines whichever of them have
-evidence into a single prioritised decision.
+evidence into a single prioritised decision. On top of that pipeline sit two
+consumers: **Stage 05** generates synthetic disaster scenarios and stress-tests the
+pipeline with them, and **Stage 06** is an agent that calls the stages and fusion as
+tools to coordinate a whole multi-zone incident with a human in control.
 
-The stages themselves are still parallel, not a pipeline — Stage 03 does not
-consume Stage 01's output. The fusion layer sits *above* all three and is the
+The predictive stages themselves are still parallel, not a pipeline — Stage 03 does not
+consume Stage 01's output. The fusion layer sits *above* them and is the
 only component that sees more than one modality. This document is explicit about
 that because an earlier project diagram implied a sequential chain
 (`ML -> DL -> NLP -> decision`) that has never existed in the code.
@@ -20,6 +23,9 @@ Each stage answers a different question from a different input modality:
 | 02 DL (CNN) | One camera/drone image | Is this scene flooded? | ResNet18 transfer learning |
 | 02 DL (LSTM) | 72 hourly water-level readings | What is the river level for the next 6 hours? | 2-layer LSTM, 4 features |
 | 03 NLP | One free-text emergency message | How urgent is it, what hazard, which entities? | TF-IDF/DistilBERT + hazard classifier + BIO NER |
+| 04 SLM | A multi-entry incident log | What is the situation, risk and action plan? | Qwen2.5-3B QLoRA + TF-IDF baseline |
+| 05 GenAI | Seed conditions + scenario prompts | Where does the pipeline break on rare, compound incidents? | Domain SLM sequence generator (CVAE fallback) + stress tester |
+| 06 Agentic AI | A multi-zone incident + finite inventory | Who gets the scarce units, and what must a human approve? | Multi-agent coordinator over 18 schema-validated MCP tools |
 
 ## 2. Real request flow
 
@@ -83,6 +89,23 @@ on top of them:
         + explicit conflict report (never averaged away)
         + human_review_required flag and reasons
         + recommended actions
+```
+
+Stages 05 and 06 sit on top of this and never modify it:
+
+```
+ Stage 05 (/genai)                              Stage 06 (/agent, MCP)
+ prompt library (17 measured blind spots)       incident: zones + raw inputs + inventory
+        |                                                |
+ domain SLM: sensors + narrative in one pass     PLAN (checked) -> PERCEIVE via Stage 01-04 tools
+        |                                                -> ASSESS via fusion -> BRIEF (Stage 04)
+ scenario audit (realism, diversity,             -> RETRIEVE_SOP -> RANK (demand-aware trade-offs)
+ overconfidence)                                 -> ALLOCATE (tree of thoughts) -> DEBATE
+        |                                                -> AUDIT (10 safety rules) -> AWAIT_APPROVAL
+ stress test through Stage 01-04 + fusion        -> MUTUAL_AID (reroute) -> COMMIT -> REFLECT
+        |                                                |
+ pass/fail per zone vs ground truth              human: approve / override / recall / emergency stop
+                                                 every step checked against the workflow graph
 ```
 
 ## 3a. How fusion decides
@@ -149,7 +172,8 @@ prediction** rather than only confirming that a file loaded:
 - Stage 02 forecasts one step from a flat series at the training mean.
 - Stage 03 analyses a fixed reference message and validates the returned label.
 
-`GET /health` aggregates all three. The dashboard status line is derived from
+Stage 04 runs a briefing probe, Stage 05 generates a probe scenario, and Stage 06
+runs a model-free probe of its whole agent loop. `GET /health` aggregates all of them. The dashboard status line is derived from
 these results, so a stage cannot report "Online" while failing every request.
 
 ## 5. Data lineage
@@ -241,4 +265,5 @@ can legitimately be placed around.
    published; step 6 is materially worse than step 1.
 4. **Stage 01's Low class is weak** (recall ~0.71 on 31 test samples).
 5. **No authentication, single-process dev server.** Demo-grade deployment only.
-6. **Stages 04-06 are empty placeholders.**
+6. **Stages 05 and 06 work on generated incidents.** Their scores measure behaviour on
+   synthetic scenarios, not real floods, and Stage 06's evaluated planner is rule-based.
