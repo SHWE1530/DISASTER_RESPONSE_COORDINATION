@@ -1,6 +1,6 @@
 # Stage 05 -- Stress-Test Evaluation Report
 
-Generated 2026-09-12T06:26:22+00:00 (commit `9bda9a4`). Stage status: ml=healthy, dl=healthy, nlp=healthy, slm=healthy.
+Generated 2026-09-12T09:31:01+00:00 (commit `9bda9a4`). Stage status: ml=healthy, dl=healthy, nlp=healthy, slm=healthy.
 
 Ground truth is the scenario designer's intent, not an observed outcome. Imagery comes from the Stage 02 CNN's likely training pool, so visual evidence is optimistic.
 
@@ -8,22 +8,22 @@ Ground truth is the scenario designer's intent, not an observed outcome. Imagery
 
 | Metric | Result |
 | --- | ---: |
-| Scenarios passed | 17/20 (85.0%) |
-| Zones passed | 47/51 (92.2%) |
+| Scenarios passed | 16/20 (80.0%) |
+| Zones passed | 44/51 (86.3%) |
 | Pipeline crashes | 0 |
-| Priority exact accuracy | 70.6% |
-| Within-one-level accuracy | 90.2% |
+| Priority exact accuracy | 58.8% |
+| Within-one-level accuracy | 86.3% |
 | **Critical-miss rate** (true URGENT+/called <= ELEVATED) | **0.0%** (0/32) |
-| Over-triage rate (true <= ELEVATED, called 2+ levels higher) | 26.3% |
+| Over-triage rate (true <= ELEVATED, called 2+ levels higher) | 36.8% |
 | No-evidence zones refused, not scored (suite + wildcard, n=1) | 100.0% |
-| Modality conflicts surfaced | 66.7% |
+| Modality conflicts surfaced | 0.0% |
 | Human-review recall | 100.0% |
-| Mean zone-ranking Kendall tau (17 scenarios) | 0.871 |
-| Zones with values beyond the historical record | 10 |
-| Fusion latency p50 / p95 | 224.5 / 323.7 ms |
-| Stage 04 briefing (slm_baseline) priority accuracy | 40.8% |
-| Stage 04 briefing high-risk recall | 100.0% |
-| Stage 04 read-time savings (mean) | -9.1% |
+| Mean zone-ranking Kendall tau (17 scenarios) | 0.883 |
+| Zones with values beyond the historical record | 8 |
+| Fusion latency p50 / p95 | 91.4 / 144.8 ms |
+| Stage 04 briefing (slm_baseline) priority accuracy | 34.7% |
+| Stage 04 briefing high-risk recall | 96.7% |
+| Stage 04 read-time savings (mean) | -10.2% |
 
 ## 2. Scenario audit (realism score, diversity coverage, overconfidence)
 
@@ -31,40 +31,21 @@ Per-zone physical coherence, scored against plausibility rules before the pipeli
 
 | Metric | Result |
 | --- | ---: |
-| **Realism score** (mean over 51 scored zones) | **0.9843** |
+| **Realism score** (mean over 51 scored zones) | **0.9892** |
 | Lowest-scoring zone | 0.65 |
 | Fully plausible zones (no rule violated) | 48/51 (94.1%) |
 | Zones not scored (no sensor evidence) | 4 |
-| **Overconfident zones** (severe label, benign physics) | **2** (3.9%) |
+| **Overconfident zones** (severe label, benign physics) | **1** (2.0%) |
 | Diversity: distinct archetypes | 21 |
 | Diversity: rare/absent blind spots covered | 100.0% (13 of 13) |
 | Diversity: distinct hazards / severities / modifiers | 4 / 4 / 21 |
-| Diversity: rainfall x river grid cells occupied | 16/16 (100.0%) |
+| Diversity: rainfall x river grid cells occupied | 12/16 (75.0%) |
 
-Plausibility rules violated, most frequent first: `severity_unsupported` x2, `change_vs_history` x1.
+Plausibility rules violated, most frequent first: `change_vs_history` x2, `severity_unsupported` x1.
 
 Overconfident zones:
 
-- S03 / ZONE-3 (Highway corridor, URGENT): severity_unsupported
-- S20 / ZONE-1 (Rising-river ward, URGENT): severity_unsupported
-
-## 3. Realism audit (distributional)
-
-| Check | CVAE | Naive baseline |
-| --- | ---: | ---: |
-| C2ST ROC-AUC (0.5 = indistinguishable) | 0.7625 | 0.8309 |
-| Rainfall-calls correlation (real 0.8239) | 0.7971 | 0.0882 |
-| Stage 01 recovers conditioning class (macro F1) | 0.7843 | 0.7563 |
-
-Mean KS statistic across features: 0.0533; max |delta r| between correlation matrices: 0.072.
-
-| Stage 03 reading generated text | Clean | Degraded (comms noise) |
-| --- | ---: | ---: |
-| Hazard accuracy | 1.0 | 0.9875 |
-| Urgency macro F1 | 0.8698 | 0.8698 |
-| Headcount exact | 1.0 | 0.8063 |
-
-Implicit-urgency messages scored HIGH/CRITICAL by Stage 03: 100.0%.
+- S19 / ZONE-2 (Adjacent ward, URGENT): severity_unsupported
 
 ## 4. Stage 02 forecast probe (perfectly flat 72 h river)
 
@@ -87,20 +68,20 @@ Real CWC gauges rise more than 1.55 m in 6 h in only 1% of windows. Fusion escal
 | ID | Scenario | Zones | Passed | Ranking tau | Blind spots |
 | --- | --- | ---: | :---: | ---: | --- |
 | S01 | Baseline river overflow | 3 | PASS | 1.0 | BS08 |
-| S02 | The 2 AM mission | 3 | PASS | 0.816 | BS02, BS08, BS14 |
+| S02 | The 2 AM mission | 3 | PASS | 0.0 | BS02, BS08, BS14 |
 | S03 | Cyclonic coastal landfall | 4 | PASS | 0.913 | BS02, BS08 |
 | S04 | Urban cloudburst waterlogging | 2 | PASS | 1.0 | BS03 |
-| S05 | Negated flood rumour | 2 | 1/2 | - | BS13, BS01 |
+| S05 | Negated flood rumour | 2 | 0/2 | - | BS13, BS01 |
 | S06 | Silent rise while residents sleep | 2 | PASS | - | BS04 |
 | S07 | Telemetry dropout | 3 | PASS | 0.333 | BS09 |
 | S08 | Gauge logger malfunction | 2 | PASS | 1.0 | BS09 |
-| S09 | People versus sensors | 2 | 1/2 | 1.0 | BS11 |
-| S10 | Camera versus gauge | 2 | PASS | 1.0 | BS11, BS06 |
+| S09 | People versus sensors | 2 | 0/2 | 1.0 | BS11 |
+| S10 | Camera versus gauge | 2 | 1/2 | 1.0 | BS11, BS06 |
 | S11 | Receding but still flooded | 2 | PASS | 1.0 | BS05 |
 | S12 | Bridge collapse isolation | 2 | PASS | 1.0 | BS10 |
 | S13 | Hospital ground floor flooding | 2 | PASS | 1.0 | BS15 |
-| S14 | Night dam spillway release | 3 | PASS | 0.0 | BS14, BS02 |
-| S15 | Five-state monsoon cascade | 5 | PASS | 0.738 | BS08 |
+| S14 | Night dam spillway release | 3 | PASS | 0.816 | BS14, BS02 |
+| S15 | Five-state monsoon cascade | 5 | PASS | 0.949 | BS08 |
 | S16 | Out-of-season cloudburst | 2 | PASS | 1.0 | BS06 |
 | S17 | Garbled panic messages | 3 | PASS | 1.0 | BS12 |
 | S18 | All quiet (do not cry wolf) | 3 | 1/3 | - | BS01 |
@@ -112,9 +93,12 @@ Real CWC gauges rise more than 1.55 m in 6 h in only 1% of windows. Fusion escal
 | Scenario | Zone | True | Called | Why it failed |
 | --- | --- | --- | --- | --- |
 | S05 | ZONE-1 Backwater ward | ROUTINE | URGENT | priority URGENT above maximum ELEVATED |
+| S05 | ZONE-2 Hill ward | ROUTINE | URGENT | priority URGENT above maximum ELEVATED |
+| S09 | ZONE-1 Lagging-gauge valley | CRITICAL | CRITICAL | modality conflict not surfaced |
 | S09 | ZONE-2 Prank-message town | ROUTINE | URGENT | modality conflict not surfaced |
+| S10 | ZONE-2 Dry-camera ward | ELEVATED | URGENT | modality conflict not surfaced |
+| S18 | ZONE-1 Coastal ward | ROUTINE | URGENT | priority URGENT above maximum ELEVATED |
 | S18 | ZONE-2 Industrial belt | ROUTINE | URGENT | priority URGENT above maximum ELEVATED |
-| S18 | ZONE-3 Old city | ROUTINE | URGENT | priority URGENT above maximum ELEVATED |
 
 ## 7. Wildcard -- Flash flood + municipal blackout
 
@@ -123,6 +107,6 @@ At 2 AM a flash flood hits an Assam district at the same moment the municipal gr
 | Zone | True | Evidence left | Lost to outage | Decision | Review | Result |
 | --- | --- | --- | --- | --- | :---: | :---: |
 | Riverside settlement (battery gauge) | CRITICAL | sensors, text, water_history | image | CRITICAL | yes | PASS |
-| Low-lying colony (grid down) | CRITICAL | text | image, sensors, water_history | ROUTINE | yes | FAIL: priority ROUTINE below minimum URGENT |
+| Low-lying colony (grid down) | CRITICAL | text | image, sensors, water_history | CRITICAL | yes | PASS |
 | District hospital (generator) | URGENT | sensors, text, image, water_history | - | URGENT | yes | PASS |
 | Char island (no signal) | CRITICAL | none | sensors, text, image, water_history | insufficient_evidence | yes | PASS |

@@ -62,6 +62,8 @@ SUITE_JSON = SCENARIO_DIR / "scenario_suite.json"
 WILDCARD_JSON = SCENARIO_DIR / "wildcard_scenario.json"
 
 REALISM_JSON = EVAL_DIR / "realism_report.json"
+SCENARIO_AUDIT_JSON = EVAL_DIR / "scenario_audit.json"
+BLIND_SPOT_JSON = OUTPUT_DIR / "eda" / "blind_spot_report.json"
 ZONE_RESULTS_CSV = EVAL_DIR / "stress_test_zone_results.csv"
 SCENARIO_RESULTS_CSV = EVAL_DIR / "stress_test_scenarios.csv"
 REPORT_JSON = EVAL_DIR / "stress_test_report.json"
@@ -557,6 +559,259 @@ def realism_audit(reference: pd.DataFrame, synthetic: pd.DataFrame, engines: dic
     return audit
 
 
+
+# ===========================================================================
+# Scenario audit -- realism score, diversity coverage, overconfidence
+# ===========================================================================
+#
+# The realism audit above is DISTRIBUTIONAL: it asks whether a bulk sample of
+# generated sensor rows looks like the real record. That is the right question
+# for the generator, and the wrong question for a single scenario, because a
+# stress scenario is SUPPOSED to sit off the historical distribution.
+#
+# This audit asks the other question, per zone: is this particular scenario
+# PHYSICALLY COHERENT, and does the severity it claims match the evidence it
+# carries? Three numbers come out of it.
+#
+#   realism_score        0-1 per zone, 1.0 = no plausibility rule violated
+#   diversity_coverage   how many distinct failure modes the suite actually
+#                        reaches -- archetypes, blind spots, severities,
+#                        hazards, modifiers, and cells of the rainfall x river
+#                        grid that the real record occupies
+#   overconfidence       zones that LOOK dramatic but are physically impossible:
+#                        a CRITICAL label on 5 mm of rain and a calm river
+#
+# A generator that scored well on the distributional audit can still fail all
+# three, which is why they are measured separately.
+
+# Penalty weights. A rule that makes the scenario unusable costs more than one
+# that only makes it unusual.
+REALISM_RULES = {
+    "severity_unsupported": 0.35,       # URGENT+ with no physical driver at all
+    "calm_vs_extreme": 0.25,            # ROUTINE label on extreme sensors
+    "calls_vs_rainfall": 0.15,          # call volume detached from the rain
+    "change_vs_history": 0.10,          # reported hourly change contradicts the gauge
+    "headcount_vs_population": 0.10,    # more people reported than live there
+    "beyond_record_undeclared": 0.15,   # off the record with no stress modifier
+}
+
+# Modifiers that legitimately decouple a zone's severity from its own local
+# rainfall and river gauge. A river overflowing from upstream rain, a dam
+# release, a gauge that lags the water, and a flood that is receding but has
+# already trapped people are all real situations where the local numbers look
+# milder than the emergency is. Flagging them would be flagging the design.
+DECOUPLING_MODIFIERS = {"silent_rise", "dam_release", "receding", "river_overflow",
+                        "urban_waterlogging", "gauge_malfunction", "bridge_collapse",
+                        "mass_casualty", "flash_flood"}
+
+# Archetypes whose whole point is that one modality contradicts another. The
+# stress suite needs these, so they are exempt -- and counted, so the exemption
+# is visible rather than a quiet hole in the metric.
+CONFLICT_ARCHETYPE = "conflict"
+
+# Band edges are read from the real record's quantiles rather than hard-coded,
+# so the rules move if the reference data changes.
+CALM_QUANTILE = 0.25
+EXTREME_QUANTILE = 0.95
+
+
+def _plausibility_bands(reference: pd.DataFrame) -> dict[str, float]:
+    return {
+        "rain_calm": float(reference["rainfall_mm"].quantile(CALM_QUANTILE)),
+        "rain_extreme": float(reference["rainfall_mm"].quantile(EXTREME_QUANTILE)),
+        "calls_calm": float(reference["emergency_calls"].quantile(CALM_QUANTILE)),
+        "calls_extreme": float(reference["emergency_calls"].quantile(EXTREME_QUANTILE)),
+    }
+
+
+def zone_realism(zone: dict, bands: dict[str, float], archetype: str = "") -> dict[str, Any]:
+    """Score one generated zone against the physical-plausibility rules.
+
+    A zone with no surviving sensors is NOT scored -- there is nothing to check,
+    and giving it 1.0 would flatter the suite average with empty zones.
+    """
+    sensors = (zone.get("inputs") or {}).get("sensors")
+    if not sensors:
+        return {"scored": False, "realism_score": None, "violations": [],
+                "overconfident": False, "exempt": False, "reason": "no sensor evidence"}
+
+    severity = zone["true_severity"]
+    mods = set(zone.get("modifiers") or [])
+    provenance = zone.get("provenance") or {}
+    violations: list[str] = []
+
+    rain = float(sensors["rainfall_mm"])
+    river = float(sensors["river_level_m"])
+    threshold = float(sensors["river_level_threshold_m"])
+    calls = float(sensors["emergency_calls"])
+    change = float(sensors["water_level_change_m"])
+    population = float(sensors["population_affected"])
+    severe = severity in {"URGENT", "CRITICAL"}
+
+    # -- the hallucination the lecture names: light rain, a calm river, and a
+    #    SEVERE label anyway. A severe zone must have at least one physical
+    #    driver -- the river over its danger threshold, or rainfall in the
+    #    record's top 5% -- unless a declared modifier decouples the two, or the
+    #    scenario is deliberately built so that the modalities disagree.
+    exempt = bool(mods & DECOUPLING_MODIFIERS) or CONFLICT_ARCHETYPE in archetype
+    driver = river >= threshold or rain > bands["rain_extreme"]
+    if severe and not driver and not exempt:
+        violations.append("severity_unsupported")
+
+    # -- the mirror image: a calm label sitting on extreme physics.
+    if severity == "ROUTINE" and (rain > bands["rain_extreme"] or river > threshold):
+        violations.append("calm_vs_extreme")
+
+    # -- call volume has to move with the rain. The real correlation is 0.82,
+    #    so even this wide band catches values that have come detached.
+    if rain > bands["rain_extreme"] and calls < bands["calls_calm"] and "silent_rise" not in mods:
+        violations.append("calls_vs_rainfall")
+    if rain < bands["rain_calm"] and calls > bands["calls_extreme"]:
+        violations.append("calls_vs_rainfall")
+
+    # -- the reported hourly change must agree with the gauge history's own tail.
+    history = (zone.get("inputs") or {}).get("water_levels")
+    if history and len(history) >= 2:
+        observed = float(history[-1]) - float(history[-2])
+        if abs(observed - change) > 0.75 and np.sign(observed) != np.sign(change):
+            violations.append("change_vs_history")
+
+    # -- no zone can report more people affected than it holds.
+    if population > 0 and float(zone.get("headcount_reported", 0)) > population:
+        violations.append("headcount_vs_population")
+
+    # -- going beyond the record is allowed, but only on a declared stress
+    #    modifier. An undeclared excursion is the generator drifting.
+    if provenance.get("beyond_record_fields") and not mods:
+        violations.append("beyond_record_undeclared")
+
+    violations = sorted(set(violations))
+    score = max(0.0, 1.0 - sum(REALISM_RULES[v] for v in violations))
+
+    # Overconfidence is the specific, dangerous case: the scenario SHOUTS a
+    # severity that its own physical evidence does not support.
+    return {"scored": True, "realism_score": round(score, 4), "violations": violations,
+            "overconfident": "severity_unsupported" in violations,
+            "exempt": bool(severe and not driver and exempt)}
+
+
+def diversity_coverage(scenarios: list[dict], reference: pd.DataFrame,
+                       blind_spots: list[dict] | None = None) -> dict[str, Any]:
+    """How many distinct failure modes the suite actually reaches.
+
+    Two kinds of coverage, because they fail differently. CATEGORICAL coverage
+    counts the named things a scenario declares (archetype, blind spot, hazard,
+    modifier, severity); it catches a suite that forgot a failure mode. GRID
+    coverage counts the cells of the real record's rainfall x river plane that
+    generated zones land in; it catches a suite that declares twenty different
+    archetypes and then generates the same flood twenty times.
+    """
+    zones = [z for s in scenarios for z in s["zones"]]
+    archetypes = sorted({s.get("archetype", "custom") for s in scenarios})
+    targeted = sorted({b for s in scenarios for b in (s.get("blind_spots") or [])})
+    severities = sorted({z["true_severity"] for z in zones})
+    hazards = sorted({h for z in zones for h in z.get("hazards", [])})
+    modifiers = sorted({m for z in zones for m in (z.get("modifiers") or [])}
+                       | {m for s in scenarios for m in (s.get("global_modifiers") or [])})
+
+    # Grid coverage over quartile bins of the real record, so one cell means a
+    # region of conditions that actually occurs.
+    rain_edges = reference["rainfall_mm"].quantile([0, .25, .5, .75, 1.0]).to_numpy()
+    river_edges = reference["river_level_m"].quantile([0, .25, .5, .75, 1.0]).to_numpy()
+    occupied: set[tuple[int, int]] = set()
+    for zone in zones:
+        sensors = (zone.get("inputs") or {}).get("sensors")
+        if not sensors:
+            continue
+        r = int(np.clip(np.searchsorted(rain_edges, sensors["rainfall_mm"], "right") - 1, 0, 3))
+        v = int(np.clip(np.searchsorted(river_edges, sensors["river_level_m"], "right") - 1, 0, 3))
+        occupied.add((r, v))
+
+    gaps = [b["id"] for b in (blind_spots or []) if b.get("status") in {"rare", "absent"}]
+    covered = [b for b in gaps if b in targeted]
+
+    return {
+        "scenarios": len(scenarios),
+        "zones_with_sensors": sum(1 for z in zones if (z.get("inputs") or {}).get("sensors")),
+        "distinct_archetypes": len(archetypes),
+        "archetypes": archetypes,
+        "distinct_severities": len(severities),
+        "severities": severities,
+        "distinct_hazards": len(hazards),
+        "hazards": hazards,
+        "distinct_modifiers": len(modifiers),
+        "modifiers": modifiers,
+        "blind_spots_targeted": len(targeted),
+        "blind_spots_rare_or_absent": len(gaps),
+        "blind_spots_covered": len(covered),
+        "blind_spot_coverage": round(len(covered) / len(gaps), 4) if gaps else None,
+        "uncovered_blind_spots": sorted(set(gaps) - set(covered)),
+        "sensor_grid_cells_occupied": len(occupied),
+        "sensor_grid_cells_total": 16,
+        "sensor_grid_coverage": round(len(occupied) / 16, 4),
+    }
+
+
+def scenario_audit(scenarios: list[dict], reference: pd.DataFrame,
+                   blind_spots: list[dict] | None = None) -> dict[str, Any]:
+    """The three numbers the Evaluation Engineer owns, for one scenario set."""
+    bands = _plausibility_bands(reference)
+    rows: list[dict] = []
+    for scenario in scenarios:
+        archetype = str(scenario.get("archetype", ""))
+        for zone in scenario["zones"]:
+            verdict = zone_realism(zone, bands, archetype)
+            verdict.update({"scenario_id": scenario.get("scenario_id"),
+                            "zone_id": zone.get("zone_id"),
+                            "label": zone.get("label"),
+                            "true_severity": zone.get("true_severity")})
+            rows.append(verdict)
+
+    scored = [r for r in rows if r["scored"]]
+    scores = [r["realism_score"] for r in scored]
+    overconfident = [r for r in scored if r["overconfident"]]
+    by_rule: dict[str, int] = {}
+    for row in scored:
+        for name in row["violations"]:
+            by_rule[name] = by_rule.get(name, 0) + 1
+
+    per_scenario = []
+    for scenario in scenarios:
+        ids = [r for r in scored if r["scenario_id"] == scenario.get("scenario_id")]
+        per_scenario.append({
+            "scenario_id": scenario.get("scenario_id"),
+            "name": scenario.get("name"),
+            "realism_score": round(float(np.mean([r["realism_score"] for r in ids])), 4) if ids else None,
+            "zones_scored": len(ids),
+            "overconfident_zones": sum(1 for r in ids if r["overconfident"]),
+        })
+
+    plausible = sum(1 for s in scores if s >= 0.999)
+    exempted = [r for r in scored if r.get("exempt")]
+    return {
+        "realism_score": {
+            "mean": round(float(np.mean(scores)), 4) if scores else None,
+            "min": round(float(np.min(scores)), 4) if scores else None,
+            "zones_scored": len(scored),
+            "zones_unscored": len(rows) - len(scored),
+            "fully_plausible_zones": plausible,
+            "fully_plausible_rate": round(plausible / len(scores), 4) if scores else None,
+            "violations_by_rule": dict(sorted(by_rule.items(), key=lambda kv: -kv[1])),
+        },
+        "overconfidence": {
+            "zones": len(overconfident),
+            "rate": round(len(overconfident) / len(scored), 4) if scored else None,
+            "exempt_by_design": len(exempted),
+            "exempt_detail": [{k: r[k] for k in ("scenario_id", "zone_id", "label",
+                                                 "true_severity")} for r in exempted],
+            "detail": [{k: r[k] for k in ("scenario_id", "zone_id", "label",
+                                          "true_severity", "violations")}
+                       for r in overconfident],
+        },
+        "diversity_coverage": diversity_coverage(scenarios, reference, blind_spots),
+        "per_scenario": per_scenario,
+    }
+
 # ===========================================================================
 # Reporting
 # ===========================================================================
@@ -668,11 +923,50 @@ def write_markdown(report: dict) -> str:
             f"| Stage 04 read-time savings (mean) | {slm['mean_read_savings_pct']}% |",
         ]
 
+    audit = report.get("scenario_audit")
+    if audit:
+        ra, oc, dv = audit["realism_score"], audit["overconfidence"], audit["diversity_coverage"]
+        lines += [
+            "", "## 2. Scenario audit (realism score, diversity coverage, overconfidence)", "",
+            "Per-zone physical coherence, scored against plausibility rules before the pipeline "
+            "ever sees the scenario. This is a different question from the distributional realism "
+            "audit below: a stress scenario is meant to sit off the historical distribution, but "
+            "it still has to be internally consistent.",
+            "",
+            "| Metric | Result |", "| --- | ---: |",
+            f"| **Realism score** (mean over {ra['zones_scored']} scored zones) | **{ra['mean']}** |",
+            f"| Lowest-scoring zone | {ra['min']} |",
+            f"| Fully plausible zones (no rule violated) | {ra['fully_plausible_zones']}/"
+            f"{ra['zones_scored']} ({_pct(ra['fully_plausible_rate'])}) |",
+            f"| Zones not scored (no sensor evidence) | {ra['zones_unscored']} |",
+            f"| **Overconfident zones** (severe label, benign physics) | **{oc['zones']}** "
+            f"({_pct(oc['rate'])}) |",
+            f"| Diversity: distinct archetypes | {dv['distinct_archetypes']} |",
+            f"| Diversity: rare/absent blind spots covered | "
+            f"{_pct(dv['blind_spot_coverage'])} ({dv.get('blind_spots_covered', 0)} of "
+            f"{dv['blind_spots_rare_or_absent']}) |",
+            f"| Diversity: distinct hazards / severities / modifiers | "
+            f"{dv['distinct_hazards']} / {dv['distinct_severities']} / {dv['distinct_modifiers']} |",
+            f"| Diversity: rainfall x river grid cells occupied | "
+            f"{dv['sensor_grid_cells_occupied']}/{dv['sensor_grid_cells_total']} "
+            f"({_pct(dv['sensor_grid_coverage'])}) |",
+        ]
+        if ra["violations_by_rule"]:
+            lines += ["", "Plausibility rules violated, most frequent first: "
+                      + ", ".join(f"`{k}` x{v}" for k, v in ra["violations_by_rule"].items()) + "."]
+        if oc["detail"]:
+            lines += ["", "Overconfident zones:", ""]
+            lines += [f"- {d['scenario_id']} / {d['zone_id']} ({d['label']}, "
+                      f"{d['true_severity']}): {', '.join(d['violations'])}" for d in oc["detail"]]
+        if dv["uncovered_blind_spots"]:
+            lines += ["", "Rare or absent blind spots no prompt targets: "
+                      + ", ".join(dv["uncovered_blind_spots"]) + "."]
+
     realism = report.get("realism")
     if realism:
         c2st = realism["c2st"]
         lines += [
-            "", "## 2. Realism audit", "",
+            "", "## 3. Realism audit (distributional)", "",
             "| Check | CVAE | Naive baseline |", "| --- | ---: | ---: |",
             f"| C2ST ROC-AUC (0.5 = indistinguishable) | {c2st['cvae']['auc_mean']} | "
             f"{c2st['naive_baseline']['auc_mean']} |",
@@ -701,7 +995,7 @@ def write_markdown(report: dict) -> str:
     probe = report.get("forecast_probe")
     if probe:
         lines += [
-            "", "## 2b. Stage 02 forecast probe (perfectly flat 72 h river)", "",
+            "", "## 4. Stage 02 forecast probe (perfectly flat 72 h river)", "",
             f"Real CWC gauges rise more than {probe['real_gauge_rise_6h_q99_m']} m in 6 h in only 1% of "
             f"windows. Fusion escalates to URGENT on a projected rise of {probe['steep_rise_threshold_m']} m.",
             "", "| Flat level (m) | Forecast 6 h peak (m) | Projected change (m) | Fusion reads it as |",
@@ -711,7 +1005,7 @@ def write_markdown(report: dict) -> str:
             lines.append(f"| {row['flat_level_m']:.1f} | {row['peak_6h_m']:.2f} | {row['change_6h_m']:+.2f} | "
                          f"{row['fusion_reading']} |")
 
-    lines += ["", "## 3. Per-scenario results", "",
+    lines += ["", "## 5. Per-scenario results", "",
               "| ID | Scenario | Zones | Passed | Ranking tau | Blind spots |",
               "| --- | --- | ---: | :---: | ---: | --- |"]
     for sc in report["scenarios"]:
@@ -722,7 +1016,7 @@ def write_markdown(report: dict) -> str:
                      f"{sc['ranking_tau'] if sc['ranking_tau'] is not None else '-'} | "
                      f"{', '.join(sc['blind_spots'])} |")
 
-    lines += ["", "## 4. Failure log", ""]
+    lines += ["", "## 6. Failure log", ""]
     if report["failures"]:
         lines += ["| Scenario | Zone | True | Called | Why it failed |", "| --- | --- | --- | --- | --- |"]
         for f in report["failures"]:
@@ -733,7 +1027,7 @@ def write_markdown(report: dict) -> str:
 
     wild = report.get("wildcard")
     if wild:
-        lines += ["", f"## 5. Wildcard -- {wild['name']}", "", wild["prompt"], "",
+        lines += ["", f"## 7. Wildcard -- {wild['name']}", "", wild["prompt"], "",
                   "| Zone | True | Evidence left | Lost to outage | Decision | Review | Result |",
                   "| --- | --- | --- | --- | --- | :---: | :---: |"]
         for d in wild["details"]:
@@ -756,6 +1050,12 @@ def append_history(report: dict) -> None:
         "critical_miss_rate": s["critical_miss_rate"],
         "priority_exact_accuracy": s["priority_exact_accuracy"], "crashes": s["crashes"],
         "c2st_auc": (report.get("realism") or {}).get("c2st", {}).get("cvae", {}).get("auc_mean"),
+        "realism_score_mean": (report.get("scenario_audit") or {}).get(
+            "realism_score", {}).get("mean"),
+        "overconfidence_rate": (report.get("scenario_audit") or {}).get(
+            "overconfidence", {}).get("rate"),
+        "blind_spot_coverage": (report.get("scenario_audit") or {}).get(
+            "diversity_coverage", {}).get("blind_spot_coverage"),
     }
     frame = pd.DataFrame([row])
     if HISTORY_CSV.exists():
@@ -785,7 +1085,18 @@ def main() -> None:
     parser.add_argument("--suite", type=Path, default=SUITE_JSON)
     parser.add_argument("--wildcard", type=Path, default=WILDCARD_JSON)
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--label", default="",
+                        help="suffix the output files, so scoring a second suite "
+                             "(e.g. the SLM one) does not overwrite the first")
     args = parser.parse_args()
+
+    if args.label:
+        # Rebind the module-level output paths for this run only.
+        suffix = f"_{args.label}"
+        for name in ("REALISM_JSON", "SCENARIO_AUDIT_JSON", "ZONE_RESULTS_CSV",
+                     "SCENARIO_RESULTS_CSV", "REPORT_JSON", "REPORT_MD"):
+            path = globals()[name]
+            globals()[name] = path.with_name(f"{path.stem}{suffix}{path.suffix}")
 
     if not args.suite.exists():
         raise SystemExit("Scenario suite missing. Run `python Stage05_GenAI/03_genai_engineer.py` first.")
@@ -804,6 +1115,14 @@ def main() -> None:
     slm_name = engines["slm"].name if engines.get("slm") else None
     wildcard_df = pd.DataFrame(wildcard_result["zones"]) if wildcard_result else None
     summary = summarise(zone_df, results, slm_name, wildcard_df)
+
+    print("[eval] scenario audit (realism score / diversity / overconfidence) ...")
+    audit_reference = pd.read_csv(SENSOR_REFERENCE_CSV)
+    blind_spots = None
+    if BLIND_SPOT_JSON.exists():
+        blind_spots = json.loads(BLIND_SPOT_JSON.read_text(encoding="utf-8")).get("blind_spots")
+    audit = scenario_audit(suite + ([wildcard] if wildcard else []), audit_reference, blind_spots)
+    SCENARIO_AUDIT_JSON.write_text(json.dumps(_jsonable(audit), indent=2), encoding="utf-8")
 
     probe = None
     if engines.get("dl") is not None:
@@ -826,6 +1145,7 @@ def main() -> None:
         "seed": args.seed,
         "stage_status": status,
         "summary": summary,
+        "scenario_audit": audit,
         "realism": realism,
         "forecast_probe": probe,
         "scenarios": results,
@@ -845,6 +1165,13 @@ def main() -> None:
     print(f"[eval] scenarios passed {s['scenarios_passed']}/{s['scenarios']}  "
           f"zones {s['zones_passed']}/{s['zones']}  critical misses {s['critical_misses']}  "
           f"crashes {s['crashes']}")
+    ra, oc, dv = audit["realism_score"], audit["overconfidence"], audit["diversity_coverage"]
+    print(f"[eval] realism score mean {ra['mean']} (min {ra['min']}, "
+          f"{ra['fully_plausible_zones']}/{ra['zones_scored']} fully plausible)  "
+          f"overconfident {oc['zones']} ({_pct(oc['rate'])})  "
+          f"diversity: {dv['distinct_archetypes']} archetypes, "
+          f"{_pct(dv['blind_spot_coverage'])} blind spots, "
+          f"{dv['sensor_grid_cells_occupied']}/16 sensor cells")
     if realism:
         print(f"[eval] C2ST AUC cvae {realism['c2st']['cvae']['auc_mean']} vs naive "
               f"{realism['c2st']['naive_baseline']['auc_mean']}")

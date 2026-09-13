@@ -1,0 +1,696 @@
+{
+  "tools": [
+    {
+      "name": "query_sensor_risk_score",
+      "title": "Sensor zone risk (Stage 01)",
+      "description": "Score a zone's sensor telemetry with the calibrated Stage 01 XGBoost model.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sensors": {
+            "type": "object",
+            "description": "One Stage 01 sensor record (12 fields)."
+          }
+        },
+        "required": [
+          "sensors"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "Stage01_ML",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "predict_visual_flood",
+      "title": "Visual flood check (Stage 02 CNN)",
+      "description": "Classify a camera or drone image as flooded or unflooded.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "image_path"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "Stage02_DL",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "forecast_water_level",
+      "title": "River forecast (Stage 02 LSTM)",
+      "description": "Forecast the next 6 hours of river level, with an out-of-distribution check.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "water_levels": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 72,
+            "description": "Hourly river levels in metres, oldest first (72 h)."
+          }
+        },
+        "required": [
+          "water_levels"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "Stage02_DL",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "parse_emergency_text",
+      "title": "Emergency text analysis (Stage 03)",
+      "description": "Urgency, hazard type, location, requested resources and headcount from a free-text report.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "raw_text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          }
+        },
+        "required": [
+          "raw_text"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "Stage03_NLP",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "assess_zone",
+      "title": "Fused zone decision (fusion layer)",
+      "description": "Fuse any subset of sensors, text, image and gauge history into one priority with conflicts, escalations and a human-review flag.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sensors": {
+            "type": "object",
+            "description": "One Stage 01 sensor record (12 fields)."
+          },
+          "text": {
+            "type": "string"
+          },
+          "image_path": {
+            "type": "string"
+          },
+          "water_levels": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 72,
+            "description": "Hourly river levels in metres, oldest first (72 h)."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "fusion",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "generate_tactical_briefing",
+      "title": "Tactical briefing (Stage 04)",
+      "description": "Condense a multi-entry incident log into situation, risk and actions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "incident_log": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          }
+        },
+        "required": [
+          "incident_log"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "Stage04_SLM",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "get_district_profile",
+      "title": "District flood history",
+      "description": "Historical flood profile of a district from the Stage 01 sensor record.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "minLength": 1
+          },
+          "district": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "state",
+          "district"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "knowledge_base",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "search_sop",
+      "title": "Search disaster-management SOPs",
+      "description": "Retrieve cited passages from the national disaster-management SOP corpus.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 3
+          },
+          "hazard": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "Early_Warning",
+              "General",
+              "Preparedness",
+              "Recovery",
+              "Relief",
+              "Response",
+              "Trigger"
+            ]
+          },
+          "top_k": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "knowledge_base",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "recall_precedents",
+      "title": "Recall precedents",
+      "description": "Memory-augmented reasoning: past agent and commander decisions for the same district.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "minLength": 1
+          },
+          "district": {
+            "type": "string",
+            "minLength": 1
+          },
+          "top_k": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "state",
+          "district"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "dispatcher",
+        "backed_by": "agent_memory",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "check_resource_inventory",
+      "title": "Check inventory",
+      "description": "Remaining and reserved units of each resource type in this incident.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "allocator",
+        "backed_by": "run_state",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "reserve_resources",
+      "title": "Reserve resources",
+      "description": "Reserve units of one resource type for a zone. Fails rather than over-commit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "enum": [
+              "rescue_boats",
+              "ambulances",
+              "shelter_beds"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "zone_id",
+          "resource_type",
+          "quantity"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "allocator",
+        "backed_by": "run_state",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "release_resources",
+      "title": "Release resources",
+      "description": "Return a zone's reserved units of one resource type to the inventory.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "enum": [
+              "rescue_boats",
+              "ambulances",
+              "shelter_beds"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "zone_id",
+          "resource_type",
+          "quantity"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "coordinator",
+        "backed_by": "run_state",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "escalate_to_human",
+      "title": "Escalate to human command",
+      "description": "Put a decision in front of a human operator: approval, verification, conflict or shortage.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "approval",
+              "verification",
+              "conflict",
+              "shortage",
+              "low_confidence"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3
+          },
+          "action_id": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "field_supervisor",
+              "district_eoc",
+              "state_eoc",
+              "incident_commander"
+            ]
+          }
+        },
+        "required": [
+          "zone_id",
+          "category",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "auditor",
+        "backed_by": "run_state",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "request_mutual_aid",
+      "title": "Reroute to a secondary responder",
+      "description": "Reroute demand the incident inventory cannot cover to a secondary responder (SDRF/NDRF, district EMS, DDMA relief camp).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string"
+          },
+          "resource_type": {
+            "type": "string",
+            "enum": [
+              "rescue_boats",
+              "ambulances",
+              "shelter_beds"
+            ]
+          },
+          "shortfall": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "zone_id",
+          "resource_type",
+          "shortfall"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "allocator",
+        "backed_by": "run_state",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "issue_alert",
+      "title": "Issue standby alert",
+      "description": "Issue a low-consequence standby or monitoring alert for a zone.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "ROUTINE",
+              "ELEVATED",
+              "URGENT",
+              "CRITICAL"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 3
+          }
+        },
+        "required": [
+          "zone_id",
+          "level",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "coordinator",
+        "backed_by": "run_state",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "notify_shelter",
+      "title": "Notify shelter",
+      "description": "Tell the receiving shelter how many evacuees to expect from a zone.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evacuees": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "beds_reserved": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "shelter": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "zone_id",
+          "evacuees",
+          "beds_reserved"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "coordinator",
+        "backed_by": "run_state",
+        "requires_human_approval": false
+      }
+    },
+    {
+      "name": "commit_rescue_dispatch",
+      "title": "Commit rescue dispatch",
+      "description": "Commit a planned dispatch. Actions the Safety Auditor held for sign-off need the approval token that only a human decision issues.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approval_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "zone_id",
+          "action_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "coordinator",
+        "backed_by": "run_state",
+        "requires_human_approval": true
+      }
+    },
+    {
+      "name": "recall_dispatch",
+      "title": "Recall dispatch (emergency override)",
+      "description": "Recall a committed dispatch and release its units. Needs the one-time override token that only a human commander's override issues.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "override_token": {
+            "type": "string",
+            "minLength": 16
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3
+          }
+        },
+        "required": [
+          "zone_id",
+          "action_id",
+          "override_token",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "agent": "commander",
+        "backed_by": "run_state",
+        "requires_human_approval": true
+      }
+    }
+  ]
+}

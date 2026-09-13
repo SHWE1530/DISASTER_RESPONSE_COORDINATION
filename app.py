@@ -70,6 +70,9 @@ stage04_engine, stage04_status, stage04_error = load_stage(
 stage05_engine, stage05_status, stage05_error = load_stage(
     "Stage05", BASE_DIR / "Stage05_GenAI" / "05_integration_engineer.py", "genai_integration_engine"
 )
+stage06_engine, stage06_status, stage06_error = load_stage(
+    "Stage06", BASE_DIR / "Stage06_AgenticAI" / "05_integration_engineer.py", "agent_integration_engine"
+)
 
 # Cross-stage fusion. Degrades gracefully: it uses whichever stages loaded.
 try:
@@ -97,6 +100,16 @@ if stage05_engine is not None:
         logger.info("Registered Stage 05 blueprint under /genai")
     except Exception as exc:
         logger.exception("Failed to register Stage 05 blueprint")
+
+if stage06_engine is not None:
+    try:
+        # Reuse the Stage 01-03 adapters already loaded above instead of loading the models twice.
+        stage06_engine.attach_engines(ml=stage01_engine, dl=stage02_engine, nlp=stage03_engine)
+        stage06_module = load_module("stage06_api", BASE_DIR / "Stage06_AgenticAI" / "05_integration_engineer.py")
+        app.register_blueprint(stage06_module.create_blueprint(stage06_engine))
+        logger.info("Registered Stage 06 blueprint under /agent")
+    except Exception as exc:
+        logger.exception("Failed to register Stage 06 blueprint")
 
 
 def fail(message, status_code=400, exc=None):
@@ -195,6 +208,7 @@ HTML_TEMPLATE = """
         <a class="nav-item" data-target="view-nlp"><div class="nav-icon" style="color: var(--accent-purple)">💬</div> NLP (Stage 03)</a>
         <a class="nav-item" data-target="view-slm"><div class="nav-icon" style="color: #F97316">📋</div> SLM Briefing (Stage 04)</a>
         <a class="nav-item" data-target="view-genai"><div class="nav-icon" style="color: #EC4899">🧪</div> GenAI Stress Test (Stage 05)</a>
+        <a class="nav-item" data-target="view-agent"><div class="nav-icon" style="color: #22D3EE">🤖</div> Agent Coordination (Stage 06)</a>
     </div>
 
     <!-- Main Content -->
@@ -223,7 +237,8 @@ HTML_TEMPLATE = """
                 <p><strong>Stage 03 API (NLP):</strong> {{ stage03 }}</p>
                 <p><strong>Stage 04 API (SLM):</strong> {{ stage04 }}</p>
                 <p><strong>Stage 05 API (GenAI):</strong> {{ stage05 }}</p>
-                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, NLP emergency text analysis, SLM tactical briefing generator, and the Stage 05 GenAI stress-testing dashboard.</p>
+                <p><strong>Stage 06 API (Agentic AI):</strong> {{ stage06 }}</p>
+                <p style="margin-top: 15px; color: var(--text-muted);">Please use the navigation menu on the left to access the ML prediction forms, DL image/forecasting tools, NLP emergency text analysis, SLM tactical briefing generator, the Stage 05 GenAI stress-testing dashboard, and the Stage 06 agent coordination console.</p>
             </div>
         </div>
 
@@ -461,6 +476,11 @@ HTML_TEMPLATE = """
         <!-- VIEW: GENAI STRESS TEST (STAGE 05) -->
         <div id="view-genai" class="view-section" style="padding: 0; height: calc(100vh - 72px);">
             <iframe src="/genai" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+
+        <!-- VIEW: AGENT COORDINATION (STAGE 06) -->
+        <div id="view-agent" class="view-section" style="padding: 0; height: calc(100vh - 72px);">
+            <iframe src="/agent" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
 
     </div>
@@ -842,6 +862,7 @@ def dashboard():
         stage03=stage03_status,
         stage04=stage04_status,
         stage05=stage05_status,
+        stage06=stage06_status,
     )
 
 @app.route('/health')
@@ -854,6 +875,7 @@ def health():
         ("stage03_nlp", stage03_engine),
         ("stage04_slm", stage04_engine),
         ("stage05_genai", stage05_engine),
+        ("stage06_agentic", stage06_engine),
     ):
         if engine is None:
             report[name] = {"status": "unavailable", "error": "adapter failed to load"}
@@ -1043,6 +1065,8 @@ if __name__ == '__main__':
     print(f"  Stage 02 DL : {stage02_status}")
     print(f"  Stage 03 NLP: {stage03_status}")
     print(f"  Stage 04 SLM: {stage04_status}")
+    print(f"  Stage 05 GenAI: {stage05_status}")
+    print(f"  Stage 06 Agentic: {stage06_status}")
     if debug_enabled:
         print("  WARNING: debug mode is ON (interactive debugger enabled).")
     app.run(debug=debug_enabled, port=port)

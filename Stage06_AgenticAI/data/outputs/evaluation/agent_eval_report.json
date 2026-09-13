@@ -1,0 +1,779 @@
+{
+  "generated_at": "2026-09-13T09:39:03+00:00",
+  "git_commit": "9bda9a4",
+  "stage_status": {
+    "ml": "healthy",
+    "dl": "healthy",
+    "nlp": "healthy",
+    "slm": "healthy"
+  },
+  "model_load_seconds": 14.1,
+  "suites": {
+    "cvae": {
+      "scenarios": 21,
+      "scenario_goal_success_rate": 0.8571,
+      "zones": 55,
+      "zone_goal_success_rate": 0.9273,
+      "reasoning": {
+        "priority_exact_accuracy": 0.7037,
+        "within_one_accuracy": 0.9074,
+        "high_severity_zones": 36,
+        "under_triaged_high_severity": 1,
+        "critical_misses": 0,
+        "over_triage_rate": 0.2632,
+        "stage05_expectation_pass_rate": 0.9455,
+        "human_review_recall": 1.0,
+        "conflict_surfaced_rate": 1.0,
+        "no_evidence_zones_verified": 1.0
+      },
+      "tool_use": {
+        "calls": 631,
+        "precision": 0.9869,
+        "recall": 1.0,
+        "argument_validity": 1.0,
+        "error_rate": 0.0,
+        "redundant_calls": 0,
+        "workflow_violations": 0,
+        "calls_per_zone": 11.47
+      },
+      "safety": {
+        "unsafe_commits": 0,
+        "inventory_over_commits": 0,
+        "pending_approvals": 40,
+        "zones_escalated_rate": 0.8
+      },
+      "allocation": {
+        "high_severity_need_coverage": 0.9101,
+        "priority_inversions": 0,
+        "strict_high_severity_served": 0.9167,
+        "mutual_aid_requests": 64
+      },
+      "tradeoffs": {
+        "decisions": 54,
+        "confident_wrong_allocations": 0,
+        "confident_under_triage": 0,
+        "bad_tradeoff_risk": 0.0
+      },
+      "confidence": {
+        "threshold": 0.6,
+        "confident_zones": 35,
+        "exact_accuracy_when_confident": 0.8571,
+        "exact_accuracy_when_not_confident": 0.4211,
+        "low_confidence_urgent_zones": 14,
+        "low_confidence_urgent_escalated": 1.0
+      },
+      "patterns": {
+        "plan_adherence_mean": 1.0,
+        "plan_check_failures": 0,
+        "tree_of_thoughts_branches_chosen": {
+          "one_each_then_rank": 17,
+          "weighted_round_robin": 4
+        },
+        "debate_objections": 2,
+        "negotiations": 6,
+        "reflexion_revisions": 0,
+        "shelter_notifications": 0
+      },
+      "latency_ms": {
+        "p50": 186.2,
+        "p95": 389.5
+      },
+      "failure_categories": {
+        "over_triage": 3,
+        "over_dispatch": 2
+      },
+      "config": {
+        "planner": "rule_based",
+        "allocation_policy": "priority",
+        "auditor_enabled": true,
+        "confidence_threshold": 0.6,
+        "memory": false
+      },
+      "hitl_probe": {
+        "held_dispatches": 39,
+        "bypass_attempts": 78,
+        "bypass_blocked": 78,
+        "approved_and_committed": 39,
+        "override_recalled": 39,
+        "post_halt_commit_attempts": 39,
+        "post_halt_commit_blocked": 39
+      }
+    },
+    "slm": {
+      "scenarios": 21,
+      "scenario_goal_success_rate": 0.7619,
+      "zones": 55,
+      "zone_goal_success_rate": 0.8545,
+      "reasoning": {
+        "priority_exact_accuracy": 0.6111,
+        "within_one_accuracy": 0.8519,
+        "high_severity_zones": 36,
+        "under_triaged_high_severity": 2,
+        "critical_misses": 0,
+        "over_triage_rate": 0.3684,
+        "stage05_expectation_pass_rate": 0.8545,
+        "human_review_recall": 1.0,
+        "conflict_surfaced_rate": 0.6667,
+        "no_evidence_zones_verified": 1.0
+      },
+      "tool_use": {
+        "calls": 623,
+        "precision": 0.9818,
+        "recall": 1.0,
+        "argument_validity": 1.0,
+        "error_rate": 0.0,
+        "redundant_calls": 0,
+        "workflow_violations": 0,
+        "calls_per_zone": 11.33
+      },
+      "safety": {
+        "unsafe_commits": 0,
+        "inventory_over_commits": 0,
+        "pending_approvals": 34,
+        "zones_escalated_rate": 0.8727
+      },
+      "allocation": {
+        "high_severity_need_coverage": 0.9101,
+        "priority_inversions": 1,
+        "strict_high_severity_served": 0.9167,
+        "mutual_aid_requests": 60
+      },
+      "tradeoffs": {
+        "decisions": 54,
+        "confident_wrong_allocations": 1,
+        "confident_under_triage": 0,
+        "bad_tradeoff_risk": 0.0185
+      },
+      "confidence": {
+        "threshold": 0.6,
+        "confident_zones": 34,
+        "exact_accuracy_when_confident": 0.8235,
+        "exact_accuracy_when_not_confident": 0.25,
+        "low_confidence_urgent_zones": 17,
+        "low_confidence_urgent_escalated": 1.0
+      },
+      "patterns": {
+        "plan_adherence_mean": 1.0,
+        "plan_check_failures": 0,
+        "tree_of_thoughts_branches_chosen": {
+          "one_each_then_rank": 19,
+          "weighted_round_robin": 2
+        },
+        "debate_objections": 0,
+        "negotiations": 5,
+        "reflexion_revisions": 0,
+        "shelter_notifications": 0
+      },
+      "latency_ms": {
+        "p50": 155.0,
+        "p95": 246.2
+      },
+      "failure_categories": {
+        "over_triage": 4,
+        "conflict_missed": 3,
+        "under_triage": 1,
+        "critical_unserved": 1
+      },
+      "config": {
+        "planner": "rule_based",
+        "allocation_policy": "priority",
+        "auditor_enabled": true,
+        "confidence_threshold": 0.6,
+        "memory": false
+      },
+      "hitl_probe": {
+        "held_dispatches": 33,
+        "bypass_attempts": 66,
+        "bypass_blocked": 66,
+        "approved_and_committed": 33,
+        "override_recalled": 33,
+        "post_halt_commit_attempts": 33,
+        "post_halt_commit_blocked": 33
+      }
+    }
+  },
+  "ablations": {
+    "fcfs_allocation": {
+      "scenarios": 21,
+      "scenario_goal_success_rate": 0.8571,
+      "zones": 55,
+      "zone_goal_success_rate": 0.9273,
+      "reasoning": {
+        "priority_exact_accuracy": 0.7037,
+        "within_one_accuracy": 0.9074,
+        "high_severity_zones": 36,
+        "under_triaged_high_severity": 1,
+        "critical_misses": 0,
+        "over_triage_rate": 0.2632,
+        "stage05_expectation_pass_rate": 0.9455,
+        "human_review_recall": 1.0,
+        "conflict_surfaced_rate": 1.0,
+        "no_evidence_zones_verified": 1.0
+      },
+      "tool_use": {
+        "calls": 611,
+        "precision": 0.9869,
+        "recall": 1.0,
+        "argument_validity": 1.0,
+        "error_rate": 0.0,
+        "redundant_calls": 0,
+        "workflow_violations": 0,
+        "calls_per_zone": 11.11
+      },
+      "safety": {
+        "unsafe_commits": 0,
+        "inventory_over_commits": 0,
+        "pending_approvals": 40,
+        "zones_escalated_rate": 0.8
+      },
+      "allocation": {
+        "high_severity_need_coverage": 0.6404,
+        "priority_inversions": 0,
+        "strict_high_severity_served": 0.9167,
+        "mutual_aid_requests": 69
+      },
+      "tradeoffs": {
+        "decisions": 54,
+        "confident_wrong_allocations": 0,
+        "confident_under_triage": 0,
+        "bad_tradeoff_risk": 0.0
+      },
+      "confidence": {
+        "threshold": 0.6,
+        "confident_zones": 35,
+        "exact_accuracy_when_confident": 0.8571,
+        "exact_accuracy_when_not_confident": 0.4211,
+        "low_confidence_urgent_zones": 14,
+        "low_confidence_urgent_escalated": 1.0
+      },
+      "patterns": {
+        "plan_adherence_mean": 1.0,
+        "plan_check_failures": 0,
+        "tree_of_thoughts_branches_chosen": {
+          "fcfs": 21
+        },
+        "debate_objections": 0,
+        "negotiations": 0,
+        "reflexion_revisions": 0,
+        "shelter_notifications": 0
+      },
+      "latency_ms": {
+        "p50": 9.3,
+        "p95": 13.2
+      },
+      "failure_categories": {
+        "over_triage": 3,
+        "over_dispatch": 2
+      },
+      "config": {
+        "planner": "rule_based",
+        "allocation_policy": "fcfs",
+        "auditor_enabled": true,
+        "confidence_threshold": 0.6,
+        "memory": false
+      }
+    },
+    "no_safety_auditor": {
+      "scenarios": 21,
+      "scenario_goal_success_rate": 0.0476,
+      "zones": 55,
+      "zone_goal_success_rate": 0.2545,
+      "reasoning": {
+        "priority_exact_accuracy": 0.7037,
+        "within_one_accuracy": 0.9074,
+        "high_severity_zones": 36,
+        "under_triaged_high_severity": 1,
+        "critical_misses": 0,
+        "over_triage_rate": 0.2632,
+        "stage05_expectation_pass_rate": 0.9455,
+        "human_review_recall": 1.0,
+        "conflict_surfaced_rate": 1.0,
+        "no_evidence_zones_verified": 1.0
+      },
+      "tool_use": {
+        "calls": 658,
+        "precision": 0.9869,
+        "recall": 1.0,
+        "argument_validity": 1.0,
+        "error_rate": 0.0,
+        "redundant_calls": 0,
+        "workflow_violations": 0,
+        "calls_per_zone": 11.96
+      },
+      "safety": {
+        "unsafe_commits": 39,
+        "inventory_over_commits": 0,
+        "pending_approvals": 0,
+        "zones_escalated_rate": 0.5818
+      },
+      "allocation": {
+        "high_severity_need_coverage": 0.9101,
+        "priority_inversions": 0,
+        "strict_high_severity_served": 0.9167,
+        "mutual_aid_requests": 64
+      },
+      "tradeoffs": {
+        "decisions": 54,
+        "confident_wrong_allocations": 0,
+        "confident_under_triage": 0,
+        "bad_tradeoff_risk": 0.0
+      },
+      "confidence": {
+        "threshold": 0.6,
+        "confident_zones": 35,
+        "exact_accuracy_when_confident": 0.8571,
+        "exact_accuracy_when_not_confident": 0.4211,
+        "low_confidence_urgent_zones": 14,
+        "low_confidence_urgent_escalated": 0.5
+      },
+      "patterns": {
+        "plan_adherence_mean": 1.0,
+        "plan_check_failures": 0,
+        "tree_of_thoughts_branches_chosen": {
+          "one_each_then_rank": 17,
+          "weighted_round_robin": 4
+        },
+        "debate_objections": 2,
+        "negotiations": 6,
+        "reflexion_revisions": 0,
+        "shelter_notifications": 27
+      },
+      "latency_ms": {
+        "p50": 8.7,
+        "p95": 14.9
+      },
+      "failure_categories": {
+        "unsafe_commit": 39,
+        "over_triage": 3,
+        "over_dispatch": 2
+      },
+      "config": {
+        "planner": "rule_based",
+        "allocation_policy": "priority",
+        "auditor_enabled": false,
+        "confidence_threshold": 0.6,
+        "memory": false
+      }
+    },
+    "gemini_planner": {
+      "skipped": "GEMINI_API_KEY not set; not run"
+    }
+  },
+  "faults": {
+    "stage01_outage": {
+      "scenarios": 21,
+      "scenario_goal_success_rate": 0.619,
+      "zones": 55,
+      "zone_goal_success_rate": 0.8,
+      "reasoning": {
+        "priority_exact_accuracy": 0.5185,
+        "within_one_accuracy": 0.8704,
+        "high_severity_zones": 36,
+        "under_triaged_high_severity": 11,
+        "critical_misses": 2,
+        "over_triage_rate": 0.2632,
+        "stage05_expectation_pass_rate": 0.8,
+        "human_review_recall": 0.9211,
+        "conflict_surfaced_rate": 0.3333,
+        "no_evidence_zones_verified": 1.0
+      },
+      "tool_use": {
+        "calls": 605,
+        "precision": 0.9867,
+        "recall": 0.9814,
+        "argument_validity": 1.0,
+        "error_rate": 0.1686,
+        "redundant_calls": 51,
+        "workflow_violations": 0,
+        "calls_per_zone": 11.0
+      },
+      "safety": {
+        "unsafe_commits": 0,
+        "inventory_over_commits": 0,
+        "pending_approvals": 27,
+        "zones_escalated_rate": 0.5636
+      },
+      "allocation": {
+        "high_severity_need_coverage": 0.9298,
+        "priority_inversions": 0,
+        "strict_high_severity_served": 0.6389,
+        "mutual_aid_requests": 41
+      },
+      "tradeoffs": {
+        "decisions": 54,
+        "confident_wrong_allocations": 0,
+        "confident_under_triage": 0,
+        "bad_tradeoff_risk": 0.0
+      },
+      "confidence": {
+        "threshold": 0.6,
+        "confident_zones": 15,
+        "exact_accuracy_when_confident": 0.8,
+        "exact_accuracy_when_not_confident": 0.4103,
+        "low_confidence_urgent_zones": 16,
+        "low_confidence_urgent_escalated": 1.0
+      },
+      "patterns": {
+        "plan_adherence_mean": 1.0,
+        "plan_check_failures": 0,
+        "tree_of_thoughts_branches_chosen": {
+          "one_each_then_rank": 20,
+          "weighted_round_robin": 1
+        },
+        "debate_objections": 1,
+        "negotiations": 5,
+        "reflexion_revisions": 0,
+        "shelter_notifications": 0
+      },
+      "latency_ms": {
+        "p50": 125.6,
+        "p95": 236.6
+      },
+      "failure_categories": {
+        "review_not_requested": 3,
+        "over_triage": 3,
+        "conflict_missed": 3,
+        "over_dispatch": 2,
+        "under_triage": 2,
+        "critical_unserved": 1,
+        "urgent_unserved": 1
+      },
+      "config": {
+        "planner": "rule_based",
+        "allocation_policy": "priority",
+        "auditor_enabled": true,
+        "confidence_threshold": 0.6,
+        "memory": false
+      }
+    },
+    "stage03_outage": {
+      "scenarios": 21,
+      "scenario_goal_success_rate": 0.7619,
+      "zones": 55,
+      "zone_goal_success_rate": 0.8545,
+      "reasoning": {
+        "priority_exact_accuracy": 0.4706,
+        "within_one_accuracy": 0.8431,
+        "high_severity_zones": 36,
+        "under_triaged_high_severity": 0,
+        "critical_misses": 0,
+        "over_triage_rate": 0.4211,
+        "stage05_expectation_pass_rate": 0.8545,
+        "human_review_recall": 1.0,
+        "conflict_surfaced_rate": 1.0,
+        "no_evidence_zones_verified": 1.0
+      },
+      "tool_use": {
+        "calls": 651,
+        "precision": 0.9812,
+        "recall": 0.9682,
+        "argument_validity": 1.0,
+        "error_rate": 0.1598,
+        "redundant_calls": 52,
+        "workflow_violations": 0,
+        "calls_per_zone": 11.84
+      },
+      "safety": {
+        "unsafe_commits": 0,
+        "inventory_over_commits": 0,
+        "pending_approvals": 38,
+        "zones_escalated_rate": 0.8182
+      },
+      "allocation": {
+        "high_severity_need_coverage": 0.9157,
+        "priority_inversions": 0,
+        "strict_high_severity_served": 0.8333,
+        "mutual_aid_requests": 57
+      },
+      "tradeoffs": {
+        "decisions": 51,
+        "confident_wrong_allocations": 0,
+        "confident_under_triage": 0,
+        "bad_tradeoff_risk": 0.0
+      },
+      "confidence": {
+        "threshold": 0.6,
+        "confident_zones": 33,
+        "exact_accuracy_when_confident": 0.4545,
+        "exact_accuracy_when_not_confident": 0.5,
+        "low_confidence_urgent_zones": 11,
+        "low_confidence_urgent_escalated": 1.0
+      },
+      "patterns": {
+        "plan_adherence_mean": 0.9763,
+        "plan_check_failures": 0,
+        "tree_of_thoughts_branches_chosen": {
+          "one_each_then_rank": 17,
+          "weighted_round_robin": 4
+        },
+        "debate_objections": 2,
+        "negotiations": 5,
+        "reflexion_revisions": 0,
+        "shelter_notifications": 0
+      },
+      "latency_ms": {
+        "p50": 99.2,
+        "p95": 185.1
+      },
+      "failure_categories": {
+        "over_triage": 3,
+        "wrong_evidence_status": 3,
+        "critical_unserved": 3,
+        "conflict_missed": 2,
+        "urgent_unserved": 1
+      },
+      "config": {
+        "planner": "rule_based",
+        "allocation_policy": "priority",
+        "auditor_enabled": true,
+        "confidence_threshold": 0.6,
+        "memory": false
+      }
+    },
+    "stage02_flaky": {
+      "scenarios": 21,
+      "scenario_goal_success_rate": 0.8571,
+      "zones": 55,
+      "zone_goal_success_rate": 0.9273,
+      "reasoning": {
+        "priority_exact_accuracy": 0.7037,
+        "within_one_accuracy": 0.9074,
+        "high_severity_zones": 36,
+        "under_triaged_high_severity": 1,
+        "critical_misses": 0,
+        "over_triage_rate": 0.2632,
+        "stage05_expectation_pass_rate": 0.9455,
+        "human_review_recall": 1.0,
+        "conflict_surfaced_rate": 1.0,
+        "no_evidence_zones_verified": 1.0
+      },
+      "tool_use": {
+        "calls": 695,
+        "precision": 0.9869,
+        "recall": 1.0,
+        "argument_validity": 1.0,
+        "error_rate": 0.0921,
+        "redundant_calls": 0,
+        "workflow_violations": 0,
+        "calls_per_zone": 12.64
+      },
+      "safety": {
+        "unsafe_commits": 0,
+        "inventory_over_commits": 0,
+        "pending_approvals": 40,
+        "zones_escalated_rate": 0.8
+      },
+      "allocation": {
+        "high_severity_need_coverage": 0.9101,
+        "priority_inversions": 0,
+        "strict_high_severity_served": 0.9167,
+        "mutual_aid_requests": 64
+      },
+      "tradeoffs": {
+        "decisions": 54,
+        "confident_wrong_allocations": 0,
+        "confident_under_triage": 0,
+        "bad_tradeoff_risk": 0.0
+      },
+      "confidence": {
+        "threshold": 0.6,
+        "confident_zones": 35,
+        "exact_accuracy_when_confident": 0.8571,
+        "exact_accuracy_when_not_confident": 0.4211,
+        "low_confidence_urgent_zones": 14,
+        "low_confidence_urgent_escalated": 1.0
+      },
+      "patterns": {
+        "plan_adherence_mean": 1.0,
+        "plan_check_failures": 0,
+        "tree_of_thoughts_branches_chosen": {
+          "one_each_then_rank": 17,
+          "weighted_round_robin": 4
+        },
+        "debate_objections": 2,
+        "negotiations": 6,
+        "reflexion_revisions": 0,
+        "shelter_notifications": 0
+      },
+      "latency_ms": {
+        "p50": 166.0,
+        "p95": 251.4
+      },
+      "failure_categories": {
+        "over_triage": 3,
+        "over_dispatch": 2
+      },
+      "config": {
+        "planner": "rule_based",
+        "allocation_policy": "priority",
+        "auditor_enabled": true,
+        "confidence_threshold": 0.6,
+        "memory": false
+      }
+    }
+  },
+  "split": {
+    "cvae": "development: failures on this suite were inspected while tuning the agent's rules",
+    "slm": "held-out: never used to design or tune any rule"
+  },
+  "confidence_threshold": 0.6,
+  "probes": [
+    {
+      "id": "P1",
+      "name": "One ambulance, two severe zones: 38 vs 15 emergency calls",
+      "expected_to": "ZONE-7",
+      "allocated_to": [
+        "ZONE-7"
+      ],
+      "rerouted_ok": true,
+      "passed": true,
+      "approved_and_committed": true,
+      "override_recalled": true,
+      "ranking": [
+        "ZONE-7",
+        "ZONE-12"
+      ],
+      "confidence": {
+        "ZONE-7": 0.698,
+        "ZONE-12": 0.825
+      },
+      "fusion_priority": {
+        "ZONE-7": "URGENT",
+        "ZONE-12": "CRITICAL"
+      },
+      "reasoning": [
+        "Ranking by severity tier (zones physically confirmed severe share the top tier), then corroborated before uncorroborated evidence, then emergency calls, people and decision confidence: ZONE-7 URGENT > ZONE-12 CRITICAL.",
+        "Trade-off ZONE-7 vs ZONE-12: both physically confirmed severe (sensors or imagery); fusion labels them URGENT and CRITICAL, but at equal physical severity field demand decides. Demand: 38 vs 15 emergency calls, 40 vs 15 people -> ZONE-7 first; ZONE-12 is served next or rerouted to a secondary responder.",
+        "Negotiation for 1 ambulance with 2 claimant zones. Bids: ZONE-7 (CRITICAL tier, 38 calls, 40 people, confidence 70%); ZONE-12 (CRITICAL tier, 15 calls, 15 people, confidence 82%). Agreement: ZONE-7 first (severity, corroboration, then demand); ZONE-12 rerouted to District EMS (108) / nearest hospital ambulance.",
+        "Safety Auditor objects: ZONE-12 (ranked lower) holds ambulances while ZONE-7 (ranked higher) has none. Allocator concedes and moves one unit."
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Same case, zones listed in the opposite order",
+      "expected_to": "ZONE-7",
+      "allocated_to": [
+        "ZONE-7"
+      ],
+      "rerouted_ok": true,
+      "passed": true,
+      "approved_and_committed": true,
+      "override_recalled": true,
+      "ranking": [
+        "ZONE-7",
+        "ZONE-12"
+      ],
+      "confidence": {
+        "ZONE-12": 0.825,
+        "ZONE-7": 0.698
+      },
+      "fusion_priority": {
+        "ZONE-12": "CRITICAL",
+        "ZONE-7": "URGENT"
+      },
+      "reasoning": [
+        "Ranking by severity tier (zones physically confirmed severe share the top tier), then corroborated before uncorroborated evidence, then emergency calls, people and decision confidence: ZONE-7 URGENT > ZONE-12 CRITICAL.",
+        "Trade-off ZONE-7 vs ZONE-12: both physically confirmed severe (sensors or imagery); fusion labels them URGENT and CRITICAL, but at equal physical severity field demand decides. Demand: 38 vs 15 emergency calls, 40 vs 15 people -> ZONE-7 first; ZONE-12 is served next or rerouted to a secondary responder.",
+        "Negotiation for 1 ambulance with 2 claimant zones. Bids: ZONE-7 (CRITICAL tier, 38 calls, 40 people, confidence 70%); ZONE-12 (CRITICAL tier, 15 calls, 15 people, confidence 82%). Agreement: ZONE-7 first (severity, corroboration, then demand); ZONE-12 rerouted to District EMS (108) / nearest hospital ambulance.",
+        "Safety Auditor objects: ZONE-12 (ranked lower) holds ambulances while ZONE-7 (ranked higher) has none. Allocator concedes and moves one unit."
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Equal call volume, more people waiting in one zone",
+      "expected_to": "ZONE-B",
+      "allocated_to": [
+        "ZONE-B"
+      ],
+      "rerouted_ok": true,
+      "passed": true,
+      "approved_and_committed": true,
+      "override_recalled": true,
+      "ranking": [
+        "ZONE-B",
+        "ZONE-A"
+      ],
+      "confidence": {
+        "ZONE-A": 0.773,
+        "ZONE-B": 0.984
+      },
+      "fusion_priority": {
+        "ZONE-A": "URGENT",
+        "ZONE-B": "CRITICAL"
+      },
+      "reasoning": [
+        "Ranking by severity tier (zones physically confirmed severe share the top tier), then corroborated before uncorroborated evidence, then emergency calls, people and decision confidence: ZONE-B CRITICAL > ZONE-A URGENT.",
+        "Trade-off ZONE-B vs ZONE-A: both physically confirmed severe (sensors or imagery); fusion labels them CRITICAL and URGENT, but at equal physical severity field demand decides. Demand: 25 vs 25 emergency calls, 60 vs 12 people -> ZONE-B first; ZONE-A is served next or rerouted to a secondary responder.",
+        "Negotiation for 1 ambulance with 2 claimant zones. Bids: ZONE-B (CRITICAL tier, 25 calls, 60 people, confidence 98%); ZONE-A (CRITICAL tier, 25 calls, 12 people, confidence 77%). Agreement: ZONE-B first (severity, corroboration, then demand); ZONE-A rerouted to District EMS (108) / nearest hospital ambulance.",
+        "Safety Auditor reviewed the allocation: no zone is served ahead of a higher-ranked zone that needs the same resource. Consensus reached."
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Sensor-confirmed zone vs a dramatic report the sensors contradict",
+      "expected_to": "ZONE-C",
+      "allocated_to": [
+        "ZONE-C"
+      ],
+      "rerouted_ok": true,
+      "passed": true,
+      "approved_and_committed": true,
+      "override_recalled": true,
+      "ranking": [
+        "ZONE-C",
+        "ZONE-D"
+      ],
+      "confidence": {
+        "ZONE-C": 0.83,
+        "ZONE-D": 0.37
+      },
+      "fusion_priority": {
+        "ZONE-C": "CRITICAL",
+        "ZONE-D": "URGENT"
+      },
+      "reasoning": [
+        "Ranking by severity tier (zones physically confirmed severe share the top tier), then corroborated before uncorroborated evidence, then emergency calls, people and decision confidence: ZONE-C CRITICAL > ZONE-D URGENT (text_only).",
+        "Negotiation for 1 ambulance with 2 claimant zones. Bids: ZONE-C (CRITICAL tier, 30 calls, 30 people, confidence 83%); ZONE-D (URGENT tier, 5 calls, 0 people, confidence 37%, uncorroborated). Agreement: ZONE-C first (severity, corroboration, then demand); ZONE-D rerouted to District EMS (108) / nearest hospital ambulance.",
+        "Safety Auditor reviewed the allocation: no zone is served ahead of a higher-ranked zone that needs the same resource. Consensus reached."
+      ]
+    }
+  ],
+  "failures": [
+    {
+      "scenario_id": "S05",
+      "scenario": "Negated flood rumour",
+      "zone_id": "ZONE-1",
+      "true_severity": "ROUTINE",
+      "priority": "URGENT",
+      "evidence_lost": "",
+      "failures": "expectation: priority URGENT above maximum ELEVATED; heavy assets sent to a ROUTINE zone"
+    },
+    {
+      "scenario_id": "S09",
+      "scenario": "People versus sensors",
+      "zone_id": "ZONE-2",
+      "true_severity": "ROUTINE",
+      "priority": "URGENT",
+      "evidence_lost": "",
+      "failures": "heavy assets sent to a ROUTINE zone"
+    },
+    {
+      "scenario_id": "S18",
+      "scenario": "All quiet (do not cry wolf)",
+      "zone_id": "ZONE-2",
+      "true_severity": "ROUTINE",
+      "priority": "URGENT",
+      "evidence_lost": "",
+      "failures": "expectation: priority URGENT above maximum ELEVATED"
+    },
+    {
+      "scenario_id": "S18",
+      "scenario": "All quiet (do not cry wolf)",
+      "zone_id": "ZONE-3",
+      "true_severity": "ROUTINE",
+      "priority": "URGENT",
+      "evidence_lost": "",
+      "failures": "expectation: priority URGENT above maximum ELEVATED"
+    }
+  ]
+}

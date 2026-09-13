@@ -30,6 +30,12 @@ pillow==12.3.0
 # --- transformers (Stage 03 urgency classifier candidate) ---
 transformers==5.16.1
 
+# --- hosted LLM backend (Stage 05, optional) ---
+# Only needed for `03b_llm_scenario_generator.py --backend gemini`, which runs
+# the scenario generator against the Gemini API instead of the local Qwen2.5-3B.
+# Everything else in the repo works without it.
+google-genai==2.23.0
+
 # --- visualisation / reporting ---
 matplotlib==3.11.1
 seaborn==0.13.2

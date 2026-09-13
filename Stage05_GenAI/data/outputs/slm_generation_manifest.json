@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-09-12T09:29:45.512357+00:00",
+  "family": "sequence_slm",
+  "model": "ScenarioSLM 3.6M (cuda)",
+  "techniques": [
+    "autoregressive_slm",
+    "prompt_engineering",
+    "fine_tuned_domain_model",
+    "constrained_decoding",
+    "sampling_temperature"
+  ],
+  "techniques_not_claimed": [
+    "few_shot",
+    "retrieval_augmented",
+    "chain_of_thought"
+  ],
+  "temperature": 0.9,
+  "seed": 42,
+  "training": {
+    "trained_at": "2026-09-12T09:29:38.766597+00:00",
+    "seconds": 210.2,
+    "parameters": 3561984,
+    "corpus": {
+      "messages": 60000,
+      "paired": 60000,
+      "skipped": 0,
+      "vocab_size": 754,
+      "block": 64,
+      "mean_length": 40.8
+    },
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 1.5934,
+        "val_loss": 1.1546
+      },
+      {
+        "epoch": 2,
+        "train_loss": 1.1216,
+        "val_loss": 1.0696
+      },
+      {
+        "epoch": 3,
+        "train_loss": 1.0427,
+        "val_loss": 0.9749
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.9506,
+        "val_loss": 0.8683
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.862,
+        "val_loss": 0.7792
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.7953,
+        "val_loss": 0.7256
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.75,
+        "val_loss": 0.6927
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.7209,
+        "val_loss": 0.673
+      }
+    ],
+    "final_val_loss": 0.673,
+    "final_val_perplexity": 1.96
+  },
+  "summary": {
+    "zones": 55,
+    "slm_generated_zones": 54,
+    "fallback_zones": 0,
+    "fallback_rate": 0.0,
+    "latency_ms": {
+      "p50": 103.8,
+      "p95": 175.0
+    }
+  }
+}

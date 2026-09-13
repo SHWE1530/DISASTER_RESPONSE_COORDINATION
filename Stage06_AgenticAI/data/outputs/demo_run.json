@@ -1,0 +1,1048 @@
+{
+  "run_id": "RUN-eb46802665",
+  "created_at": "2026-09-13T09:34:03+00:00",
+  "config": {
+    "planner": "rule_based",
+    "allocation_policy": "priority",
+    "auditor_enabled": true,
+    "confidence_threshold": 0.6,
+    "memory": false
+  },
+  "scenario": {
+    "scenario_id": "W01",
+    "name": "Flash flood + municipal blackout",
+    "start_time": "14-08-2026 02:00"
+  },
+  "inventory_before": {
+    "rescue_boats": 1,
+    "ambulances": 1,
+    "shelter_beds": 40
+  },
+  "ranking": [],
+  "zones": [
+    {
+      "zone_id": "ZONE-1",
+      "label": "Riverside settlement (battery gauge)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "evidence_lost": [
+        "sensors",
+        "text",
+        "water_levels"
+      ],
+      "tools_planned": [
+        "query_sensor_risk_score",
+        "parse_emergency_text",
+        "forecast_water_level"
+      ],
+      "status": "insufficient_evidence",
+      "priority": null,
+      "priority_index": null,
+      "basis": null,
+      "decision_confidence": null,
+      "severe_confirmed": false,
+      "tier": -1,
+      "emergency_calls": 16,
+      "precedents": [],
+      "score": null,
+      "agreement": null,
+      "fusion_conflicts": [],
+      "agent_conflicts": [],
+      "escalations": [],
+      "human_review_required": true,
+      "human_review_reasons": [
+        "No automated assessment possible: every perception tool failed (sensors, text, water_levels)."
+      ],
+      "fusion_actions": [],
+      "headcount_estimate": 0,
+      "headcount_source": null,
+      "signals": {},
+      "needs": {},
+      "briefing": null,
+      "district_profile": null,
+      "sop": [],
+      "allocated": {},
+      "perception": {},
+      "action_ids": [
+        "ACT-001"
+      ]
+    },
+    {
+      "zone_id": "ZONE-2",
+      "label": "Low-lying colony (grid down)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "evidence_lost": [
+        "text"
+      ],
+      "tools_planned": [
+        "parse_emergency_text"
+      ],
+      "status": "insufficient_evidence",
+      "priority": null,
+      "priority_index": null,
+      "basis": null,
+      "decision_confidence": null,
+      "severe_confirmed": false,
+      "tier": -1,
+      "emergency_calls": 0,
+      "precedents": [],
+      "score": null,
+      "agreement": null,
+      "fusion_conflicts": [],
+      "agent_conflicts": [],
+      "escalations": [],
+      "human_review_required": true,
+      "human_review_reasons": [
+        "No automated assessment possible: every perception tool failed (text)."
+      ],
+      "fusion_actions": [],
+      "headcount_estimate": 0,
+      "headcount_source": null,
+      "signals": {},
+      "needs": {},
+      "briefing": null,
+      "district_profile": null,
+      "sop": [],
+      "allocated": {},
+      "perception": {},
+      "action_ids": [
+        "ACT-002"
+      ]
+    },
+    {
+      "zone_id": "ZONE-3",
+      "label": "District hospital (generator)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "evidence_lost": [
+        "sensors",
+        "text",
+        "image_path",
+        "water_levels"
+      ],
+      "tools_planned": [
+        "query_sensor_risk_score",
+        "parse_emergency_text",
+        "predict_visual_flood",
+        "forecast_water_level"
+      ],
+      "status": "insufficient_evidence",
+      "priority": null,
+      "priority_index": null,
+      "basis": null,
+      "decision_confidence": null,
+      "severe_confirmed": false,
+      "tier": -1,
+      "emergency_calls": 27,
+      "precedents": [],
+      "score": null,
+      "agreement": null,
+      "fusion_conflicts": [],
+      "agent_conflicts": [],
+      "escalations": [],
+      "human_review_required": true,
+      "human_review_reasons": [
+        "No automated assessment possible: every perception tool failed (sensors, text, image_path, water_levels)."
+      ],
+      "fusion_actions": [],
+      "headcount_estimate": 0,
+      "headcount_source": null,
+      "signals": {},
+      "needs": {},
+      "briefing": null,
+      "district_profile": null,
+      "sop": [],
+      "allocated": {},
+      "perception": {},
+      "action_ids": [
+        "ACT-003"
+      ]
+    },
+    {
+      "zone_id": "ZONE-4",
+      "label": "Char island (no signal)",
+      "state": "Assam",
+      "district": "Barpeta",
+      "evidence_lost": [],
+      "tools_planned": [],
+      "status": "insufficient_evidence",
+      "priority": null,
+      "priority_index": null,
+      "basis": null,
+      "decision_confidence": null,
+      "severe_confirmed": false,
+      "tier": -1,
+      "emergency_calls": 0,
+      "precedents": [],
+      "score": null,
+      "agreement": null,
+      "fusion_conflicts": [],
+      "agent_conflicts": [],
+      "escalations": [],
+      "human_review_required": true,
+      "human_review_reasons": [
+        "No automated assessment possible: no evidence stream exists."
+      ],
+      "fusion_actions": [],
+      "headcount_estimate": 0,
+      "headcount_source": null,
+      "signals": {},
+      "needs": {},
+      "briefing": null,
+      "district_profile": null,
+      "sop": [],
+      "allocated": {},
+      "perception": {},
+      "action_ids": [
+        "ACT-004"
+      ]
+    }
+  ],
+  "shortfalls": [],
+  "unserved_high_priority": [],
+  "plan": [
+    {
+      "id": "P01",
+      "subtask": "perceive sensors",
+      "node": "PERCEIVE",
+      "tool": "query_sensor_risk_score",
+      "zone_id": "ZONE-1",
+      "conditional": false
+    },
+    {
+      "id": "P02",
+      "subtask": "perceive text",
+      "node": "PERCEIVE",
+      "tool": "parse_emergency_text",
+      "zone_id": "ZONE-1",
+      "conditional": false
+    },
+    {
+      "id": "P03",
+      "subtask": "perceive water levels",
+      "node": "PERCEIVE",
+      "tool": "forecast_water_level",
+      "zone_id": "ZONE-1",
+      "conditional": false
+    },
+    {
+      "id": "P04",
+      "subtask": "recall district history",
+      "node": "CONTEXTUALISE",
+      "tool": "get_district_profile",
+      "zone_id": "ZONE-1",
+      "conditional": true
+    },
+    {
+      "id": "P05",
+      "subtask": "fuse evidence into a priority",
+      "node": "ASSESS",
+      "tool": "assess_zone",
+      "zone_id": "ZONE-1",
+      "conditional": false
+    },
+    {
+      "id": "P06",
+      "subtask": "brief the incident log",
+      "node": "BRIEF",
+      "tool": "generate_tactical_briefing",
+      "zone_id": "ZONE-1",
+      "conditional": false
+    },
+    {
+      "id": "P07",
+      "subtask": "cite SOPs if ELEVATED or higher",
+      "node": "RETRIEVE_SOP",
+      "tool": "search_sop",
+      "zone_id": "ZONE-1",
+      "conditional": true
+    },
+    {
+      "id": "P08",
+      "subtask": "perceive text",
+      "node": "PERCEIVE",
+      "tool": "parse_emergency_text",
+      "zone_id": "ZONE-2",
+      "conditional": false
+    },
+    {
+      "id": "P09",
+      "subtask": "recall district history",
+      "node": "CONTEXTUALISE",
+      "tool": "get_district_profile",
+      "zone_id": "ZONE-2",
+      "conditional": true
+    },
+    {
+      "id": "P10",
+      "subtask": "fuse evidence into a priority",
+      "node": "ASSESS",
+      "tool": "assess_zone",
+      "zone_id": "ZONE-2",
+      "conditional": false
+    },
+    {
+      "id": "P11",
+      "subtask": "brief the incident log",
+      "node": "BRIEF",
+      "tool": "generate_tactical_briefing",
+      "zone_id": "ZONE-2",
+      "conditional": false
+    },
+    {
+      "id": "P12",
+      "subtask": "cite SOPs if ELEVATED or higher",
+      "node": "RETRIEVE_SOP",
+      "tool": "search_sop",
+      "zone_id": "ZONE-2",
+      "conditional": true
+    },
+    {
+      "id": "P13",
+      "subtask": "perceive sensors",
+      "node": "PERCEIVE",
+      "tool": "query_sensor_risk_score",
+      "zone_id": "ZONE-3",
+      "conditional": false
+    },
+    {
+      "id": "P14",
+      "subtask": "perceive text",
+      "node": "PERCEIVE",
+      "tool": "parse_emergency_text",
+      "zone_id": "ZONE-3",
+      "conditional": false
+    },
+    {
+      "id": "P15",
+      "subtask": "perceive image path",
+      "node": "PERCEIVE",
+      "tool": "predict_visual_flood",
+      "zone_id": "ZONE-3",
+      "conditional": false
+    },
+    {
+      "id": "P16",
+      "subtask": "perceive water levels",
+      "node": "PERCEIVE",
+      "tool": "forecast_water_level",
+      "zone_id": "ZONE-3",
+      "conditional": false
+    },
+    {
+      "id": "P17",
+      "subtask": "recall district history",
+      "node": "CONTEXTUALISE",
+      "tool": "get_district_profile",
+      "zone_id": "ZONE-3",
+      "conditional": true
+    },
+    {
+      "id": "P18",
+      "subtask": "fuse evidence into a priority",
+      "node": "ASSESS",
+      "tool": "assess_zone",
+      "zone_id": "ZONE-3",
+      "conditional": false
+    },
+    {
+      "id": "P19",
+      "subtask": "brief the incident log",
+      "node": "BRIEF",
+      "tool": "generate_tactical_briefing",
+      "zone_id": "ZONE-3",
+      "conditional": false
+    },
+    {
+      "id": "P20",
+      "subtask": "cite SOPs if ELEVATED or higher",
+      "node": "RETRIEVE_SOP",
+      "tool": "search_sop",
+      "zone_id": "ZONE-3",
+      "conditional": true
+    },
+    {
+      "id": "P21",
+      "subtask": "request field verification (no evidence)",
+      "node": "ESCALATE_EVIDENCE",
+      "tool": "escalate_to_human",
+      "zone_id": "ZONE-4",
+      "conditional": false
+    },
+    {
+      "id": "P22",
+      "subtask": "rank zones by severity, corroboration and demand",
+      "node": "RANK",
+      "tool": null,
+      "zone_id": null,
+      "conditional": false
+    },
+    {
+      "id": "P23",
+      "subtask": "explore allocation plans (tree of thoughts)",
+      "node": "ALLOCATE",
+      "tool": null,
+      "zone_id": null,
+      "conditional": false
+    },
+    {
+      "id": "P24",
+      "subtask": "debate and negotiate contested units",
+      "node": "DEBATE",
+      "tool": null,
+      "zone_id": null,
+      "conditional": false
+    },
+    {
+      "id": "P25",
+      "subtask": "audit every proposed action",
+      "node": "AUDIT",
+      "tool": null,
+      "zone_id": null,
+      "conditional": false
+    },
+    {
+      "id": "P26",
+      "subtask": "hold consequential actions for sign-off",
+      "node": "AWAIT_APPROVAL",
+      "tool": null,
+      "zone_id": null,
+      "conditional": false
+    },
+    {
+      "id": "P27",
+      "subtask": "reroute shortfalls to secondary responders",
+      "node": "MUTUAL_AID",
+      "tool": null,
+      "zone_id": null,
+      "conditional": false
+    },
+    {
+      "id": "P28",
+      "subtask": "reflect on the goal and revise",
+      "node": "REFLECT",
+      "tool": null,
+      "zone_id": null,
+      "conditional": false
+    }
+  ],
+  "plan_check": {
+    "ok": true,
+    "duplicates": [],
+    "missing": [],
+    "illegal": [],
+    "summary": "sound"
+  },
+  "plan_adherence": {
+    "planned_tool_steps": 15,
+    "executed": 9,
+    "rate": 0.6,
+    "replanned": [
+      "P05 fuse evidence into a priority ZONE-1",
+      "P06 brief the incident log ZONE-1",
+      "P10 fuse evidence into a priority ZONE-2",
+      "P11 brief the incident log ZONE-2",
+      "P18 fuse evidence into a priority ZONE-3",
+      "P19 brief the incident log ZONE-3"
+    ]
+  },
+  "tree_of_thoughts": {
+    "branches": [
+      {
+        "branch": "one_each_then_rank",
+        "utility": 0.0,
+        "shortfalls": 0
+      },
+      {
+        "branch": "rank_fill",
+        "utility": 0.0,
+        "shortfalls": 0
+      },
+      {
+        "branch": "weighted_round_robin",
+        "utility": 0.0,
+        "shortfalls": 0
+      }
+    ],
+    "chosen": "one_each_then_rank"
+  },
+  "debate": {
+    "negotiations": [],
+    "objections": []
+  },
+  "reflexion": {
+    "triggered": false,
+    "revisions": []
+  },
+  "trajectory": [
+    {
+      "step": 1,
+      "node": "PLAN",
+      "agent": "coordinator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Plan-and-execute: 28 steps for 4 zone(s) -- 8 perception calls, then rank, explore allocations, debate, audit, act and reflect. Plan check: sound.",
+      "tool": null
+    },
+    {
+      "step": 2,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-1",
+      "thought": "ZONE-1: the zone has sensors; reading it with query_sensor_risk_score.",
+      "tool": "query_sensor_risk_score",
+      "arguments_sha": "4b6ae11f3bb8",
+      "arguments": {
+        "sensors": "{12 fields}"
+      },
+      "ok": false,
+      "error": "Stage 01 sensor model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.0,
+      "observation": "unavailable: Stage 01 sensor model is not loaded"
+    },
+    {
+      "step": 3,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-1",
+      "thought": "ZONE-1: the zone has text; reading it with parse_emergency_text.",
+      "tool": "parse_emergency_text",
+      "arguments_sha": "70b2af5ef747",
+      "arguments": {
+        "raw_text": "Rescue operation required (Incident reported) in the riverside settlement in Barpeta, Assam. 54 individuals affected, some injuries reported. Please dispatch ND..."
+      },
+      "ok": false,
+      "error": "Stage 03 NLP model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.0,
+      "observation": "unavailable: Stage 03 NLP model is not loaded"
+    },
+    {
+      "step": 4,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-1",
+      "thought": "ZONE-1: the zone has water levels; reading it with forecast_water_level.",
+      "tool": "forecast_water_level",
+      "arguments_sha": "fed152ac7a6c",
+      "arguments": {
+        "water_levels": "[72 values, last 7.564]"
+      },
+      "ok": false,
+      "error": "Stage 02 forecasting model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.1,
+      "observation": "unavailable: Stage 02 forecasting model is not loaded"
+    },
+    {
+      "step": 5,
+      "node": "ESCALATE_EVIDENCE",
+      "agent": "auditor",
+      "loop": "act",
+      "zone_id": "ZONE-1",
+      "thought": "ZONE-1: every perception tool failed (sensors, text, water_levels). Silence is not safety -- requesting field verification and dispatching nothing.",
+      "tool": "escalate_to_human",
+      "arguments_sha": "8f3d9d7ad651",
+      "arguments": {
+        "zone_id": "ZONE-1",
+        "category": "verification",
+        "reason": "No automated assessment possible: every perception tool failed (sensors, text, water_levels). Send a field team to verify."
+      },
+      "ok": true,
+      "error": null,
+      "error_type": null,
+      "latency_ms": 0.1,
+      "observation": "ESC-001 raised to field supervisor"
+    },
+    {
+      "step": 6,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-2",
+      "thought": "ZONE-2: the zone has text; reading it with parse_emergency_text.",
+      "tool": "parse_emergency_text",
+      "arguments_sha": "f369420c53a1",
+      "arguments": {
+        "raw_text": "NO ELECTRICITY AND NO LIGHT AT THE LOW-LYING AREA, BARPETA. WE CAN HEAR PAANI BUT CANNOT SEE HOW HIGH IT IS. 85 LOG H"
+      },
+      "ok": false,
+      "error": "Stage 03 NLP model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.0,
+      "observation": "unavailable: Stage 03 NLP model is not loaded"
+    },
+    {
+      "step": 7,
+      "node": "ESCALATE_EVIDENCE",
+      "agent": "auditor",
+      "loop": "act",
+      "zone_id": "ZONE-2",
+      "thought": "ZONE-2: every perception tool failed (text). Silence is not safety -- requesting field verification and dispatching nothing.",
+      "tool": "escalate_to_human",
+      "arguments_sha": "4d663a4d9a22",
+      "arguments": {
+        "zone_id": "ZONE-2",
+        "category": "verification",
+        "reason": "No automated assessment possible: every perception tool failed (text). Send a field team to verify."
+      },
+      "ok": true,
+      "error": null,
+      "error_type": null,
+      "latency_ms": 0.0,
+      "observation": "ESC-002 raised to field supervisor"
+    },
+    {
+      "step": 8,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-3",
+      "thought": "ZONE-3: the zone has sensors; reading it with query_sensor_risk_score.",
+      "tool": "query_sensor_risk_score",
+      "arguments_sha": "412e6d34772c",
+      "arguments": {
+        "sensors": "{12 fields}"
+      },
+      "ok": false,
+      "error": "Stage 01 sensor model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.0,
+      "observation": "unavailable: Stage 01 sensor model is not loaded"
+    },
+    {
+      "step": 9,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-3",
+      "thought": "ZONE-3: the zone has text; reading it with parse_emergency_text.",
+      "tool": "parse_emergency_text",
+      "arguments_sha": "68f27f8d6a5e",
+      "arguments": {
+        "raw_text": "Waterlogging reported (Incident reported) in the government hospital in Barpeta, Assam. 27 persons affected, no injuries reported. Please dispatch NDRF flood re..."
+      },
+      "ok": false,
+      "error": "Stage 03 NLP model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.0,
+      "observation": "unavailable: Stage 03 NLP model is not loaded"
+    },
+    {
+      "step": 10,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-3",
+      "thought": "ZONE-3: the zone has image path; reading it with predict_visual_flood.",
+      "tool": "predict_visual_flood",
+      "arguments_sha": "35c2ab19ef37",
+      "arguments": {
+        "image_path": "data/raw/imagery/unflooded_178.jpg"
+      },
+      "ok": false,
+      "error": "Stage 02 image model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.0,
+      "observation": "unavailable: Stage 02 image model is not loaded"
+    },
+    {
+      "step": 11,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-3",
+      "thought": "ZONE-3: the zone has water levels; reading it with forecast_water_level.",
+      "tool": "forecast_water_level",
+      "arguments_sha": "1510304b2f02",
+      "arguments": {
+        "water_levels": "[72 values, last 7.398]"
+      },
+      "ok": false,
+      "error": "Stage 02 forecasting model is not loaded",
+      "error_type": "unavailable",
+      "latency_ms": 0.1,
+      "observation": "unavailable: Stage 02 forecasting model is not loaded"
+    },
+    {
+      "step": 12,
+      "node": "ESCALATE_EVIDENCE",
+      "agent": "auditor",
+      "loop": "act",
+      "zone_id": "ZONE-3",
+      "thought": "ZONE-3: every perception tool failed (sensors, text, image_path, water_levels). Silence is not safety -- requesting field verification and dispatching nothing.",
+      "tool": "escalate_to_human",
+      "arguments_sha": "4fe6d0a059f9",
+      "arguments": {
+        "zone_id": "ZONE-3",
+        "category": "verification",
+        "reason": "No automated assessment possible: every perception tool failed (sensors, text, image_path, water_levels). Send a field team to verify."
+      },
+      "ok": true,
+      "error": null,
+      "error_type": null,
+      "latency_ms": 0.0,
+      "observation": "ESC-003 raised to field supervisor"
+    },
+    {
+      "step": 13,
+      "node": "PERCEIVE",
+      "agent": "dispatcher",
+      "loop": "perceive",
+      "zone_id": "ZONE-4",
+      "thought": "ZONE-4 (Barpeta, Assam) has no sensor, text, image or gauge evidence. There is nothing to perceive, so I must not guess.",
+      "tool": null
+    },
+    {
+      "step": 14,
+      "node": "ESCALATE_EVIDENCE",
+      "agent": "auditor",
+      "loop": "act",
+      "zone_id": "ZONE-4",
+      "thought": "ZONE-4: no evidence stream exists. Silence is not safety -- requesting field verification and dispatching nothing.",
+      "tool": "escalate_to_human",
+      "arguments_sha": "db7558a9bc06",
+      "arguments": {
+        "zone_id": "ZONE-4",
+        "category": "verification",
+        "reason": "No automated assessment possible: no evidence stream exists. Send a field team to verify."
+      },
+      "ok": true,
+      "error": null,
+      "error_type": null,
+      "latency_ms": 0.0,
+      "observation": "ESC-004 raised to field supervisor"
+    },
+    {
+      "step": 15,
+      "node": "RANK",
+      "agent": "coordinator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Ranking by severity tier (zones physically confirmed severe share the top tier), then corroborated before uncorroborated evidence, then emergency calls, people and decision confidence: . Unscored: ZONE-1, ZONE-2, ZONE-3, ZONE-4.",
+      "tool": null
+    },
+    {
+      "step": 16,
+      "node": "ALLOCATE",
+      "agent": "allocator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Inventory before allocation: {'rescue_boats': 1, 'ambulances': 1, 'shelter_beds': 40}.",
+      "tool": "check_resource_inventory",
+      "arguments_sha": "bf21a9e8fbc5",
+      "arguments": {},
+      "ok": true,
+      "error": null,
+      "error_type": null,
+      "latency_ms": 0.0,
+      "observation": "rescue_boats 1/1, ambulances 1/1, shelter_beds 40/40"
+    },
+    {
+      "step": 17,
+      "node": "ALLOCATE",
+      "agent": "allocator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Tree of thoughts, branch 'one_each_then_rank': utility 0.000; units go to rescue_boats: none, ambulances: none, shelter_beds: none; 0 shortfall(s).",
+      "tool": null
+    },
+    {
+      "step": 18,
+      "node": "ALLOCATE",
+      "agent": "allocator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Tree of thoughts, branch 'rank_fill': utility 0.000; units go to rescue_boats: none, ambulances: none, shelter_beds: none; 0 shortfall(s).",
+      "tool": null
+    },
+    {
+      "step": 19,
+      "node": "ALLOCATE",
+      "agent": "allocator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Tree of thoughts, branch 'weighted_round_robin': utility 0.000; units go to rescue_boats: none, ambulances: none, shelter_beds: none; 0 shortfall(s).",
+      "tool": null
+    },
+    {
+      "step": 20,
+      "node": "ALLOCATE",
+      "agent": "allocator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Keeping branch 'one_each_then_rank': highest utility (0.000).",
+      "tool": null
+    },
+    {
+      "step": 21,
+      "node": "DEBATE",
+      "agent": "allocator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Safety Auditor reviewed the allocation: no zone is served ahead of a higher-ranked zone that needs the same resource. Consensus reached.",
+      "tool": null
+    },
+    {
+      "step": 22,
+      "node": "ALLOCATE",
+      "agent": "allocator",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "No zone reached URGENT with an asset need in stock; nothing to reserve.",
+      "tool": null
+    },
+    {
+      "step": 23,
+      "node": "AUDIT",
+      "agent": "auditor",
+      "loop": "plan",
+      "zone_id": null,
+      "thought": "Audit verdicts: ACT-001 verification ZONE-1 -> requires_human_approval (R2); ACT-002 verification ZONE-2 -> requires_human_approval (R2); ACT-003 verification ZONE-3 -> requires_human_approval (R2); ACT-004 verification ZONE-4 -> requires_human_approval (R2)",
+      "tool": null
+    },
+    {
+      "step": 24,
+      "node": "REFLECT",
+      "agent": "coordinator",
+      "loop": "reflect",
+      "zone_id": null,
+      "thought": "0 URGENT+ zone(s); 0 have assets or a rerouted shortage. 4 action(s) await human approval; 4 zone(s) sent for verification (ZONE-1, ZONE-2, ZONE-3, ZONE-4).",
+      "tool": null
+    },
+    {
+      "step": 25,
+      "node": "END",
+      "agent": "coordinator",
+      "loop": "-",
+      "zone_id": null,
+      "thought": "Run complete. Nothing consequential has been committed without a human.",
+      "tool": null
+    }
+  ],
+  "workflow_violations": [],
+  "tool_stats": {
+    "calls": 13,
+    "ok": 5,
+    "errors": {
+      "unavailable": 8
+    },
+    "invalid_arguments": 0,
+    "redundant": 0,
+    "by_tool": {
+      "query_sensor_risk_score": 2,
+      "parse_emergency_text": 3,
+      "forecast_water_level": 2,
+      "escalate_to_human": 4,
+      "predict_visual_flood": 1,
+      "check_resource_inventory": 1
+    },
+    "steps": 25
+  },
+  "cache": {
+    "hits": 0,
+    "misses": 0
+  },
+  "latency_ms": 1.3,
+  "disclaimer": "Agent output is decision support. Every URGENT or CRITICAL dispatch and every evacuation is held for a human decision, and nothing is committed without one.",
+  "actions": [
+    {
+      "action_id": "ACT-001",
+      "zone_id": "ZONE-1",
+      "decision_confidence": null,
+      "type": "verification",
+      "resources": {},
+      "evacuation": false,
+      "summary": "Field verification: no automated assessment possible.",
+      "recommended_actions": [
+        "Send a field team to verify conditions"
+      ],
+      "audit": {
+        "verdict": "requires_human_approval",
+        "rules": [
+          "R2"
+        ],
+        "reasons": [
+          "no dispatch to a zone without an automated assessment"
+        ]
+      },
+      "status": "pending_approval"
+    },
+    {
+      "action_id": "ACT-002",
+      "zone_id": "ZONE-2",
+      "decision_confidence": null,
+      "type": "verification",
+      "resources": {},
+      "evacuation": false,
+      "summary": "Field verification: no automated assessment possible.",
+      "recommended_actions": [
+        "Send a field team to verify conditions"
+      ],
+      "audit": {
+        "verdict": "requires_human_approval",
+        "rules": [
+          "R2"
+        ],
+        "reasons": [
+          "no dispatch to a zone without an automated assessment"
+        ]
+      },
+      "status": "pending_approval"
+    },
+    {
+      "action_id": "ACT-003",
+      "zone_id": "ZONE-3",
+      "decision_confidence": null,
+      "type": "verification",
+      "resources": {},
+      "evacuation": false,
+      "summary": "Field verification: no automated assessment possible.",
+      "recommended_actions": [
+        "Send a field team to verify conditions"
+      ],
+      "audit": {
+        "verdict": "requires_human_approval",
+        "rules": [
+          "R2"
+        ],
+        "reasons": [
+          "no dispatch to a zone without an automated assessment"
+        ]
+      },
+      "status": "pending_approval"
+    },
+    {
+      "action_id": "ACT-004",
+      "zone_id": "ZONE-4",
+      "decision_confidence": null,
+      "type": "verification",
+      "resources": {},
+      "evacuation": false,
+      "summary": "Field verification: no automated assessment possible.",
+      "recommended_actions": [
+        "Send a field team to verify conditions"
+      ],
+      "audit": {
+        "verdict": "requires_human_approval",
+        "rules": [
+          "R2"
+        ],
+        "reasons": [
+          "no dispatch to a zone without an automated assessment"
+        ]
+      },
+      "status": "pending_approval"
+    }
+  ],
+  "escalations": [
+    {
+      "escalation_id": "ESC-001",
+      "zone_id": "ZONE-1",
+      "category": "verification",
+      "level": "field_supervisor",
+      "reason": "No automated assessment possible: every perception tool failed (sensors, text, water_levels). Send a field team to verify.",
+      "action_id": null,
+      "status": "open",
+      "raised_at": "2026-09-13T09:34:03+00:00"
+    },
+    {
+      "escalation_id": "ESC-002",
+      "zone_id": "ZONE-2",
+      "category": "verification",
+      "level": "field_supervisor",
+      "reason": "No automated assessment possible: every perception tool failed (text). Send a field team to verify.",
+      "action_id": null,
+      "status": "open",
+      "raised_at": "2026-09-13T09:34:03+00:00"
+    },
+    {
+      "escalation_id": "ESC-003",
+      "zone_id": "ZONE-3",
+      "category": "verification",
+      "level": "field_supervisor",
+      "reason": "No automated assessment possible: every perception tool failed (sensors, text, image_path, water_levels). Send a field team to verify.",
+      "action_id": null,
+      "status": "open",
+      "raised_at": "2026-09-13T09:34:03+00:00"
+    },
+    {
+      "escalation_id": "ESC-004",
+      "zone_id": "ZONE-4",
+      "category": "verification",
+      "level": "field_supervisor",
+      "reason": "No automated assessment possible: no evidence stream exists. Send a field team to verify.",
+      "action_id": null,
+      "status": "open",
+      "raised_at": "2026-09-13T09:34:03+00:00"
+    }
+  ],
+  "mutual_aid": [],
+  "alerts": [],
+  "commits": [],
+  "notifications": [],
+  "recalls": [],
+  "blackboard": [
+    {
+      "seq": 1,
+      "agent": "coordinator",
+      "topic": "plan",
+      "content": {
+        "steps": 28,
+        "check": "sound"
+      }
+    },
+    {
+      "seq": 2,
+      "agent": "coordinator",
+      "topic": "ranking",
+      "content": []
+    },
+    {
+      "seq": 3,
+      "agent": "allocator",
+      "topic": "allocation",
+      "content": {
+        "branch": "one_each_then_rank",
+        "grants": {},
+        "shortfalls": 0
+      }
+    },
+    {
+      "seq": 4,
+      "agent": "auditor",
+      "topic": "verdicts",
+      "content": {
+        "ACT-001": "requires_human_approval",
+        "ACT-002": "requires_human_approval",
+        "ACT-003": "requires_human_approval",
+        "ACT-004": "requires_human_approval"
+      }
+    }
+  ],
+  "halted": false,
+  "inventory_after": {
+    "rescue_boats": {
+      "total": 1,
+      "reserved": 0,
+      "remaining": 1
+    },
+    "ambulances": {
+      "total": 1,
+      "reserved": 0,
+      "remaining": 1
+    },
+    "shelter_beds": {
+      "total": 40,
+      "reserved": 0,
+      "remaining": 40
+    }
+  },
+  "human_events": [],
+  "pending_approvals": 4
+}
