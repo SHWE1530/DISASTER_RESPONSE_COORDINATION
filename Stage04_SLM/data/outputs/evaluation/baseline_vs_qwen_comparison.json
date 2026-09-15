@@ -15,14 +15,14 @@
     "hallucination_rate": 0.5,
     "safety_fail_rate": 0.0,
     "robustness_pass_rate": 0.125,
-    "latency_mean": 2.0,
-    "latency_p50": 2.0,
-    "latency_p95": 2.0,
-    "latency_p99": 2.0
+    "latency_mean": 0.0,
+    "latency_p50": 0.0,
+    "latency_p95": 0.0,
+    "latency_p99": 0.0
   },
   "qwen": {
     "name": "qwen2.5-3b-instruct-qlora",
     "status": "not_available",
-    "reason": "Trained Qwen QLoRA adapter not found at C:\\Users\\asus\\AppData\\Local\\Temp\\pytest-of-asus\\pytest-53\\test_run_comparison_unmocked_q0\\data\\models\\qwen_slm_qlora. Train on GPU using `python Stage04_SLM/03_slm_engineer.py --model qwen`."
+    "reason": "Trained Qwen QLoRA adapter not found at C:\\Users\\asus\\AppData\\Local\\Temp\\pytest-of-asus\\pytest-54\\test_run_comparison_unmocked_q0\\data\\models\\qwen_slm_qlora. Train on GPU using `python Stage04_SLM/03_slm_engineer.py --model qwen`."
   }
 }
