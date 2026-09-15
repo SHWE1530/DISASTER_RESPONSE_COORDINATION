@@ -145,7 +145,15 @@ def test_lcs_rouge_l_fallback():
     assert score <= 1.0
 
 
-def test_run_comparison_unmocked_qwen_status(tmp_path):
+def test_run_comparison_unmocked_qwen_status(tmp_path, monkeypatch):
+    import shutil
+    fake_model_dir = tmp_path / "data" / "models"
+    fake_model_dir.mkdir(parents=True, exist_ok=True)
+    real_baseline = eval_mod.MODEL_DIR / "slm_baseline"
+    if real_baseline.exists():
+        shutil.copytree(real_baseline, fake_model_dir / "slm_baseline")
+    monkeypatch.setattr(eval_mod, "MODEL_DIR", fake_model_dir)
+
     run_comparison = eval_mod.run_comparison
     df = pd.DataFrame([{
         "pair_id": "SLM-000001",
@@ -168,4 +176,5 @@ def test_run_comparison_unmocked_qwen_status(tmp_path):
     assert comp["qwen"]["status"] == "not_available"
     assert "reason" in comp["qwen"]
     assert comp["qwen"]["reason"].startswith("Trained Qwen QLoRA adapter not found")
+
 

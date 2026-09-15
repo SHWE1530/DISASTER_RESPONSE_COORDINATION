@@ -1079,7 +1079,7 @@ def run_comparison(df: pd.DataFrame) -> dict:
         }
     }
 
-    if adapter_config.exists() or manifest_path.exists():
+    if adapter_config.exists():
         try:
             print("\n--- Evaluating Qwen QLoRA Model ---")
             qwen_model, q_name = load_model("qwen")
