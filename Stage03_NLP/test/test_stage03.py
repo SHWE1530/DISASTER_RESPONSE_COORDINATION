@@ -163,3 +163,15 @@ def test_stage03_integration_adapter():
     assert result["urgency"] in ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
     assert result["hazard_type"]
     assert result["location"] or result["entities"]["location"]
+
+
+def test_multi_sentence_entity_extraction_and_headcount_aggregation():
+    text = "Water is rising fast near the railway bridge. three people are trapped and need immediate rescue. Ambulance needed for two injured residents."
+    res = nlp.extract_entities(text)
+    locs = res["location"] if isinstance(res["location"], list) else [res["location"]]
+    assert any("railway bridge" in str(l).lower() for l in locs)
+    assert not any("three" in str(l).lower() for l in locs)
+    assert any("ambulance" in str(r).lower() for r in res["resource_needed"])
+    assert not any(str(r).lower() in ["two", "three"] for r in res["resource_needed"])
+    assert res["headcount"] == 5
+

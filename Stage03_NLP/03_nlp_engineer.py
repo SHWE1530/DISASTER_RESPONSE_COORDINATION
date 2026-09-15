@@ -927,36 +927,42 @@ def _validate_headcount(val: int, text: str) -> bool:
 
 def _extract_headcount_fallback(text: str) -> int | None:
 	"""Regex & pattern headcount fallback extractor requiring explicit people indicators."""
+	found_vals: list[int] = []
+
 	pattern1 = re.compile(
-		r"\b(\d{1,4})\s*(?:people|person|persons|residents|families|individuals|victims|affected|trapped|injured|rescued|evacuated|in need)\b",
+		r"\b(\d{1,4})\s*(?:people|person|persons|residents|families|individuals|victims|affected|trapped|injured|rescued|evacuated|in need|stranded|missing)\b",
 		re.IGNORECASE,
 	)
-	match1 = pattern1.search(text)
-	if match1:
+	for match1 in pattern1.finditer(text):
 		try:
 			val = int(match1.group(1))
-			if _validate_headcount(val, text):
-				return val
+			if _validate_headcount(val, text) and val not in found_vals:
+				found_vals.append(val)
 		except ValueError:
 			pass
 
 	pattern2 = re.compile(
-		r"\b(?:affected|trapped|injured|rescued|evacuated)\s*(?:for|of)?\s*(\d{1,4})\s*(?:people|person|persons|residents|families|individuals|victims)?\b",
+		r"\b(?:affected|trapped|injured|rescued|evacuated|stranded|missing)\s*(?:for|of)?\s*(\d{1,4})\b",
 		re.IGNORECASE,
 	)
-	match2 = pattern2.search(text)
-	if match2:
+	for match2 in pattern2.finditer(text):
 		try:
 			val = int(match2.group(1))
-			if _validate_headcount(val, text):
-				return val
+			if _validate_headcount(val, text) and val not in found_vals:
+				found_vals.append(val)
 		except ValueError:
 			pass
 
 	# Search written numbers requiring people-related context
 	for word, val in NUMBER_WORD_MAP.items():
-		if re.search(r"\b" + word + r"\b\s*(?:people|person|persons|residents|families|individuals|victims|affected|trapped|injured|rescued|evacuated|in need)", text, re.IGNORECASE):
-			return val
+		p1 = re.compile(r"\b" + word + r"\b\s*(?:people|person|persons|residents|families|individuals|victims|affected|trapped|injured|rescued|evacuated|in need|stranded|missing)", re.IGNORECASE)
+		p2 = re.compile(r"\b(?:affected|trapped|injured|rescued|evacuated|stranded|missing)\s*(?:for|of)?\s*" + word + r"\b", re.IGNORECASE)
+		if p1.search(text) or p2.search(text):
+			if val not in found_vals:
+				found_vals.append(val)
+
+	if found_vals:
+		return sum(found_vals) if len(found_vals) > 1 else found_vals[0]
 
 	return None
 
@@ -1028,68 +1034,71 @@ def extract_entities(text: str) -> dict[str, Any]:
 			expanded_locations.append(loc)
 	unique_locations = expanded_locations
 
-	# Filter out generic hazard words mistakenly tagged as locations (e.g., 'flood').
+	# Filter out generic hazard words and numbers mistakenly tagged as locations
 	generic_location_terms = {
 		"flood", "flooding", "cyclone", "rain", "rainfall", "storm", "landslide",
 		"earthquake", "tsunami", "fire", "wildfire", "drowning", "waterlogging",
 		"disaster", "heavy rain", "flash flood", "wind", "damage",
-		"rescue", "resuce", "team", "police", "ambulance", "water", "people", "person", "help", "emergency"
+		"rescue", "resuce", "team", "police", "ambulance", "water", "people", "person", "help", "emergency",
+		"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"
 	}
 	connectors = {"to", "the", "and", "of", "for", "after", "due", "with", "in", "near", "around", "at", "from", "on", "send", "me", "please", "help", "need"}
-	unique_locations = [
-		loc for loc in unique_locations
-		if str(loc).strip().lower() not in generic_location_terms and not str(loc).strip().isdigit()
-	]
 
-	# Apply Controlled Fallback Layer if slots are empty or only generic hazard words remain.
-	words = re.findall(r"[A-Za-z0-9]+", raw_text)
-	for i, word in enumerate(words):
-		if word.lower() in {"in", "near", "around", "at", "from"}:
-			candidate_words = []
-			for w in words[i+1:i+6]:
-				w_lower = w.lower()
-				if w_lower == "the" and not candidate_words:
-					continue
-				if w_lower in connectors or w_lower in generic_location_terms:
-					break
-				candidate_words.append(w)
-			
-			if candidate_words:
-				location = " ".join(candidate_words).title()
-				if location.lower() not in generic_location_terms:
-					unique_locations = [location] + [loc for loc in unique_locations if str(loc).lower() != location.lower()]
-	
-	if not unique_locations:
-		for i, word in enumerate(words):
+	clean_locs = []
+	for loc in unique_locations:
+		loc_str = str(loc).strip()
+		loc_words = loc_str.split()
+		while len(loc_words) > 1 and (loc_words[-1].lower() in NUMBER_WORD_MAP or loc_words[-1].isdigit()):
+			loc_words.pop()
+		loc_cleaned = " ".join(loc_words)
+		if loc_cleaned.lower() not in generic_location_terms and not loc_cleaned.isdigit():
+			clean_locs.append(loc_cleaned)
+	unique_locations = list(dict.fromkeys(clean_locs))
+
+	# Apply Controlled Fallback Layer using clause/sentence boundaries to avoid absorbing headcount words across periods
+	sentences = re.split(r"[.\n!?]+", raw_text)
+	for sentence in sentences:
+		sentence_words = re.findall(r"[A-Za-z0-9]+", sentence)
+		for i, word in enumerate(sentence_words):
 			if word.lower() in {"in", "near", "around", "at", "from"}:
 				candidate_words = []
-				for w in words[i+1:i+5]:
+				for w in sentence_words[i+1:i+6]:
 					w_lower = w.lower()
 					if w_lower == "the" and not candidate_words:
 						continue
-					if w_lower in connectors:
+					if w_lower in connectors or w_lower in generic_location_terms or w_lower in NUMBER_WORD_MAP or w.isdigit():
 						break
 					candidate_words.append(w)
-				
+
 				if candidate_words:
 					location = " ".join(candidate_words).title()
 					if location.lower() not in generic_location_terms:
-						unique_locations.append(location)
-						break
+						if not unique_locations or all(loc.lower() not in location.lower() for loc in unique_locations):
+							unique_locations = [location] + unique_locations
+
+	# Sanitize resources: filter out numbers, number words, and non-resource terms
+	clean_res = []
+	for r in unique_resources:
+		r_str = str(r).strip()
+		r_lower = r_str.lower()
+		if r_lower not in NUMBER_WORD_MAP and not r_lower.isdigit() and len(r_lower) > 2 and r_lower not in {"people", "person", "residents", "injured", "trapped"}:
+			clean_res.append(r_str)
+	unique_resources = list(dict.fromkeys(clean_res))
 
 	if not unique_resources:
 		res_keywords = [
 			"rescue boat", "water pump", "ambulance", "food", "drinking water",
 			"NDRF flood rescue team", "tow truck", "sandbags", "shelter",
-			"medical team", "life jackets", "rescue team", "fire engine",
+			"medical team", "life jackets", "rescue team", "fire engine", "boat", "ndrf"
 		]
 		text_lower = raw_text.lower()
 		for kw in res_keywords:
-			if kw in text_lower:
+			if kw in text_lower and not any(kw in r.lower() for r in unique_resources):
 				unique_resources.append(kw)
 
 	valid_ner_headcounts = [h for h in headcounts if _validate_headcount(h, raw_text)]
-	headcount_val: int | None = valid_ner_headcounts[0] if valid_ner_headcounts else _extract_headcount_fallback(raw_text)
+	fallback_headcount = _extract_headcount_fallback(raw_text)
+	headcount_val: int | None = fallback_headcount if fallback_headcount is not None else (valid_ner_headcounts[0] if valid_ner_headcounts else None)
 
 	return {
 		"location": unique_locations if unique_locations else None,
