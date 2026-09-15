@@ -379,13 +379,13 @@ DASHBOARD_TEMPLATE = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stage 05 GenAI Scenario Studio</title>
+<title>GenAI Scenario Studio</title>
 <style>
   /* Same palette as the main dashboard (app.py). */
-  :root { --bg:#0B1120; --card:rgba(30,41,59,.7); --line:#1E293B; --soft:#0F172A; --text:#F8FAFC; --muted:#94A3B8;
-          --chip:#1E293B; --chip-text:#CBD5E1; --blue:#3B82F6; --blue-soft:rgba(59,130,246,.12); --green:#10B981;
-          --green-soft:rgba(16,185,129,.12); --amber:#F59E0B; --amber-soft:rgba(245,158,11,.12); --red:#EF4444;
-          --tint-blue:rgba(59,130,246,.06); --tint-green:rgba(16,185,129,.05); --hover:rgba(59,130,246,.08); --shadow:none; }
+  :root { --bg:#F3F6FB; --card:#FFFFFF; --line:#E2E8F0; --soft:#F8FAFC; --text:#0F172A; --muted:#5B6B82;
+          --chip:#F1F5F9; --chip-text:#334155; --blue:#2563EB; --blue-soft:#EFF6FF; --green:#16A34A;
+          --green-soft:#DCFCE7; --amber:#D97706; --amber-soft:#FEF3C7; --red:#DC2626;
+          --tint-blue:#EFF6FF; --tint-green:#F0FDF4; --hover:#F1F5F9; --shadow:0 1px 3px rgba(15,23,42,.06); }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:var(--bg); color:var(--text); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
   .topbar { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); padding:14px 24px 0; }
@@ -506,7 +506,7 @@ DASHBOARD_TEMPLATE = r"""<!DOCTYPE html>
         <button class="btn primary" id="generate-btn">&#10022; Generate Scenario</button>
         <button class="btn secondary" id="stress-btn">&#129514; Generate &amp; stress-test through Stages 01&ndash;04</button>
         <p class="status" id="gen-status"></p>
-        <div class="hint"><span>&#128161;</span><span>Generates sensor readings, a 72&nbsp;h gauge history, dispatcher messages and an incident log for every zone. The stress test then runs the scenario through the real Stage 01&ndash;04 models and the fusion layer (the first run loads the models, about 20&nbsp;s).</span></div>
+        <div class="hint"><span>&#128161;</span><span>Generates sensor readings, a 72&nbsp;h gauge history, dispatcher messages and an incident log for every zone. The stress test then runs the scenario through the real ML, DL, NLP and SLM models and the fusion layer (the first run loads the models, about 20&nbsp;s).</span></div>
       </div>
     </div>
 
@@ -547,7 +547,7 @@ DASHBOARD_TEMPLATE = r"""<!DOCTYPE html>
     <div class="table-wrap"><table id="overconfident"></table></div>
     <h3 class="sub">Realism audit <span class="muted" style="font-weight:400;font-size:12px">(generator vs the real record)</span></h3>
     <div class="table-wrap"><table id="realism"></table></div>
-    <h3 class="sub">Stage 02 forecast probe <span class="muted" style="font-weight:400;font-size:12px">(perfectly flat 72 h river)</span></h3>
+    <h3 class="sub">DL forecast probe <span class="muted" style="font-weight:400;font-size:12px">(perfectly flat 72 h river)</span></h3>
     <p id="probe-note" class="muted" style="margin-bottom:10px;font-size:12px"></p>
     <div class="table-wrap"><table id="probe"></table></div>
   </section>
@@ -949,11 +949,11 @@ function renderRealism(r) {
     ['Rainfall-calls correlation (real ' + r.correlation.rainfall_calls_real + ')', r.correlation.rainfall_calls_synthetic, r.correlation.rainfall_calls_naive_baseline],
     ['Mean KS statistic across features', r.mean_ks_overall, '-'],
   ];
-  if (r.label_fidelity) rows.push(['Stage 01 recovers conditioning class (macro F1)', r.label_fidelity.cvae.macro_f1, r.label_fidelity.naive_baseline.macro_f1]);
+  if (r.label_fidelity) rows.push(['ML recovers conditioning class (macro F1)', r.label_fidelity.cvae.macro_f1, r.label_fidelity.naive_baseline.macro_f1]);
   if (r.text_fidelity) {
     const tf = r.text_fidelity;
-    rows.push(['Stage 03 hazard accuracy: clean / degraded text', tf.clean.hazard_accuracy + ' / ' + tf.degraded_comms_noise.hazard_accuracy, '-']);
-    rows.push(['Stage 03 urgency macro F1: clean / degraded text', tf.clean.urgency_macro_f1 + ' / ' + tf.degraded_comms_noise.urgency_macro_f1, '-']);
+    rows.push(['NLP hazard accuracy: clean / degraded text', tf.clean.hazard_accuracy + ' / ' + tf.degraded_comms_noise.hazard_accuracy, '-']);
+    rows.push(['NLP urgency macro F1: clean / degraded text', tf.clean.urgency_macro_f1 + ' / ' + tf.degraded_comms_noise.urgency_macro_f1, '-']);
     rows.push(['Implicit-urgency messages scored HIGH+', pct(tf.implicit_urgency_recall), '-']);
   }
   table('realism', ['Check', 'CVAE', 'Naive baseline'], rows);

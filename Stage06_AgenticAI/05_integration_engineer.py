@@ -475,10 +475,10 @@ def create_blueprint(engine: AgentIntegrationEngine | None = None):
 
 CONSOLE_HTML = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stage 06 Agent Console</title>
+<title>Agent Console</title>
 <style>
-:root{--bg:#0F172A;--panel:#1E293B;--line:#334155;--text:#F8FAFC;--muted:#94A3B8;--blue:#3B82F6;--green:#10B981;
---amber:#F59E0B;--orange:#F97316;--red:#EF4444;--purple:#8B5CF6;--pink:#EC4899}
+:root{--bg:#F3F6FB;--panel:#FFFFFF;--line:#E2E8F0;--text:#0F172A;--muted:#5B6B82;--blue:#2563EB;--green:#16A34A;
+--amber:#B45309;--orange:#EA580C;--red:#DC2626;--purple:#7C3AED;--pink:#DB2777}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
 header{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 header h1{font-size:18px;margin:0}header .sub{color:var(--muted);font-size:13px}
@@ -515,12 +515,12 @@ details summary{cursor:pointer;color:var(--blue);font-size:12px}
 .cc-conf{font-size:13px;margin-bottom:6px}.cc-list{margin:4px 0 0 18px;font-size:13px}
 .thought{margin:6px 0;font-size:13px}
 </style></head><body>
-<header><div><h1>Stage 06 · Agentic Coordination Console</h1>
-<div class="sub">Tactical Dispatcher · Resource Allocator · Safety Auditor, orchestrated over the Stage 01–04 models, fusion, and an SOP knowledge base</div></div>
+<header><div><h1>Agentic Coordination Console</h1>
+<div class="sub">Tactical Dispatcher · Resource Allocator · Safety Auditor, orchestrated over the ML, DL, NLP and SLM models, fusion, and an SOP knowledge base</div></div>
 <div class="chips" id="chips"><span class="chip">checking health…</span></div></header>
 <main>
 <aside>
-  <div class="panel"><h2>Run a Stage 05 incident</h2>
+  <div class="panel"><h2>Run a generated incident</h2>
     <label for="suite">Generator suite</label>
     <select id="suite"><option value="cvae">CVAE suite</option><option value="slm">Domain SLM suite</option><option value="llm">LLM suite</option></select>
     <label for="scenario">Scenario</label><select id="scenario"></select>
@@ -609,7 +609,7 @@ function renderOverview(){
     const needs=Object.entries(z.needs||{}).map(([k,v])=>`${v} ${esc(k)}`).join(', ')||'—';
     const conflicts=[...(z.fusion_conflicts||[]),...(z.agent_conflicts||[])];
     const sop=(z.sop||[]).map(s=>`<div class="note">📘 <b>${esc(s.source)}</b> [${esc(s.action_type)}] ${esc(s.excerpt)}</div>`).join('');
-    const brief=z.briefing?`<div class="note">📋 Stage 04: ${esc(z.briefing.priority)} — ${esc(z.briefing.situation)}</div>`:'';
+    const brief=z.briefing?`<div class="note">📋 SLM briefing: ${esc(z.briefing.priority)} — ${esc(z.briefing.situation)}</div>`:'';
     return `<tr><td><b>${esc(z.zone_id)}</b><div class="note">${esc(z.label)} · ${esc(z.district||'')}${z.state?', '+esc(z.state):''}</div></td>
       <td>${badge(z.priority)}<div class="note">${esc(z.agreement||z.status)}</div></td>
       <td>${z.headcount_estimate||0}<div class="note">${esc(z.headcount_source||'')}</div></td>
