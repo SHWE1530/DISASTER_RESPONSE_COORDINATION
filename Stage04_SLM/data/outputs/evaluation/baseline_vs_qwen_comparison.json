@@ -15,10 +15,10 @@
     "hallucination_rate": 0.5,
     "safety_fail_rate": 0.0,
     "robustness_pass_rate": 0.125,
-    "latency_mean": 0.0,
-    "latency_p50": 0.0,
-    "latency_p95": 0.0,
-    "latency_p99": 0.0
+    "latency_mean": 4.4,
+    "latency_p50": 4.4,
+    "latency_p95": 4.4,
+    "latency_p99": 4.4
   },
   "qwen": {
     "name": "qwen2.5-3b-instruct-qlora",
@@ -35,10 +35,10 @@
     "hallucination_rate": 0.5,
     "safety_fail_rate": 1.0,
     "robustness_pass_rate": 0.375,
-    "latency_mean": 30048.5,
-    "latency_p50": 30048.5,
-    "latency_p95": 30048.5,
-    "latency_p99": 30048.5
+    "latency_mean": 124606.1,
+    "latency_p50": 124606.1,
+    "latency_p95": 124606.1,
+    "latency_p99": 124606.1
   },
   "delta": {
     "rouge1": "+0.0462",
@@ -48,6 +48,6 @@
     "hallucination_rate": "+0.0000",
     "safety_fail_rate": "+100.0%",
     "robustness_pass_rate": "+25.0%",
-    "latency_p50": "+30048.5 ms"
+    "latency_p50": "+124601.7 ms"
   }
 }
