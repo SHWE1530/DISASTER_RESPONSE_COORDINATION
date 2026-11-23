@@ -228,7 +228,53 @@ def test_cnn_valid_image(client, app_module):
     assert response.status_code == 200
     payload = response.get_json()
     assert payload["label"] in {"flooded", "unflooded"}
-    assert 0.0 <= payload["confidence"] <= 1.0
+    assert 0.01 <= payload["confidence"] <= 0.99
+
+
+def test_cnn_non_flooded_image(client, app_module):
+    """An unflooded scene must be classified as unflooded, with clipped confidence."""
+    engine = _require(app_module, "stage02_engine")
+    if not engine.models_ready:
+        pytest.skip("Stage 02 models unavailable")
+
+    unflood_path = Path(app_module.BASE_DIR) / "Stage02_DL" / "data" / "images" / "unflooded" / "unflood_0000.jpg"
+    if not unflood_path.exists():
+        pytest.skip("Test sample unflood_0000.jpg unavailable")
+
+    with open(unflood_path, "rb") as f:
+        response = client.post(
+            "/api/predict/dl/image",
+            data={"file": (f, "unflood_0000.jpg")},
+            content_type="multipart/form-data",
+        )
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["label"] == "unflooded"
+    assert 0.01 <= payload["confidence"] <= 0.99
+    assert payload["flooded_probability"] < 0.20
+
+
+def test_cnn_flooded_image(client, app_module):
+    """A flooded scene must be classified as flooded, with clipped confidence."""
+    engine = _require(app_module, "stage02_engine")
+    if not engine.models_ready:
+        pytest.skip("Stage 02 models unavailable")
+
+    flood_path = Path(app_module.BASE_DIR) / "Stage02_DL" / "data" / "images" / "flooded" / "flood_0000.jpg"
+    if not flood_path.exists():
+        pytest.skip("Test sample flood_0000.jpg unavailable")
+
+    with open(flood_path, "rb") as f:
+        response = client.post(
+            "/api/predict/dl/image",
+            data={"file": (f, "flood_0000.jpg")},
+            content_type="multipart/form-data",
+        )
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["label"] == "flooded"
+    assert 0.01 <= payload["confidence"] <= 0.99
+    assert payload["flooded_probability"] > 0.80
 
 
 def test_cnn_upload_does_not_persist_on_disk(client, app_module):

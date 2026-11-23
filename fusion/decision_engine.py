@@ -184,6 +184,13 @@ class DecisionEngine:
 
         flooded = result.get("label") == "flooded"
         confidence = float(result.get("confidence") or 0.0)
+        warnings = []
+        if result.get("warning"):
+            warnings.append(result["warning"])
+        if not flooded:
+            warnings.append(
+                "Imagery shows no flooding at this vantage point only; it does not clear the wider zone."
+            )
         return Evidence(
             source="visual_flood",
             available=True,
@@ -196,12 +203,7 @@ class DecisionEngine:
                 f"Imagery classified '{result.get('label')}' "
                 f"(P(flooded)={result.get('flooded_probability', 0):.2f})"
             ),
-            warnings=(
-                []
-                if flooded else
-                ["Imagery shows no flooding at this vantage point only; it does "
-                 "not clear the wider zone."]
-            ),
+            warnings=warnings,
         )
 
     def _forecast_evidence(self, water_levels: list[float] | None) -> Evidence:

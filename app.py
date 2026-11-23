@@ -632,6 +632,9 @@ HTML_TEMPLATE = """
                             try {
                                 out.image = await request('/api/predict/dl/image', {method: 'POST', body: form});
                                 lines.push(`<div><span class="muted">Imagery (CNN):</span> <strong style="color:${out.image.label === 'flooded' ? '#DC2626' : '#059669'}">${esc(out.image.label)}</strong> <span class="muted">(${pct(out.image.confidence)})</span></div>`);
+                                if (out.image.warning) {
+                                    lines.push(`<div style="color:#D97706; font-size:12px;">ℹ ${esc(out.image.warning)}</div>`);
+                                }
                             } catch (err) {
                                 lines.push(`<div><span class="muted">Imagery (CNN):</span> <span style="color:#DC2626">${esc(err.message)}</span></div>`);
                             }
@@ -905,7 +908,7 @@ HTML_TEMPLATE = """
                     <div class="chart-header"><h3>Visual Recognition (CNN)</h3></div>
                     <form id="cnnForm">
                         <div class="input-group" style="margin-bottom: 15px;">
-                            <label>Upload Camera/Drone Image</label>
+                            <label>Upload Aerial / Drone / Ground Image</label>
                             <input type="file" id="cnn-image" accept="image/jpeg, image/png">
                         </div>
                         <button type="submit" class="btn">Analyze Image</button>
@@ -913,7 +916,9 @@ HTML_TEMPLATE = """
                     <div class="result-box" id="cnn-result" style="display: none;">
                         <strong>Analysis Result:</strong><br>
                         Status: <span id="cnn-status" style="color: #0F172A; font-weight: bold;"></span><br>
-                        Probability: <span id="cnn-prob"></span>%<br>
+                        Confidence: <span id="cnn-prob"></span>%<br>
+                        Flood Probability: <span id="cnn-flood-prob"></span>%<br>
+                        <div id="cnn-warning" style="display: none; margin-top: 8px; font-size: 12px; color: #D97706; line-height: 1.4;"></div>
                     </div>
                 </div>
 
@@ -1123,11 +1128,19 @@ HTML_TEMPLATE = """
                 if(data.error) throw new Error(data.error);
 
                 document.getElementById('cnn-result').style.display = 'block';
-                document.getElementById('cnn-status').innerText = data.label;
+                document.getElementById('cnn-status').innerText = (data.label || '').toUpperCase();
                 document.getElementById('cnn-prob').innerText = (data.confidence * 100).toFixed(2);
+                document.getElementById('cnn-flood-prob').innerText = ((data.flooded_probability ?? data.confidence) * 100).toFixed(2);
                 
                 const c = data.label;
                 document.getElementById('cnn-status').style.color = (c === 'flooded') ? '#DC2626' : '#059669';
+                const warnEl = document.getElementById('cnn-warning');
+                if (data.warning) {
+                    warnEl.style.display = 'block';
+                    warnEl.innerText = 'ℹ ' + data.warning;
+                } else {
+                    warnEl.style.display = 'none';
+                }
             } catch (err) {
                 alert("Error calling CNN API: " + err.message);
             }

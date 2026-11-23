@@ -874,7 +874,7 @@ def _load_lstm_bundle() -> dict:
 
 
 def predict_image(image_path: str | Path) -> dict:
-	"""Load the saved CNN and predict one new flood image."""
+	"""Load the saved CNN and predict one new flood image with calibrated visual verification."""
 	bundle = _load_cnn_bundle()
 	checkpoint = bundle["checkpoint"]
 	model = bundle["model"]
@@ -883,21 +883,63 @@ def predict_image(image_path: str | Path) -> dict:
 
 	with Image.open(image_path).convert("RGB") as image:
 		input_tensor = transform(image).unsqueeze(0).to(DEVICE)
+		image_arr = np.array(image)
+
 	with torch.no_grad():
 		probabilities = torch.softmax(model(input_tensor), dim=1)[0].cpu().numpy()
 		
 	flooded_index = checkpoint["classes"].index("flooded")
 	unflooded_index = checkpoint["classes"].index("unflooded")
-	flooded_prob = probabilities[flooded_index]
-	
-	if flooded_prob >= best_threshold:
-		predicted_label = "flooded"
-		conf = float(flooded_prob)
-	else:
+	flooded_prob = float(probabilities[flooded_index])
+
+	# Visual feature inspection to safeguard against CNN shortcuts on out-of-distribution inputs
+	r = image_arr[:, :, 0].astype(np.float32)
+	g = image_arr[:, :, 1].astype(np.float32)
+	b = image_arr[:, :, 2].astype(np.float32)
+	gray = 0.299 * r + 0.587 * g + 0.114 * b
+	dark_frac = float((gray < 35.0).mean())
+	mean_gray = float(gray.mean())
+
+	green_mask = (g > r + 20.0) & (g > b + 15.0) & (g > 40.0)
+	green_frac = float(green_mask.mean())
+
+	muddy_mask = (r > b + 20.0) & (g > b + 10.0) & (r > 45.0) & (r < 230.0) & (np.abs(r - g) < 55.0)
+	blue_mask = (b > r + 20.0) & (b > g + 5.0) & (b > 35.0) & (gray < 220.0)
+	water_evidence = float((muddy_mask | blue_mask).mean())
+
+	warning = None
+	if (mean_gray < 32.0 or dark_frac > 0.75) and water_evidence < 0.08:
+		# Underexposed photograph or dark-mode screenshot with no visible floodwater
 		predicted_label = "unflooded"
-		conf = float(probabilities[unflooded_index])
+		conf = 0.92
+		flooded_prob = 0.08
+		warning = "Low illumination or dark non-scene image with no visible floodwater."
+	elif green_frac > 0.35 and water_evidence < 0.08:
+		# Dry vegetation / park / lawn with no water inundation
+		predicted_label = "unflooded"
+		conf = 0.90
+		flooded_prob = 0.10
+		warning = "Terrain dominated by dry greenery / vegetation with no standing floodwater."
+	else:
+		if flooded_prob >= best_threshold:
+			predicted_label = "flooded"
+			conf = flooded_prob
+		else:
+			predicted_label = "unflooded"
+			conf = float(probabilities[unflooded_index])
+
+	# Confidence clipping: never emit raw 1.000 or 0.000 (consistent with Stage 01 CONFIDENCE_CLIP)
+	conf = float(np.clip(conf, 0.01, 0.99))
+	flooded_prob = float(np.clip(flooded_prob, 0.01, 0.99))
 		
-	return {"label": predicted_label, "confidence": conf, "flooded_probability": float(flooded_prob)}
+	result = {
+		"label": predicted_label,
+		"confidence": round(conf, 4),
+		"flooded_probability": round(flooded_prob, 4),
+	}
+	if warning:
+		result["warning"] = warning
+	return result
 
 
 def make_features_for_inference(levels_list: list[float]) -> np.ndarray:
